@@ -1,0 +1,91 @@
+/**
+ * CanvasElement Component
+ * Routes to the appropriate element component based on type
+ */
+
+import type { Element } from '../../types';
+import Note from '../Elements/Note';
+
+interface CanvasElementProps {
+  element: Element;
+  isSelected: boolean;
+  onSelect: () => void;
+}
+
+export default function CanvasElement({ element, isSelected, onSelect }: CanvasElementProps) {
+  switch (element.type) {
+    case 'note':
+      return <Note element={element} isSelected={isSelected} onSelect={onSelect} />;
+
+    case 'image':
+      // TODO: Implement Image component
+      return (
+        <div
+          className="element-card absolute p-4"
+          style={{
+            left: `${element.position.x}px`,
+            top: `${element.position.y}px`,
+            width: `${element.size.width}px`,
+            height: `${element.size.height}px`,
+            zIndex: element.zIndex
+          }}
+          onClick={onSelect}
+        >
+          Image (TODO)
+        </div>
+      );
+
+    case 'column':
+      // TODO: Implement Column component
+      return (
+        <div
+          className="element-card absolute p-4 border-2 border-dashed border-primary-300"
+          style={{
+            left: `${element.position.x}px`,
+            top: `${element.position.y}px`,
+            width: `${element.size.width}px`,
+            minHeight: `${element.size.height}px`,
+            zIndex: element.zIndex
+          }}
+          onClick={onSelect}
+        >
+          Column (TODO)
+        </div>
+      );
+
+    case 'section':
+      // TODO: Implement Section component
+      return (
+        <div
+          className="absolute p-4 border-2 border-dashed border-gray-300 bg-gray-50/50"
+          style={{
+            left: `${element.position.x}px`,
+            top: `${element.position.y}px`,
+            width: `${element.size.width}px`,
+            height: `${element.size.height}px`,
+            zIndex: element.zIndex
+          }}
+          onClick={onSelect}
+        >
+          Section (TODO)
+        </div>
+      );
+
+    default:
+      return (
+        <div
+          className="element-card absolute p-4"
+          style={{
+            left: `${element.position.x}px`,
+            top: `${element.position.y}px`,
+            width: `${element.size.width}px`,
+            height: `${element.size.height}px`,
+            zIndex: element.zIndex
+          }}
+          onClick={onSelect}
+        >
+          {element.type} (Not implemented)
+        </div>
+      );
+  }
+}

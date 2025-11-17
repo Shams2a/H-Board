@@ -3,13 +3,16 @@
  * Main workspace for placing and manipulating elements
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useBoardStore, useElementStore, useUIStore } from '../../store';
+import type { NoteElement } from '../../types';
+import CanvasElement from './CanvasElement';
 
 export default function Canvas() {
   const { currentBoardId, getCurrentBoard } = useBoardStore();
-  const { loadElements, elements } = useElementStore();
-  const { zoom, panX, panY, gridEnabled } = useUIStore();
+  const { loadElements, elements, createElement, selectElement, selectedIds, clearSelection } = useElementStore();
+  const { zoom, panX, panY, gridEnabled, activeTool, setActiveTool } = useUIStore();
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   const currentBoard = getCurrentBoard();
 
@@ -18,6 +21,53 @@ export default function Canvas() {
       loadElements(currentBoardId);
     }
   }, [currentBoardId, loadElements]);
+
+  const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+    // Only create element if clicking directly on canvas (not on an element)
+    if (e.target !== e.currentTarget) return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect || !currentBoardId) return;
+
+    // Calculate position accounting for zoom and pan
+    const x = (e.clientX - rect.left) / zoom - panX;
+    const y = (e.clientY - rect.top) / zoom - panY;
+
+    // Snap to grid if enabled
+    const gridSize = gridEnabled ? 8 : 1;
+    const snappedX = Math.round(x / gridSize) * gridSize;
+    const snappedY = Math.round(y / gridSize) * gridSize;
+
+    // Create element based on active tool
+    if (activeTool === 'note') {
+      const newNote: NoteElement = {
+        id: crypto.randomUUID(),
+        boardId: currentBoardId,
+        type: 'note',
+        position: { x: snappedX, y: snappedY },
+        size: { width: 300, height: 200 },
+        zIndex: elements.length,
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        content: {
+          text: '',
+          textFormat: 'html'
+        },
+        style: {
+          backgroundColor: '#FFFFFF'
+        }
+      };
+
+      await createElement(newNote);
+      setActiveTool(null); // Reset tool after creation
+    }
+
+    // Clear selection when clicking on empty canvas
+    if (!activeTool) {
+      clearSelection();
+    }
+  };
 
   if (!currentBoard) {
     return (
@@ -36,28 +86,31 @@ export default function Canvas() {
 
   return (
     <div
+      ref={canvasRef}
       className={`
         flex-1 overflow-hidden relative
         ${gridEnabled ? 'canvas-grid' : ''}
+        ${activeTool ? 'cursor-crosshair' : 'cursor-default'}
       `}
       style={{
         backgroundColor: currentBoard.settings.backgroundColor || '#F5F5F5'
       }}
+      onClick={handleCanvasClick}
     >
       {/* Canvas content with zoom and pan */}
       <div
         style={{
           transform: `scale(${zoom}) translate(${panX}px, ${panY}px)`,
-          transformOrigin: 'center center',
+          transformOrigin: 'top left',
           width: '100%',
           height: '100%',
-          transition: 'transform 0.1s ease-out'
+          transition: 'transform 0.1s ease-out',
+          position: 'relative'
         }}
       >
-        {/* Placeholder for elements */}
         {elements.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center">
+            <div className="text-center pointer-events-none">
               <h3 className="text-lg font-semibold text-text-primary mb-2">
                 {currentBoard.name}
               </h3>
@@ -71,17 +124,27 @@ export default function Canvas() {
           </div>
         ) : (
           <div className="relative w-full h-full">
-            {/* Elements will be rendered here */}
-            <p className="absolute top-4 left-4 text-sm text-text-tertiary">
-              {elements.length} element(s) in this board
-            </p>
+            {/* Render all elements */}
+            {elements.map((element) => (
+              <CanvasElement
+                key={element.id}
+                element={element}
+                isSelected={selectedIds.includes(element.id)}
+                onSelect={() => selectElement(element.id)}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* Canvas info (bottom right) */}
-      <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary">
+      <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary pointer-events-none">
         Board: {currentBoard.name} • Elements: {elements.length}
+        {activeTool && (
+          <span className="ml-2 text-primary-600 font-semibold">
+            • Creating: {activeTool}
+          </span>
+        )}
       </div>
     </div>
   );
