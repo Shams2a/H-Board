@@ -174,8 +174,13 @@ npm run dev
 
 rer la sélection multiple
 
+### Bugs Résolus
+- ✅ **Tailwind CSS v4 incompatibilité** : Packages v4 (@tailwindcss/postcss) supprimés, utilisation de v3.4.18 stable
+- ✅ **Page blanche au chargement** : Persist middleware de Zustand retiré pour éviter les problèmes d'hydration
+- ✅ **Vite 7 incompatibilité Node.js** : Downgrade vers Vite 5.4.21 pour Node 20.11
+
 ### Bugs Connus
-- Aucun bug majeur détecté pour le moment
+- UI state ne persiste plus entre sessions (sidebar, zoom, grille) - à réimplémenter avec localStorage manuel si nécessaire
 
 ---
 
