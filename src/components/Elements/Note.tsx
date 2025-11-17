@@ -4,10 +4,6 @@
  */
 
 import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Placeholder from '@tiptap/extension-placeholder';
-import Color from '@tiptap/extension-color';
-import TextStyle from '@tiptap/extension-text-style';
 import { useEffect, useRef } from 'react';
 import type { NoteElement } from '../../types';
 import { useElementStore } from '../../store';
@@ -24,6 +20,17 @@ import {
   Heading3,
   GripVertical
 } from 'lucide-react';
+
+// Import TipTap extensions
+import * as StarterKitModule from '@tiptap/starter-kit';
+import * as PlaceholderModule from '@tiptap/extension-placeholder';
+import * as ColorModule from '@tiptap/extension-color';
+import * as TextStyleModule from '@tiptap/extension-text-style';
+
+const StarterKit = StarterKitModule.default || StarterKitModule;
+const Placeholder = PlaceholderModule.default || PlaceholderModule;
+const Color = ColorModule.default || ColorModule;
+const TextStyle = TextStyleModule.default || TextStyleModule;
 
 interface NoteProps {
   element: NoteElement;
