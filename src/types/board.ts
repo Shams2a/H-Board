@@ -7,7 +7,8 @@ export interface Board {
   name: string;
   description?: string;
   tags: string[];
-  parentId: string | null;
+  folderId: string | null; // Folder organization
+  parentId: string | null; // Sub-board hierarchy
   createdAt: Date;
   updatedAt: Date;
   settings: BoardSettings;

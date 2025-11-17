@@ -5,6 +5,8 @@
 
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Tag, Trash2, Copy, Edit3, FileText } from 'lucide-react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import type { Board } from '../../types';
 import { useBoardStore } from '../../store';
 
@@ -17,6 +19,19 @@ interface BoardCardProps {
 export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCardProps) {
   const navigate = useNavigate();
   const { deleteBoard, duplicateBoard } = useBoardStore();
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: `board-${board.id}`,
+    data: {
+      type: 'board',
+      board
+    }
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : undefined
+  };
 
   const handleOpen = () => {
     navigate(`/board/${board.id}`);
@@ -51,6 +66,10 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
   if (viewMode === 'list') {
     return (
       <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
         onClick={handleOpen}
         className="group bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
       >
@@ -126,6 +145,10 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
   // Grid view (cleaner rectangular design)
   return (
     <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       onClick={handleOpen}
       className="group bg-white rounded-lg hover:shadow-md transition-all cursor-pointer border border-gray-200 hover:border-primary-300 overflow-hidden"
     >

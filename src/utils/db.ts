@@ -5,18 +5,27 @@
 
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
-import type { Board, Element } from '../types';
+import type { Board, Element, Folder } from '../types';
 
 export class HBoardDatabase extends Dexie {
   boards!: Table<Board, string>;
   elements!: Table<Element, string>;
+  folders!: Table<Folder, string>;
 
   constructor() {
     super('HBoardDB');
 
+    // Version 1: Initial schema
     this.version(1).stores({
       boards: 'id, name, parentId, createdAt, updatedAt',
       elements: 'id, boardId, type, parentId, createdAt, updatedAt, zIndex'
+    });
+
+    // Version 2: Add folders table and folderId to boards
+    this.version(2).stores({
+      boards: 'id, name, parentId, folderId, createdAt, updatedAt',
+      elements: 'id, boardId, type, parentId, createdAt, updatedAt, zIndex',
+      folders: 'id, name, parentFolderId, createdAt, updatedAt'
     });
   }
 }
@@ -228,6 +237,73 @@ export const elementOperations = {
   }
 };
 
+export const folderOperations = {
+  /**
+   * Get all folders
+   */
+  async getAll(): Promise<Folder[]> {
+    return await db.folders.toArray();
+  },
+
+  /**
+   * Get folder by ID
+   */
+  async getById(id: string): Promise<Folder | undefined> {
+    return await db.folders.get(id);
+  },
+
+  /**
+   * Get root folders (folders without parent)
+   */
+  async getRootFolders(): Promise<Folder[]> {
+    return await db.folders.where('parentFolderId').equals(null as any).toArray();
+  },
+
+  /**
+   * Get child folders
+   */
+  async getChildren(parentId: string): Promise<Folder[]> {
+    return await db.folders.where('parentFolderId').equals(parentId).toArray();
+  },
+
+  /**
+   * Create a new folder
+   */
+  async create(folder: Folder): Promise<string> {
+    return await db.folders.add(folder);
+  },
+
+  /**
+   * Update a folder
+   */
+  async update(id: string, updates: Partial<Folder>): Promise<number> {
+    return await db.folders.update(id, {
+      ...updates,
+      updatedAt: new Date()
+    });
+  },
+
+  /**
+   * Delete a folder and move its contents to root
+   */
+  async delete(id: string): Promise<void> {
+    // Move all boards in this folder to root
+    const boardsInFolder = await db.boards.where('folderId').equals(id).toArray();
+    for (const board of boardsInFolder) {
+      await db.boards.update(board.id, { folderId: null });
+    }
+
+    // Move all child folders to root
+    const childFolders = await db.folders.where('parentFolderId').equals(id).toArray();
+    for (const folder of childFolders) {
+      await db.folders.update(folder.id, { parentFolderId: null });
+    }
+
+    // Delete the folder
+    await db.folders.delete(id);
+  }
+};
+
 /**
  * Helper function to get all descendant boards recursively
  */
@@ -256,6 +332,7 @@ export async function initializeDatabase(): Promise<void> {
       name: 'My First Board',
       description: 'Welcome to H-Board! Start organizing your ideas here.',
       tags: ['getting-started'],
+      folderId: null,
       parentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),

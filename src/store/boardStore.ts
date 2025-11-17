@@ -67,6 +67,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         name,
         description,
         tags: tags || [],
+        folderId: null,
         parentId: parentId || null,
         createdAt: new Date(),
         updatedAt: new Date(),
