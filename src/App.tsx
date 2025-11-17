@@ -1,52 +1,35 @@
 /**
  * Main App Component
- * Assembles the main layout with Sidebar, Canvas, and Toolbar
+ * Router setup for Dashboard and Canvas views
  */
 
 import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeDatabase } from './utils/db';
-import { useUIStore } from './store';
-import Sidebar from './components/Sidebar/Sidebar';
-import Breadcrumb from './components/Canvas/Breadcrumb';
-import Canvas from './components/Canvas/Canvas';
-import Toolbar from './components/Toolbar/Toolbar';
+import Dashboard from './components/Dashboard/Dashboard';
+import CanvasPage from './pages/CanvasPage';
 
 function App() {
-  const { sidebarOpen, presentationMode } = useUIStore();
-
   // Initialize database on mount
   useEffect(() => {
     initializeDatabase();
   }, []);
 
-  if (presentationMode) {
-    return (
-      <div className="h-full">
-        <Canvas />
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        {sidebarOpen && <Sidebar />}
+    <BrowserRouter>
+      <div className="h-screen w-screen overflow-hidden">
+        <Routes>
+          {/* Dashboard - Homepage */}
+          <Route path="/" element={<Dashboard />} />
 
-        {/* Canvas Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Breadcrumb Navigation */}
-          <Breadcrumb />
+          {/* Canvas - Board Editor */}
+          <Route path="/board/:boardId" element={<CanvasPage />} />
 
-          {/* Canvas */}
-          <Canvas />
-        </div>
+          {/* Redirect unknown routes to dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </div>
-
-      {/* Bottom Toolbar */}
-      <Toolbar />
-    </div>
+    </BrowserRouter>
   );
 }
 

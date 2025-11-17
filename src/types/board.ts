@@ -5,6 +5,8 @@
 export interface Board {
   id: string;
   name: string;
+  description?: string;
+  tags: string[];
   parentId: string | null;
   createdAt: Date;
   updatedAt: Date;

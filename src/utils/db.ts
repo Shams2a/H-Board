@@ -254,6 +254,8 @@ export async function initializeDatabase(): Promise<void> {
     const defaultBoard: Board = {
       id: crypto.randomUUID(),
       name: 'My First Board',
+      description: 'Welcome to H-Board! Start organizing your ideas here.',
+      tags: ['getting-started'],
       parentId: null,
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -16,13 +16,16 @@ interface BoardState {
   // Actions
   loadBoards: () => Promise<void>;
   setCurrentBoard: (boardId: string) => void;
-  createBoard: (name: string, parentId?: string) => Promise<string>;
+  createBoard: (name: string, parentId?: string, description?: string, tags?: string[]) => Promise<string>;
   updateBoard: (id: string, updates: Partial<Board>) => Promise<void>;
   deleteBoard: (id: string) => Promise<void>;
   duplicateBoard: (id: string, newName?: string) => Promise<string>;
   getCurrentBoard: () => Board | null;
   getBoardPath: (boardId: string) => Board[];
   getChildBoards: (parentId: string | null) => Board[];
+  addTagToBoard: (boardId: string, tag: string) => Promise<void>;
+  removeTagFromBoard: (boardId: string, tag: string) => Promise<void>;
+  getAllTags: () => string[];
 }
 
 export const useBoardStore = create<BoardState>((set, get) => ({
@@ -56,12 +59,14 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     set({ currentBoardId: boardId });
   },
 
-  createBoard: async (name: string, parentId?: string) => {
+  createBoard: async (name: string, parentId?: string, description?: string, tags?: string[]) => {
     set({ loading: true, error: null });
     try {
       const newBoard: Board = {
         id: crypto.randomUUID(),
         name,
+        description,
+        tags: tags || [],
         parentId: parentId || null,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -167,5 +172,27 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   getChildBoards: (parentId: string | null): Board[] => {
     const { boards } = get();
     return boards.filter(b => b.parentId === parentId);
+  },
+
+  addTagToBoard: async (boardId: string, tag: string) => {
+    const board = get().boards.find(b => b.id === boardId);
+    if (!board) return;
+
+    const tags = [...new Set([...board.tags, tag])]; // Avoid duplicates
+    await get().updateBoard(boardId, { tags });
+  },
+
+  removeTagFromBoard: async (boardId: string, tag: string) => {
+    const board = get().boards.find(b => b.id === boardId);
+    if (!board) return;
+
+    const tags = board.tags.filter(t => t !== tag);
+    await get().updateBoard(boardId, { tags });
+  },
+
+  getAllTags: (): string[] => {
+    const { boards } = get();
+    const allTags = boards.flatMap(b => b.tags);
+    return [...new Set(allTags)].sort();
   }
 }));
