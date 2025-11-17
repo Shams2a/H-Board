@@ -4,11 +4,14 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, X, Grid3x3, List } from 'lucide-react';
 import { useBoardStore } from '../../store';
 import BoardCard from './BoardCard';
+import BoardEditModal from './BoardEditModal';
+import type { Board } from '../../types';
 
 type SortBy = 'name' | 'created' | 'updated';
+type ViewMode = 'grid' | 'list';
 
 export default function Dashboard() {
   const { boards, loadBoards, createBoard, getAllTags } = useBoardStore();
@@ -18,6 +21,8 @@ export default function Dashboard() {
   const [showFilters, setShowFilters] = useState(false);
   const [showNewBoardDialog, setShowNewBoardDialog] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [editingBoard, setEditingBoard] = useState<Board | null>(null);
 
   useEffect(() => {
     loadBoards();
@@ -133,6 +138,32 @@ export default function Dashboard() {
               )}
             </button>
 
+            {/* View Toggle */}
+            <div className="flex items-center gap-1 bg-white border border-gray-300 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === 'grid'
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title="Vue grille"
+              >
+                <Grid3x3 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === 'list'
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                title="Vue liste"
+              >
+                <List className="w-4 h-4" />
+              </button>
+            </div>
+
             {/* Sort */}
             <select
               value={sortBy}
@@ -182,15 +213,33 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Boards Grid */}
+      {/* Boards List/Grid */}
       <main className="flex-1 overflow-auto px-8 py-6">
         <div className="max-w-7xl mx-auto">
           {filteredBoards.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredBoards.map((board) => (
-                <BoardCard key={board.id} board={board} />
-              ))}
-            </div>
+            viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredBoards.map((board) => (
+                  <BoardCard
+                    key={board.id}
+                    board={board}
+                    viewMode="grid"
+                    onEdit={setEditingBoard}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                {filteredBoards.map((board) => (
+                  <BoardCard
+                    key={board.id}
+                    board={board}
+                    viewMode="list"
+                    onEdit={setEditingBoard}
+                  />
+                ))}
+              </div>
+            )
           ) : (
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
@@ -259,6 +308,15 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Edit Board Modal */}
+      {editingBoard && (
+        <BoardEditModal
+          board={editingBoard}
+          isOpen={!!editingBoard}
+          onClose={() => setEditingBoard(null)}
+        />
       )}
     </div>
   );
