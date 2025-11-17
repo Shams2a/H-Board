@@ -3,7 +3,8 @@
  * Handles all local storage for H-Board
  */
 
-import Dexie, { Table } from 'dexie';
+import Dexie from 'dexie';
+import type { Table } from 'dexie';
 import type { Board, Element } from '../types';
 
 export class HBoardDatabase extends Dexie {
