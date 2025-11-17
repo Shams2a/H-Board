@@ -3,8 +3,23 @@
  * Handles logic for moving boards into folders
  */
 
-import type { DragEndEvent } from '@dnd-kit/core';
 import type { Board, Folder } from '../types';
+
+// Define the event type structure from @dnd-kit/core
+export type DragEndEvent = {
+  active: {
+    id: string | number;
+    data: {
+      current?: any;
+    };
+  };
+  over: {
+    id: string | number;
+    data: {
+      current?: any;
+    };
+  } | null;
+};
 
 export interface DragData {
   type: 'board' | 'folder';
@@ -13,8 +28,8 @@ export interface DragData {
 }
 
 export interface DropData {
-  type: 'folder';
-  folder: Folder;
+  type: 'folder' | 'root';
+  folder?: Folder;
 }
 
 /**
@@ -32,12 +47,14 @@ export function handleDragEnd(event: DragEndEvent): {
   const dragData = active.data.current as DragData;
   const dropData = over.data.current as DropData;
 
-  // Only handle board being dropped into folder
-  if (dragData?.type === 'board' && dropData?.type === 'folder') {
-    const board = dragData.board;
-    const folder = dropData.folder;
+  // Only handle board drops
+  if (dragData?.type !== 'board' || !dragData.board) return null;
 
-    if (!board || !folder) return null;
+  const board = dragData.board;
+
+  // Handle board being dropped into folder
+  if (dropData?.type === 'folder' && dropData.folder) {
+    const folder = dropData.folder;
 
     // Don't move if already in this folder
     if (board.folderId === folder.id) return null;
@@ -45,6 +62,17 @@ export function handleDragEnd(event: DragEndEvent): {
     return {
       boardId: board.id,
       newFolderId: folder.id
+    };
+  }
+
+  // Handle board being dropped to root
+  if (dropData?.type === 'root') {
+    // Don't move if already at root
+    if (board.folderId === null) return null;
+
+    return {
+      boardId: board.id,
+      newFolderId: null
     };
   }
 

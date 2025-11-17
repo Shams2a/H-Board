@@ -5,13 +5,14 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, SlidersHorizontal, X, Grid3x3, List, FolderPlus } from 'lucide-react';
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { DndContext } from '@dnd-kit/core';
 import { useBoardStore, useFolderStore } from '../../store';
 import BoardCard from './BoardCard';
 import BoardEditModal from './BoardEditModal';
 import FolderItem from './FolderItem';
 import FolderEditModal from './FolderEditModal';
-import { handleDragEnd, groupBoardsByFolder } from '../../utils/dragAndDrop';
+import RootBoardsZone from './RootBoardsZone';
+import { handleDragEnd, groupBoardsByFolder, type DragEndEvent } from '../../utils/dragAndDrop';
 import type { Board, Folder } from '../../types';
 
 type SortBy = 'name' | 'created' | 'updated';
@@ -276,16 +277,18 @@ export default function Dashboard() {
 
                   {/* Root Boards (not in any folder) */}
                   {allRootBoards.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                      {allRootBoards.map((board) => (
-                        <BoardCard
-                          key={board.id}
-                          board={board}
-                          viewMode="grid"
-                          onEdit={setEditingBoard}
-                        />
-                      ))}
-                    </div>
+                    <RootBoardsZone viewMode="grid">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {allRootBoards.map((board) => (
+                          <BoardCard
+                            key={board.id}
+                            board={board}
+                            viewMode="grid"
+                            onEdit={setEditingBoard}
+                          />
+                        ))}
+                      </div>
+                    </RootBoardsZone>
                   )}
                 </div>
               ) : (
@@ -310,14 +313,16 @@ export default function Dashboard() {
                   ))}
 
                   {/* Root Boards */}
-                  {allRootBoards.map((board) => (
-                    <BoardCard
-                      key={board.id}
-                      board={board}
-                      viewMode="list"
-                      onEdit={setEditingBoard}
-                    />
-                  ))}
+                  <RootBoardsZone viewMode="list">
+                    {allRootBoards.map((board) => (
+                      <BoardCard
+                        key={board.id}
+                        board={board}
+                        viewMode="list"
+                        onEdit={setEditingBoard}
+                      />
+                    ))}
+                  </RootBoardsZone>
                 </div>
               )
             ) : (
