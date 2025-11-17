@@ -4,29 +4,37 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, SlidersHorizontal, X, Grid3x3, List } from 'lucide-react';
-import { useBoardStore } from '../../store';
+import { Plus, Search, SlidersHorizontal, X, Grid3x3, List, FolderPlus } from 'lucide-react';
+import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { useBoardStore, useFolderStore } from '../../store';
 import BoardCard from './BoardCard';
 import BoardEditModal from './BoardEditModal';
-import type { Board } from '../../types';
+import FolderItem from './FolderItem';
+import FolderEditModal from './FolderEditModal';
+import { handleDragEnd, groupBoardsByFolder } from '../../utils/dragAndDrop';
+import type { Board, Folder } from '../../types';
 
 type SortBy = 'name' | 'created' | 'updated';
 type ViewMode = 'grid' | 'list';
 
 export default function Dashboard() {
-  const { boards, loadBoards, createBoard, getAllTags } = useBoardStore();
+  const { boards, loadBoards, createBoard, updateBoard, getAllTags } = useBoardStore();
+  const { folders, loadFolders } = useFolderStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortBy>('updated');
   const [showFilters, setShowFilters] = useState(false);
   const [showNewBoardDialog, setShowNewBoardDialog] = useState(false);
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newBoardName, setNewBoardName] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [editingBoard, setEditingBoard] = useState<Board | null>(null);
+  const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
 
   useEffect(() => {
     loadBoards();
-  }, [loadBoards]);
+    loadFolders();
+  }, [loadBoards, loadFolders]);
 
   const allTags = useMemo(() => getAllTags(), [boards]);
 
@@ -77,6 +85,13 @@ export default function Dashboard() {
     setShowNewBoardDialog(false);
   };
 
+  const handleDragEndEvent = async (event: DragEndEvent) => {
+    const result = handleDragEnd(event);
+    if (result) {
+      await updateBoard(result.boardId, { folderId: result.newFolderId });
+    }
+  };
+
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
       prev.includes(tag)
@@ -84,6 +99,15 @@ export default function Dashboard() {
         : [...prev, tag]
     );
   };
+
+  // Group boards by folder
+  const { rootBoards: allRootBoards, folderBoards } = useMemo(
+    () => groupBoardsByFolder(filteredBoards, folders),
+    [filteredBoards, folders]
+  );
+
+  // Get root folders only
+  const rootFolders = folders.filter(f => f.parentFolderId === null);
 
   return (
     <div className="h-full flex flex-col bg-gray-50">
@@ -97,13 +121,22 @@ export default function Dashboard() {
                 {filteredBoards.length} projet{filteredBoards.length !== 1 ? 's' : ''}
               </p>
             </div>
-            <button
-              onClick={() => setShowNewBoardDialog(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              <Plus className="w-5 h-5" />
-              Nouveau Projet
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowNewFolderDialog(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                <FolderPlus className="w-5 h-5" />
+                Nouveau Dossier
+              </button>
+              <button
+                onClick={() => setShowNewBoardDialog(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+                Nouveau Projet
+              </button>
+            </div>
           </div>
 
           {/* Search and Filters */}
@@ -213,34 +246,81 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Boards List/Grid */}
+      {/* Boards List/Grid with Drag & Drop */}
       <main className="flex-1 overflow-auto px-8 py-6">
         <div className="max-w-7xl mx-auto">
-          {filteredBoards.length > 0 ? (
-            viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredBoards.map((board) => (
-                  <BoardCard
-                    key={board.id}
-                    board={board}
-                    viewMode="grid"
-                    onEdit={setEditingBoard}
-                  />
-                ))}
-              </div>
+          <DndContext onDragEnd={handleDragEndEvent}>
+            {(filteredBoards.length > 0 || folders.length > 0) ? (
+              viewMode === 'grid' ? (
+                <div className="space-y-4">
+                  {/* Folders */}
+                  {rootFolders.map((folder) => (
+                    <FolderItem
+                      key={folder.id}
+                      folder={folder}
+                      viewMode="grid"
+                      onEdit={setEditingFolder}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {folderBoards.get(folder.id)?.map((board) => (
+                          <BoardCard
+                            key={board.id}
+                            board={board}
+                            viewMode="grid"
+                            onEdit={setEditingBoard}
+                          />
+                        ))}
+                      </div>
+                    </FolderItem>
+                  ))}
+
+                  {/* Root Boards (not in any folder) */}
+                  {allRootBoards.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {allRootBoards.map((board) => (
+                        <BoardCard
+                          key={board.id}
+                          board={board}
+                          viewMode="grid"
+                          onEdit={setEditingBoard}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  {/* Folders */}
+                  {rootFolders.map((folder) => (
+                    <FolderItem
+                      key={folder.id}
+                      folder={folder}
+                      viewMode="list"
+                      onEdit={setEditingFolder}
+                    >
+                      {folderBoards.get(folder.id)?.map((board) => (
+                        <BoardCard
+                          key={board.id}
+                          board={board}
+                          viewMode="list"
+                          onEdit={setEditingBoard}
+                        />
+                      ))}
+                    </FolderItem>
+                  ))}
+
+                  {/* Root Boards */}
+                  {allRootBoards.map((board) => (
+                    <BoardCard
+                      key={board.id}
+                      board={board}
+                      viewMode="list"
+                      onEdit={setEditingBoard}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                {filteredBoards.map((board) => (
-                  <BoardCard
-                    key={board.id}
-                    board={board}
-                    viewMode="list"
-                    onEdit={setEditingBoard}
-                  />
-                ))}
-              </div>
-            )
-          ) : (
             <div className="text-center py-16">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
@@ -264,6 +344,7 @@ export default function Dashboard() {
               )}
             </div>
           )}
+          </DndContext>
         </div>
       </main>
 
@@ -318,6 +399,16 @@ export default function Dashboard() {
           onClose={() => setEditingBoard(null)}
         />
       )}
+
+      {/* Folder Modals */}
+      <FolderEditModal
+        folder={editingFolder}
+        isOpen={showNewFolderDialog || !!editingFolder}
+        onClose={() => {
+          setShowNewFolderDialog(false);
+          setEditingFolder(null);
+        }}
+      />
     </div>
   );
 }
