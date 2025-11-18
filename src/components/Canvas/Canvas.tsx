@@ -5,7 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useBoardStore, useElementStore, useUIStore } from '../../store';
-import type { NoteElement, ImageElement } from '../../types';
+import type { NoteElement, ImageElement, ColumnElement } from '../../types';
 import CanvasElement from './CanvasElement';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
@@ -120,6 +120,32 @@ export default function Canvas() {
       };
 
       await createElement(newImage);
+      setActiveTool(null); // Reset tool after creation
+    }
+
+    // Create column element
+    if (activeTool === 'column') {
+      const newColumn: ColumnElement = {
+        id: crypto.randomUUID(),
+        boardId: currentBoardId,
+        type: 'column',
+        position: { x: snappedX, y: snappedY },
+        size: { width: 350, height: 400 },
+        zIndex: elements.length,
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        content: {
+          title: 'New Column',
+          childrenIds: [],
+          maxWidth: 800
+        },
+        style: {
+          backgroundColor: '#FFFFFF'
+        }
+      };
+
+      await createElement(newColumn);
       setActiveTool(null); // Reset tool after creation
     }
 
