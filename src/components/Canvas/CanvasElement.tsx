@@ -5,6 +5,7 @@
 
 import type { Element } from '../../types';
 import Note from '../Elements/Note';
+import Image from '../Elements/Image';
 
 interface CanvasElementProps {
   element: Element;
@@ -18,22 +19,7 @@ export default function CanvasElement({ element, isSelected, onSelect }: CanvasE
       return <Note element={element} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'image':
-      // TODO: Implement Image component
-      return (
-        <div
-          className="element-card absolute p-4"
-          style={{
-            left: `${element.position.x}px`,
-            top: `${element.position.y}px`,
-            width: `${element.size.width}px`,
-            height: `${element.size.height}px`,
-            zIndex: element.zIndex
-          }}
-          onClick={onSelect}
-        >
-          Image (TODO)
-        </div>
-      );
+      return <Image element={element} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'column':
       // TODO: Implement Column component

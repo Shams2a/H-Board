@@ -5,7 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useBoardStore, useElementStore, useUIStore } from '../../store';
-import type { NoteElement } from '../../types';
+import type { NoteElement, ImageElement } from '../../types';
 import CanvasElement from './CanvasElement';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
@@ -94,6 +94,32 @@ export default function Canvas() {
       };
 
       await createElement(newNote);
+      setActiveTool(null); // Reset tool after creation
+    }
+
+    // Create image element
+    if (activeTool === 'image') {
+      const newImage: ImageElement = {
+        id: crypto.randomUUID(),
+        boardId: currentBoardId,
+        type: 'image',
+        position: { x: snappedX, y: snappedY },
+        size: { width: 400, height: 300 },
+        zIndex: elements.length,
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        content: {
+          src: '', // Empty initially - user will upload
+          alt: '',
+          originalName: ''
+        },
+        style: {
+          backgroundColor: '#F9FAFB'
+        }
+      };
+
+      await createElement(newImage);
       setActiveTool(null); // Reset tool after creation
     }
 
