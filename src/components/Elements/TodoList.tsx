@@ -62,7 +62,7 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
     });
   };
 
-  const handleAddItem = async () => {
+  const handleAddItem = async (continueAdding: boolean = false) => {
     if (!newItemText.trim()) return;
 
     const newItem: TodoItem = {
@@ -80,10 +80,14 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
     });
 
     setNewItemText('');
-    setIsAddingItem(false);
+
+    // If continueAdding is true, keep the input field open for the next item
+    if (!continueAdding) {
+      setIsAddingItem(false);
+    }
   };
 
-  const handleEditItem = async (itemId: string) => {
+  const handleEditItem = async (itemId: string, continueAdding: boolean = false) => {
     if (!editText.trim()) return;
 
     const updatedItems = items.map(item =>
@@ -99,6 +103,11 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
 
     setEditingItemId(null);
     setEditText('');
+
+    // If continueAdding, open the add item input
+    if (continueAdding) {
+      setIsAddingItem(true);
+    }
   };
 
   const handleDeleteItem = async (itemId: string) => {
@@ -209,7 +218,8 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
                   onBlur={() => handleEditItem(item.id)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
-                      handleEditItem(item.id);
+                      e.preventDefault();
+                      handleEditItem(item.id, true); // Continue to add new item after editing
                     } else if (e.key === 'Escape') {
                       setEditingItemId(null);
                       setEditText('');
@@ -267,7 +277,8 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    handleAddItem();
+                    e.preventDefault();
+                    handleAddItem(true); // Continue adding mode - keep input open
                   } else if (e.key === 'Escape') {
                     setNewItemText('');
                     setIsAddingItem(false);
