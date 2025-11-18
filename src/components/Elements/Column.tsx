@@ -99,7 +99,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
         ) : (
           <h3
             className="flex-1 font-semibold text-gray-900 cursor-text"
-            onClick={(e) => {
+            onDoubleClick={(e) => {
               e.stopPropagation();
               if (isSelected && !element.locked) {
                 setIsEditingTitle(true);

@@ -33,7 +33,13 @@ export function useDraggable({ elementId, onDragStart, onDragEnd }: UseDraggable
       target.closest('textarea') ||
       target.closest('.ProseMirror') ||
       target.closest('a') ||
-      target.closest('[contenteditable="true"]')
+      target.closest('[contenteditable="true"]') ||
+      target.tagName === 'H1' ||
+      target.tagName === 'H2' ||
+      target.tagName === 'H3' ||
+      target.tagName === 'H4' ||
+      target.tagName === 'H5' ||
+      target.tagName === 'H6'
     ) {
       return;
     }
