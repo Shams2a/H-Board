@@ -22,6 +22,8 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
   const isDragging = useRef(false);
   const startPos = useRef<Position>({ x: 0, y: 0 });
   const elementStartPos = useRef<Position>({ x: 0, y: 0 });
+  const mouseMoveHandlerRef = useRef<((e: MouseEvent) => void) | null>(null);
+  const mouseUpHandlerRef = useRef<((e: MouseEvent) => void) | null>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Only start drag on left click
@@ -61,6 +63,61 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
 
     onDragStart?.();
 
+    // Create handlers with current closure values
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current) return;
+
+      const element = getElementById(elementId);
+      if (!element) return;
+
+      // Calculate delta accounting for zoom
+      const deltaX = (e.clientX - startPos.current.x) / zoom;
+      const deltaY = (e.clientY - startPos.current.y) / zoom;
+
+      // Calculate new position
+      let newX = elementStartPos.current.x + deltaX;
+      let newY = elementStartPos.current.y + deltaY;
+
+      // Snap to grid if enabled
+      if (gridEnabled) {
+        const gridSize = 8;
+        newX = Math.round(newX / gridSize) * gridSize;
+        newY = Math.round(newY / gridSize) * gridSize;
+      }
+
+      // Update position
+      updatePosition(elementId, { x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      if (!isDragging.current) return;
+
+      isDragging.current = false;
+
+      // Remove event listeners
+      if (mouseMoveHandlerRef.current) {
+        window.removeEventListener('mousemove', mouseMoveHandlerRef.current);
+        mouseMoveHandlerRef.current = null;
+      }
+      if (mouseUpHandlerRef.current) {
+        window.removeEventListener('mouseup', mouseUpHandlerRef.current);
+        mouseUpHandlerRef.current = null;
+      }
+
+      // Reset cursor
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+
+      // Clear drag store
+      clearDrag();
+
+      onDragEnd?.();
+    };
+
+    // Store handlers in refs
+    mouseMoveHandlerRef.current = handleMouseMove;
+    mouseUpHandlerRef.current = handleMouseUp;
+
     // Add event listeners to window for smooth dragging
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
@@ -68,51 +125,7 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
     // Change cursor
     document.body.style.cursor = 'grabbing';
     document.body.style.userSelect = 'none';
-  }, [elementId, parentColumnId, onDragStart, setDraggedElement]);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging.current) return;
-
-    const element = getElementById(elementId);
-    if (!element) return;
-
-    // Calculate delta accounting for zoom
-    const deltaX = (e.clientX - startPos.current.x) / zoom;
-    const deltaY = (e.clientY - startPos.current.y) / zoom;
-
-    // Calculate new position
-    let newX = elementStartPos.current.x + deltaX;
-    let newY = elementStartPos.current.y + deltaY;
-
-    // Snap to grid if enabled
-    if (gridEnabled) {
-      const gridSize = 8;
-      newX = Math.round(newX / gridSize) * gridSize;
-      newY = Math.round(newY / gridSize) * gridSize;
-    }
-
-    // Update position
-    updatePosition(elementId, { x: newX, y: newY });
-  }, [elementId, zoom, gridEnabled, updatePosition]);
-
-  const handleMouseUp = useCallback(() => {
-    if (!isDragging.current) return;
-
-    isDragging.current = false;
-
-    // Remove event listeners
-    window.removeEventListener('mousemove', handleMouseMove);
-    window.removeEventListener('mouseup', handleMouseUp);
-
-    // Reset cursor
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-
-    // Clear drag store
-    clearDrag();
-
-    onDragEnd?.();
-  }, [onDragEnd, clearDrag]);
+  }, [elementId, parentColumnId, onDragStart, onDragEnd, setDraggedElement, clearDrag, getElementById, updatePosition, zoom, gridEnabled]);
 
   return {
     handleMouseDown,
