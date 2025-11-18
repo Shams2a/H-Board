@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useBoardStore } from '../store';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import Breadcrumb from '../components/Canvas/Breadcrumb';
 import Canvas from '../components/Canvas/Canvas';
 import Toolbar from '../components/Toolbar/Toolbar';
@@ -17,6 +18,9 @@ export default function CanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();
   const navigate = useNavigate();
   const { setCurrentBoard, getCurrentBoard, loadBoards } = useBoardStore();
+
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts();
 
   useEffect(() => {
     loadBoards();

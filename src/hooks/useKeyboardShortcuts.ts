@@ -1,93 +1,83 @@
 /**
  * useKeyboardShortcuts Hook
- * Handles keyboard shortcuts for canvas operations
+ * Global keyboard shortcuts for canvas operations
  */
 
-import { useEffect } from 'react';
-import { useUIStore } from '../store';
+import { useHotkeys } from 'react-hotkeys-hook';
+import { useElementStore } from '../store';
 
-interface KeyboardShortcutsProps {
-  onDelete?: () => void;
-  onCopy?: () => void;
-  onPaste?: () => void;
-  onDuplicate?: () => void;
-  onUndo?: () => void;
-  onRedo?: () => void;
-}
+export function useKeyboardShortcuts() {
+  const {
+    selectedIds,
+    deleteElements,
+    copy,
+    paste,
+    duplicate,
+    selectAll,
+    clearSelection
+  } = useElementStore();
 
-export function useKeyboardShortcuts({
-  onDelete,
-  onCopy,
-  onPaste,
-  onDuplicate,
-  onUndo,
-  onRedo,
-}: KeyboardShortcutsProps) {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in an input/textarea
-      const target = e.target as HTMLElement;
+  // Delete - Remove selected elements
+  useHotkeys('delete, backspace', (e) => {
+    e.preventDefault();
+    if (selectedIds.length > 0) {
+      // Don't delete if user is typing in an input/textarea
+      const activeElement = document.activeElement;
       if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.contentEditable === 'true'
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        activeElement?.getAttribute('contenteditable') === 'true'
       ) {
         return;
       }
+      deleteElements(selectedIds);
+    }
+  }, { enableOnFormTags: false });
 
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-      const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+  // Copy - Ctrl+C (Cmd+C on Mac)
+  useHotkeys('mod+c', (e) => {
+    e.preventDefault();
+    if (selectedIds.length > 0) {
+      copy();
+    }
+  }, { enableOnFormTags: false });
 
-      // Delete
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        onDelete?.();
-        return;
-      }
+  // Paste - Ctrl+V (Cmd+V on Mac)
+  useHotkeys('mod+v', (e) => {
+    e.preventDefault();
+    paste();
+  }, { enableOnFormTags: false });
 
-      // Copy (Ctrl/Cmd + C)
-      if (ctrlKey && e.key === 'c') {
-        e.preventDefault();
-        onCopy?.();
-        return;
-      }
+  // Duplicate - Ctrl+D (Cmd+D on Mac)
+  useHotkeys('mod+d', (e) => {
+    e.preventDefault();
+    if (selectedIds.length > 0) {
+      duplicate(selectedIds);
+    }
+  }, { enableOnFormTags: false });
 
-      // Paste (Ctrl/Cmd + V)
-      if (ctrlKey && e.key === 'v') {
-        e.preventDefault();
-        onPaste?.();
-        return;
-      }
+  // Select All - Ctrl+A (Cmd+A on Mac)
+  useHotkeys('mod+a', (e) => {
+    // Don't select all if user is typing in an input/textarea
+    const activeElement = document.activeElement;
+    if (
+      activeElement?.tagName === 'INPUT' ||
+      activeElement?.tagName === 'TEXTAREA' ||
+      activeElement?.getAttribute('contenteditable') === 'true'
+    ) {
+      return;
+    }
+    e.preventDefault();
+    selectAll();
+  }, { enableOnFormTags: false });
 
-      // Duplicate (Ctrl/Cmd + D)
-      if (ctrlKey && e.key === 'd') {
-        e.preventDefault();
-        onDuplicate?.();
-        return;
-      }
+  // Escape - Clear selection
+  useHotkeys('escape', (e) => {
+    e.preventDefault();
+    clearSelection();
+  }, { enableOnFormTags: true });
 
-      // Undo (Ctrl/Cmd + Z)
-      if (ctrlKey && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        onUndo?.();
-        return;
-      }
-
-      // Redo (Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y)
-      if ((ctrlKey && e.key === 'z' && e.shiftKey) || (ctrlKey && e.key === 'y')) {
-        e.preventDefault();
-        onRedo?.();
-        return;
-      }
-
-      // Deselect all (Escape)
-      if (e.key === 'Escape') {
-        const { setSelectedElements } = useUIStore.getState();
-        setSelectedElements([]);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onDelete, onCopy, onPaste, onDuplicate, onUndo, onRedo]);
+  // TODO: Implement undo/redo
+  // useHotkeys('mod+z', handleUndo, { enableOnFormTags: false });
+  // useHotkeys('mod+y, mod+shift+z', handleRedo, { enableOnFormTags: false });
 }
