@@ -25,17 +25,17 @@ export default function Toolbar() {
   const { createElement, elements } = useElementStore();
 
   const tools: Array<{ type: ElementType; icon: React.ReactNode; label: string; shortcut: string }> = [
-    { type: 'note', icon: <StickyNote className="w-5 h-5" />, label: 'Note', shortcut: 'N' },
-    { type: 'image', icon: <Image className="w-5 h-5" />, label: 'Image', shortcut: 'I' },
-    { type: 'column', icon: <Columns className="w-5 h-5" />, label: 'Column', shortcut: 'C' },
-    { type: 'board', icon: <FolderPlus className="w-5 h-5" />, label: 'Board', shortcut: 'B' },
-    { type: 'section', icon: <Square className="w-5 h-5" />, label: 'Section', shortcut: 'S' },
-    { type: 'line', icon: <ArrowRight className="w-5 h-5" />, label: 'Line', shortcut: 'L' },
-    { type: 'drawing', icon: <Pencil className="w-5 h-5" />, label: 'Drawing', shortcut: 'D' },
-    { type: 'link', icon: <Link2 className="w-5 h-5" />, label: 'Link', shortcut: 'K' },
-    { type: 'file', icon: <FileText className="w-5 h-5" />, label: 'File', shortcut: 'F' },
-    { type: 'todo', icon: <CheckSquare className="w-5 h-5" />, label: 'Todo', shortcut: 'T' },
-    { type: 'table', icon: <Table className="w-5 h-5" />, label: 'Table', shortcut: 'G' }
+    { type: 'note', icon: <StickyNote className="w-6 h-6" />, label: 'Note', shortcut: 'N' },
+    { type: 'image', icon: <Image className="w-6 h-6" />, label: 'Image', shortcut: 'I' },
+    { type: 'column', icon: <Columns className="w-6 h-6" />, label: 'Column', shortcut: 'C' },
+    { type: 'board', icon: <FolderPlus className="w-6 h-6" />, label: 'Board', shortcut: 'B' },
+    { type: 'section', icon: <Square className="w-6 h-6" />, label: 'Section', shortcut: 'S' },
+    { type: 'line', icon: <ArrowRight className="w-6 h-6" />, label: 'Line', shortcut: 'L' },
+    { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'D' },
+    { type: 'link', icon: <Link2 className="w-6 h-6" />, label: 'Link', shortcut: 'K' },
+    { type: 'file', icon: <FileText className="w-6 h-6" />, label: 'File', shortcut: 'F' },
+    { type: 'todo', icon: <CheckSquare className="w-6 h-6" />, label: 'Todo', shortcut: 'T' },
+    { type: 'table', icon: <Table className="w-6 h-6" />, label: 'Table', shortcut: 'G' }
   ];
 
   const handleToolClick = async (toolType: ElementType) => {

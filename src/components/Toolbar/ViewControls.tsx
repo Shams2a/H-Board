@@ -29,7 +29,7 @@ export default function ViewControls() {
           title="Toggle Grid"
           aria-label="Toggle grid"
         >
-          <Grid className="w-5 h-5" />
+          <Grid className="w-6 h-6" />
         </button>
 
         <div className="w-full h-px bg-gray-200" />
@@ -42,7 +42,7 @@ export default function ViewControls() {
           aria-label="Zoom out"
           disabled={zoom <= 0.25}
         >
-          <ZoomOut className="w-5 h-5" />
+          <ZoomOut className="w-6 h-6" />
         </button>
 
         {/* Zoom In */}
@@ -53,7 +53,7 @@ export default function ViewControls() {
           aria-label="Zoom in"
           disabled={zoom >= 2}
         >
-          <ZoomIn className="w-5 h-5" />
+          <ZoomIn className="w-6 h-6" />
         </button>
 
         {/* Reset View */}
@@ -63,7 +63,7 @@ export default function ViewControls() {
           title="Reset View (Ctrl+0)"
           aria-label="Reset view"
         >
-          <Maximize className="w-5 h-5" />
+          <Maximize className="w-6 h-6" />
         </button>
 
         <div className="w-full h-px bg-gray-200" />
@@ -74,7 +74,7 @@ export default function ViewControls() {
           title="Undo (Ctrl+Z)"
           aria-label="Undo"
         >
-          <Undo className="w-5 h-5" />
+          <Undo className="w-6 h-6" />
         </button>
 
         {/* Redo */}
@@ -83,7 +83,7 @@ export default function ViewControls() {
           title="Redo (Ctrl+Y)"
           aria-label="Redo"
         >
-          <Redo className="w-5 h-5" />
+          <Redo className="w-6 h-6" />
         </button>
       </div>
     </div>

@@ -34,7 +34,7 @@ export default function CustomizationSidebar() {
 
     // Color customization for all elements
     options.push({
-      icon: <Palette className="w-5 h-5" />,
+      icon: <Palette className="w-6 h-6" />,
       label: 'Color',
       page: 'color'
     });
@@ -42,7 +42,7 @@ export default function CustomizationSidebar() {
     // Type-specific options
     if (selectedElement.type === 'note' || selectedElement.type === 'column') {
       options.push({
-        icon: <Type className="w-5 h-5" />,
+        icon: <Type className="w-6 h-6" />,
         label: 'Text',
         page: 'text'
       });
@@ -50,7 +50,7 @@ export default function CustomizationSidebar() {
 
     if (selectedElement.type === 'image') {
       options.push({
-        icon: <Upload className="w-5 h-5" />,
+        icon: <Upload className="w-6 h-6" />,
         label: 'Image',
         page: 'image'
       });
@@ -58,7 +58,7 @@ export default function CustomizationSidebar() {
 
     if (selectedElement.type === 'link') {
       options.push({
-        icon: <LinkIcon className="w-5 h-5" />,
+        icon: <LinkIcon className="w-6 h-6" />,
         label: 'Link',
         page: 'link'
       });
@@ -115,6 +115,9 @@ export default function CustomizationSidebar() {
             )}
             {activePage === 'color' && selectedElement.type === 'link' && (
               <LinkCustomization element={selectedElement} />
+            )}
+            {activePage === 'text' && selectedElement.type === 'note' && (
+              <NoteCustomization element={selectedElement} />
             )}
             {activePage === 'text' && selectedElement.type === 'column' && (
               <ColumnCustomization element={selectedElement} />
