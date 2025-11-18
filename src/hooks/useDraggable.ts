@@ -22,15 +22,18 @@ export function useDraggable({ elementId, onDragStart, onDragEnd }: UseDraggable
   const elementStartPos = useRef<Position>({ x: 0, y: 0 });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only start drag on left click and if not clicking on interactive elements
+    // Only start drag on left click
     if (e.button !== 0) return;
 
+    // Don't drag when clicking on interactive elements or inside editable content
     const target = e.target as HTMLElement;
     if (
       target.closest('button') ||
-      target.closest('.ProseMirror') ||
       target.closest('input') ||
-      target.closest('textarea')
+      target.closest('textarea') ||
+      target.closest('.ProseMirror') ||
+      target.closest('a') ||
+      target.closest('[contenteditable="true"]')
     ) {
       return;
     }

@@ -8,7 +8,6 @@ import type { LinkElement } from '../../types';
 import { useElementStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import {
-  GripVertical,
   ExternalLink,
   Link as LinkIcon,
   Check,
@@ -87,7 +86,7 @@ export default function Link({ element, isSelected, onSelect }: LinkProps) {
     <div
       ref={containerRef}
       className={`
-        element-card absolute
+        element-card absolute cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
         ${!hasValidUrl ? 'border-2 border-dashed border-gray-300' : ''}
@@ -104,21 +103,11 @@ export default function Link({ element, isSelected, onSelect }: LinkProps) {
         e.stopPropagation();
         onSelect?.();
       }}
+      onMouseDown={handleMouseDown}
     >
       {/* Toolbar (only when selected) */}
       {isSelected && (
         <div className="border-b border-gray-200 p-2 flex items-center gap-2 bg-gray-50/80 backdrop-blur-sm">
-          {/* Drag Handle */}
-          <div
-            className="cursor-move p-1 hover:bg-gray-200 rounded"
-            onMouseDown={handleMouseDown}
-            title="Drag to move"
-          >
-            <GripVertical className="w-4 h-4 text-gray-500" />
-          </div>
-
-          <div className="w-px h-6 bg-gray-300" />
-
           {/* Edit URL Button */}
           <button
             onClick={() => setIsEditingUrl(true)}

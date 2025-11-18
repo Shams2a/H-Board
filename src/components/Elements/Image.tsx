@@ -10,7 +10,6 @@ import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
 import {
   Upload,
-  GripVertical,
   Maximize2,
   X
 } from 'lucide-react';
@@ -108,7 +107,7 @@ export default function Image({ element, isSelected, onSelect }: ImageProps) {
       <div
         ref={containerRef}
         className={`
-          element-card absolute overflow-hidden
+          element-card absolute overflow-hidden cursor-move
           ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
           ${element.locked ? 'cursor-not-allowed' : ''}
           ${!hasImage ? 'border-2 border-dashed border-gray-300' : ''}
@@ -125,23 +124,13 @@ export default function Image({ element, isSelected, onSelect }: ImageProps) {
           e.stopPropagation();
           onSelect?.();
         }}
+        onMouseDown={handleMouseDown}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
         {/* Toolbar (only when selected) */}
         {isSelected && (
           <div className="absolute top-0 left-0 right-0 bg-gray-50/90 backdrop-blur-sm border-b border-gray-200 p-2 flex items-center gap-2 z-10">
-            {/* Drag Handle */}
-            <div
-              className="cursor-move p-1 hover:bg-gray-200 rounded"
-              onMouseDown={handleMouseDown}
-              title="Drag to move"
-            >
-              <GripVertical className="w-4 h-4 text-gray-500" />
-            </div>
-
-            <div className="w-px h-6 bg-gray-300" />
-
             {/* Upload/Change Button */}
             <button
               onClick={() => fileInputRef.current?.click()}

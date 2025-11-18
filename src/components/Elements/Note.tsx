@@ -18,8 +18,7 @@ import {
   ListOrdered,
   Heading1,
   Heading2,
-  Heading3,
-  GripVertical
+  Heading3
 } from 'lucide-react';
 
 // Import TipTap extensions
@@ -116,7 +115,7 @@ export default function Note({ element, isSelected, onSelect }: NoteProps) {
     <div
       ref={containerRef}
       className={`
-        element-card absolute
+        element-card absolute cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
       `}
@@ -132,21 +131,11 @@ export default function Note({ element, isSelected, onSelect }: NoteProps) {
         e.stopPropagation();
         onSelect?.();
       }}
+      onMouseDown={handleMouseDown}
     >
-      {/* Drag Handle + Formatting Toolbar */}
+      {/* Formatting Toolbar */}
       {isSelected && (
         <div className="border-b border-gray-200 p-2 flex items-center gap-2 bg-gray-50/80 backdrop-blur-sm">
-          {/* Drag Handle */}
-          <div
-            className="cursor-move p-1 hover:bg-gray-200 rounded"
-            onMouseDown={handleMouseDown}
-            title="Drag to move"
-          >
-            <GripVertical className="w-4 h-4 text-gray-500" />
-          </div>
-
-          <div className="w-px h-6 bg-gray-300" />
-
           {/* Formatting buttons */}
           <button
             onClick={() => editor.chain().focus().toggleBold().run()}
