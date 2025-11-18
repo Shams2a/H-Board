@@ -17,7 +17,7 @@ import {
   CheckSquare,
   Table
 } from 'lucide-react';
-import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement } from '../../types';
+import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement } from '../../types';
 
 export default function Toolbar() {
   const { activeTool, setActiveTool, gridEnabled } = useUIStore();
@@ -251,6 +251,28 @@ export default function Toolbar() {
           }
         };
         await createElement(newLine);
+        break;
+      }
+
+      case 'drawing': {
+        const newDrawing: DrawingElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'drawing',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 400, height: 300 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            paths: []
+          },
+          style: {
+            backgroundColor: '#FFFFFF'
+          }
+        };
+        await createElement(newDrawing);
         break;
       }
 

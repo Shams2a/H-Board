@@ -13,6 +13,7 @@ import TodoList from '../Elements/TodoList';
 import File from '../Elements/File';
 import Table from '../Elements/Table';
 import Line from '../Elements/Line';
+import Drawing from '../Elements/Drawing';
 
 interface CanvasElementProps {
   element: Element;
@@ -40,6 +41,9 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'line':
       return <Line element={element} isSelected={isSelected} onSelect={onSelect} />;
+
+    case 'drawing':
+      return <Drawing element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'todo':
       return <TodoList element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
