@@ -5,7 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useBoardStore, useElementStore, useUIStore } from '../../store';
-import type { NoteElement, ImageElement, ColumnElement } from '../../types';
+import type { NoteElement, ImageElement, ColumnElement, LinkElement } from '../../types';
 import CanvasElement from './CanvasElement';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
@@ -146,6 +146,33 @@ export default function Canvas() {
       };
 
       await createElement(newColumn);
+      setActiveTool(null); // Reset tool after creation
+    }
+
+    // Create link element
+    if (activeTool === 'link') {
+      const newLink: LinkElement = {
+        id: crypto.randomUUID(),
+        boardId: currentBoardId,
+        type: 'link',
+        position: { x: snappedX, y: snappedY },
+        size: { width: 350, height: 120 },
+        zIndex: elements.length,
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        content: {
+          url: '',
+          title: '',
+          description: '',
+          favicon: ''
+        },
+        style: {
+          backgroundColor: '#FFFFFF'
+        }
+      };
+
+      await createElement(newLink);
       setActiveTool(null); // Reset tool after creation
     }
 

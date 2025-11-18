@@ -7,6 +7,7 @@ import type { Element } from '../../types';
 import Note from '../Elements/Note';
 import Image from '../Elements/Image';
 import Column from '../Elements/Column';
+import Link from '../Elements/Link';
 
 interface CanvasElementProps {
   element: Element;
@@ -24,6 +25,9 @@ export default function CanvasElement({ element, isSelected, onSelect }: CanvasE
 
     case 'column':
       return <Column element={element} isSelected={isSelected} onSelect={onSelect} />;
+
+    case 'link':
+      return <Link element={element} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'section':
       // TODO: Implement Section component
