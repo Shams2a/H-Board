@@ -105,30 +105,6 @@ export default function Link({ element, isSelected, onSelect }: LinkProps) {
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Toolbar (only when selected) */}
-      {isSelected && (
-        <div className="border-b border-gray-200 p-2 flex items-center gap-2 bg-gray-50/80 backdrop-blur-sm">
-          {/* Edit URL Button */}
-          <button
-            onClick={() => setIsEditingUrl(true)}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white hover:bg-gray-100 border border-gray-300 rounded transition-colors"
-          >
-            <LinkIcon className="w-3.5 h-3.5" />
-            Edit URL
-          </button>
-
-          {/* Open Link Button */}
-          {hasValidUrl && (
-            <button
-              onClick={handleOpenLink}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white hover:bg-gray-100 border border-gray-300 rounded transition-colors"
-              title="Open in new tab"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-      )}
 
       {/* Content */}
       <div className="p-4">

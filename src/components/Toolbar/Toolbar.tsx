@@ -169,9 +169,9 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="h-16 bg-white border-t border-border flex items-center justify-between px-4 z-toolbar">
+    <div className="w-16 bg-white border-r border-border flex flex-col items-center py-4 z-toolbar">
       {/* Creation Tools */}
-      <div className="flex items-center gap-1">
+      <div className="flex flex-col items-center gap-2 flex-1">
         {tools.map(tool => (
           <button
             key={tool.type}
@@ -189,7 +189,7 @@ export default function Toolbar() {
       </div>
 
       {/* View Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-center gap-2 border-t border-gray-200 pt-4 mt-4">
         {/* Grid Toggle */}
         <button
           onClick={toggleGrid}
@@ -200,60 +200,55 @@ export default function Toolbar() {
           <Grid className="w-5 h-5" />
         </button>
 
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 rounded">
-          <button
-            onClick={handleZoomOut}
-            className="p-1 hover:bg-gray-200 rounded"
-            title="Zoom Out"
-            aria-label="Zoom out"
-            disabled={zoom <= 0.25}
-          >
-            <ZoomOut className="w-4 h-4" />
-          </button>
+        {/* Zoom Out */}
+        <button
+          onClick={handleZoomOut}
+          className="toolbar-button"
+          title="Zoom Out"
+          aria-label="Zoom out"
+          disabled={zoom <= 0.25}
+        >
+          <ZoomOut className="w-5 h-5" />
+        </button>
 
-          <span className="text-sm font-mono min-w-[3rem] text-center">
-            {Math.round(zoom * 100)}%
-          </span>
+        {/* Zoom In */}
+        <button
+          onClick={handleZoomIn}
+          className="toolbar-button"
+          title="Zoom In"
+          aria-label="Zoom in"
+          disabled={zoom >= 2}
+        >
+          <ZoomIn className="w-5 h-5" />
+        </button>
 
-          <button
-            onClick={handleZoomIn}
-            className="p-1 hover:bg-gray-200 rounded"
-            title="Zoom In"
-            aria-label="Zoom in"
-            disabled={zoom >= 2}
-          >
-            <ZoomIn className="w-4 h-4" />
-          </button>
+        {/* Reset View */}
+        <button
+          onClick={resetView}
+          className="toolbar-button"
+          title="Reset View (Ctrl+0)"
+          aria-label="Reset view"
+        >
+          <Maximize className="w-5 h-5" />
+        </button>
 
-          <button
-            onClick={resetView}
-            className="p-1 hover:bg-gray-200 rounded ml-1"
-            title="Reset View (Ctrl+0)"
-            aria-label="Reset view"
-          >
-            <Maximize className="w-4 h-4" />
-          </button>
-        </div>
+        {/* Undo */}
+        <button
+          className="toolbar-button"
+          title="Undo (Ctrl+Z)"
+          aria-label="Undo"
+        >
+          <Undo className="w-5 h-5" />
+        </button>
 
-        {/* Undo/Redo */}
-        <div className="flex items-center gap-1">
-          <button
-            className="toolbar-button"
-            title="Undo (Ctrl+Z)"
-            aria-label="Undo"
-          >
-            <Undo className="w-5 h-5" />
-          </button>
-
-          <button
-            className="toolbar-button"
-            title="Redo (Ctrl+Y)"
-            aria-label="Redo"
-          >
-            <Redo className="w-5 h-5" />
-          </button>
-        </div>
+        {/* Redo */}
+        <button
+          className="toolbar-button"
+          title="Redo (Ctrl+Y)"
+          aria-label="Redo"
+        >
+          <Redo className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );

@@ -9,17 +9,6 @@ import type { NoteElement } from '../../types';
 import { useElementStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
-import {
-  Bold,
-  Italic,
-  Strikethrough,
-  Code,
-  List,
-  ListOrdered,
-  Heading1,
-  Heading2,
-  Heading3
-} from 'lucide-react';
 
 // Import TipTap extensions
 import * as StarterKitModule from '@tiptap/starter-kit';
@@ -37,18 +26,6 @@ interface NoteProps {
   isSelected?: boolean;
   onSelect?: () => void;
 }
-
-const COLORS = [
-  { name: 'Yellow', value: '#FEF3C7' },
-  { name: 'Orange', value: '#FED7AA' },
-  { name: 'Red', value: '#FECACA' },
-  { name: 'Pink', value: '#FBCFE8' },
-  { name: 'Purple', value: '#E9D5FF' },
-  { name: 'Blue', value: '#BFDBFE' },
-  { name: 'Green', value: '#BBF7D0' },
-  { name: 'Gray', value: '#E5E7EB' },
-  { name: 'White', value: '#FFFFFF' }
-];
 
 export default function Note({ element, isSelected, onSelect }: NoteProps) {
   const { updateElement } = useElementStore();
@@ -98,15 +75,6 @@ export default function Note({ element, isSelected, onSelect }: NoteProps) {
     };
   }, [editor]);
 
-  const handleColorChange = (color: string) => {
-    updateElement(element.id, {
-      style: {
-        ...element.style,
-        backgroundColor: color
-      }
-    });
-  };
-
   if (!editor) {
     return null;
   }
@@ -133,120 +101,6 @@ export default function Note({ element, isSelected, onSelect }: NoteProps) {
       }}
       onMouseDown={handleMouseDown}
     >
-      {/* Formatting Toolbar */}
-      {isSelected && (
-        <div className="border-b border-gray-200 p-2 flex items-center gap-2 bg-gray-50/80 backdrop-blur-sm">
-          {/* Formatting buttons */}
-          <button
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('bold') ? 'bg-gray-300' : ''
-            }`}
-            title="Bold"
-          >
-            <Bold className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('italic') ? 'bg-gray-300' : ''
-            }`}
-            title="Italic"
-          >
-            <Italic className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => editor.chain().focus().toggleStrike().run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('strike') ? 'bg-gray-300' : ''
-            }`}
-            title="Strikethrough"
-          >
-            <Strikethrough className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => editor.chain().focus().toggleCode().run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('code') ? 'bg-gray-300' : ''
-            }`}
-            title="Code"
-          >
-            <Code className="w-4 h-4" />
-          </button>
-
-          <div className="w-px h-6 bg-gray-300" />
-
-          <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('heading', { level: 1 }) ? 'bg-gray-300' : ''
-            }`}
-            title="Heading 1"
-          >
-            <Heading1 className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('heading', { level: 2 }) ? 'bg-gray-300' : ''
-            }`}
-            title="Heading 2"
-          >
-            <Heading2 className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('heading', { level: 3 }) ? 'bg-gray-300' : ''
-            }`}
-            title="Heading 3"
-          >
-            <Heading3 className="w-4 h-4" />
-          </button>
-
-          <div className="w-px h-6 bg-gray-300" />
-
-          <button
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('bulletList') ? 'bg-gray-300' : ''
-            }`}
-            title="Bullet List"
-          >
-            <List className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={`p-1.5 rounded hover:bg-gray-200 ${
-              editor.isActive('orderedList') ? 'bg-gray-300' : ''
-            }`}
-            title="Ordered List"
-          >
-            <ListOrdered className="w-4 h-4" />
-          </button>
-
-          <div className="flex-1" />
-
-          {/* Color picker */}
-          <div className="flex gap-1">
-            {COLORS.map((color) => (
-              <button
-                key={color.value}
-                onClick={() => handleColorChange(color.value)}
-                className="w-5 h-5 rounded border border-gray-300 hover:scale-110 transition-transform"
-                style={{ backgroundColor: color.value }}
-                title={color.name}
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Editor Content */}
       <div className="p-3">

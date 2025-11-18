@@ -10,7 +10,6 @@ import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
 import {
   Upload,
-  Maximize2,
   X
 } from 'lucide-react';
 
@@ -128,31 +127,6 @@ export default function Image({ element, isSelected, onSelect }: ImageProps) {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
-        {/* Toolbar (only when selected) */}
-        {isSelected && (
-          <div className="absolute top-0 left-0 right-0 bg-gray-50/90 backdrop-blur-sm border-b border-gray-200 p-2 flex items-center gap-2 z-10">
-            {/* Upload/Change Button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white hover:bg-gray-100 border border-gray-300 rounded transition-colors"
-              disabled={isUploading}
-            >
-              <Upload className="w-3.5 h-3.5" />
-              {hasImage ? 'Change' : 'Upload'}
-            </button>
-
-            {/* Lightbox Button (only if has image) */}
-            {hasImage && (
-              <button
-                onClick={() => setShowLightbox(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs bg-white hover:bg-gray-100 border border-gray-300 rounded transition-colors"
-                title="View fullscreen"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        )}
 
         {/* Image Content */}
         {hasImage ? (
@@ -160,7 +134,6 @@ export default function Image({ element, isSelected, onSelect }: ImageProps) {
             src={element.content.src}
             alt={element.content.alt || 'Image'}
             className="w-full h-full object-contain cursor-pointer"
-            style={{ marginTop: isSelected ? '42px' : '0' }}
             onClick={(e) => {
               if (!isSelected) return;
               e.stopPropagation();

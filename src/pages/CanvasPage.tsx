@@ -10,6 +10,7 @@ import { useBoardStore } from '../store';
 import Breadcrumb from '../components/Canvas/Breadcrumb';
 import Canvas from '../components/Canvas/Canvas';
 import Toolbar from '../components/Toolbar/Toolbar';
+import CustomizationSidebar from '../components/Sidebar/CustomizationSidebar';
 
 export default function CanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -70,13 +71,19 @@ export default function CanvasPage() {
         </div>
       </div>
 
-      {/* Canvas Area */}
-      <div className="flex-1 overflow-hidden">
-        <Canvas />
-      </div>
+      {/* Main Content Area with Sidebars */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Toolbar */}
+        <Toolbar />
 
-      {/* Toolbar */}
-      <Toolbar />
+        {/* Canvas Area */}
+        <div className="flex-1 overflow-hidden">
+          <Canvas />
+        </div>
+
+        {/* Right Customization Sidebar */}
+        <CustomizationSidebar />
+      </div>
     </div>
   );
 }
