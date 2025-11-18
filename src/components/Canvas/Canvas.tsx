@@ -131,7 +131,7 @@ export default function Canvas() {
 
   if (!currentBoard) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-background-canvas">
+      <div className="w-full h-full flex items-center justify-center bg-background-canvas">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-text-primary mb-2">
             Welcome to H-Board
@@ -148,7 +148,7 @@ export default function Canvas() {
     <div
       ref={canvasRef}
       className={`
-        flex-1 overflow-hidden relative
+        w-full h-full overflow-hidden relative
         ${gridEnabled ? 'canvas-grid' : ''}
         ${activeTool ? 'cursor-crosshair' : 'cursor-default'}
       `}
