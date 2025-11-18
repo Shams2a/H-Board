@@ -1,20 +1,17 @@
 /**
  * useResizable Hook
- * Handles resize functionality for canvas elements
+ * Handles element resizing with drag interaction
  */
 
-import { useRef, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useElementStore, useUIStore } from '../store';
-import type { Size } from '../types';
 
-interface UseResizableOptions {
+interface UseResizableProps {
   elementId: string;
   minWidth?: number;
   minHeight?: number;
   maxWidth?: number;
   maxHeight?: number;
-  onResizeStart?: () => void;
-  onResizeEnd?: () => void;
 }
 
 export function useResizable({
@@ -22,89 +19,60 @@ export function useResizable({
   minWidth = 200,
   minHeight = 100,
   maxWidth = 1200,
-  maxHeight = 1200,
-  onResizeStart,
-  onResizeEnd
-}: UseResizableOptions) {
+  maxHeight = 800
+}: UseResizableProps) {
   const { updateSize, getElementById } = useElementStore();
-  const { gridEnabled, zoom } = useUIStore();
-
-  const isResizing = useRef(false);
-  const startPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const elementStartSize = useRef<Size>({ width: 0, height: 0 });
+  const { gridEnabled } = useUIStore();
+  const startPosRef = useRef({ x: 0, y: 0 });
+  const startSizeRef = useRef({ width: 0, height: 0 });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only start resize on left click
-    if (e.button !== 0) return;
-
-    e.stopPropagation();
     e.preventDefault();
-
-    const element = getElementById(elementId);
-    if (!element || element.locked) return;
-
-    isResizing.current = true;
-    startPos.current = { x: e.clientX, y: e.clientY };
-    elementStartSize.current = { ...element.size };
-
-    onResizeStart?.();
-
-    // Add event listeners to window for smooth resizing
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    // Change cursor
-    document.body.style.cursor = 'se-resize';
-    document.body.style.userSelect = 'none';
-  }, [elementId, onResizeStart]);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing.current) return;
+    e.stopPropagation();
 
     const element = getElementById(elementId);
     if (!element) return;
 
-    // Calculate delta accounting for zoom
-    const deltaX = (e.clientX - startPos.current.x) / zoom;
-    const deltaY = (e.clientY - startPos.current.y) / zoom;
+    startPosRef.current = { x: e.clientX, y: e.clientY };
+    startSizeRef.current = {
+      width: element.size.width,
+      height: element.size.height
+    };
 
-    // Calculate new size
-    let newWidth = elementStartSize.current.width + deltaX;
-    let newHeight = elementStartSize.current.height + deltaY;
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startPosRef.current.x;
+      const deltaY = moveEvent.clientY - startPosRef.current.y;
 
-    // Apply constraints
-    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-    newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+      let newWidth = startSizeRef.current.width + deltaX;
+      let newHeight = startSizeRef.current.height + deltaY;
 
-    // Snap to grid if enabled
-    if (gridEnabled) {
-      const gridSize = 8;
-      newWidth = Math.round(newWidth / gridSize) * gridSize;
-      newHeight = Math.round(newHeight / gridSize) * gridSize;
-    }
+      // Apply constraints
+      newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+      newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
 
-    // Update size
-    updateSize(elementId, { width: newWidth, height: newHeight });
-  }, [elementId, zoom, gridEnabled, minWidth, minHeight, maxWidth, maxHeight, updateSize]);
+      // Grid snapping
+      const gridSize = gridEnabled ? 8 : 1;
+      if (gridSize > 1) {
+        newWidth = Math.round(newWidth / gridSize) * gridSize;
+        newHeight = Math.round(newHeight / gridSize) * gridSize;
+      }
 
-  const handleMouseUp = useCallback(() => {
-    if (!isResizing.current) return;
+      // Update size in real-time
+      updateSize(elementId, { width: newWidth, height: newHeight });
+    };
 
-    isResizing.current = false;
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+    };
 
-    // Remove event listeners
-    window.removeEventListener('mousemove', handleMouseMove);
-    window.removeEventListener('mouseup', handleMouseUp);
-
-    // Reset cursor
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-
-    onResizeEnd?.();
-  }, [onResizeEnd]);
+    document.body.style.cursor = 'se-resize';
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [elementId, getElementById, minWidth, minHeight, maxWidth, maxHeight, gridEnabled, updateSize]);
 
   return {
-    handleMouseDown,
-    isResizing: isResizing.current
+    handleMouseDown
   };
 }
