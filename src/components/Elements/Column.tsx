@@ -128,16 +128,19 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       }}
     >
       {/* Header */}
-      <div className="bg-gray-50 border-b border-gray-300 p-3 flex items-center gap-2">
-        {/* Grip handle for dragging */}
-        <div
-          className="cursor-move hover:bg-gray-200 rounded p-1 -ml-1 transition-colors"
-          onMouseDown={(e) => {
+      <div
+        className="bg-gray-50 border-b border-gray-300 p-3 flex items-center gap-2 cursor-move"
+        onMouseDown={(e) => {
+          // Allow dragging from header except when clicking on title or input
+          const target = e.target as HTMLElement;
+          if (!target.closest('h3') && !target.closest('input') && !target.closest('button')) {
             e.stopPropagation();
             handleMouseDown(e);
-          }}
-          title="Drag to move"
-        >
+          }
+        }}
+      >
+        {/* Grip handle for dragging - visual indicator */}
+        <div className="p-1 -ml-1">
           <GripVertical className="w-4 h-4 text-gray-400" />
         </div>
         {/* Title */}
