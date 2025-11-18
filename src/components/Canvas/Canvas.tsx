@@ -110,7 +110,7 @@ export default function Canvas() {
                 This board is empty. Use the toolbar below to add elements.
               </p>
               <p className="text-sm text-text-tertiary mt-2">
-                Click on a tool and then click on the canvas to create an element
+                Click on a tool icon in the toolbar to create an element
               </p>
             </div>
           </div>
@@ -132,11 +132,6 @@ export default function Canvas() {
       {/* Canvas info (bottom right) */}
       <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary pointer-events-none">
         Board: {currentBoard.name} • Elements: {elements.length}
-        {activeTool && (
-          <span className="ml-2 text-primary-600 font-semibold">
-            • Creating: {activeTool}
-          </span>
-        )}
       </div>
     </div>
   );
