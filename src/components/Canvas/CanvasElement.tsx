@@ -11,6 +11,7 @@ import Link from '../Elements/Link';
 import Section from '../Elements/Section';
 import TodoList from '../Elements/TodoList';
 import File from '../Elements/File';
+import Table from '../Elements/Table';
 
 interface CanvasElementProps {
   element: Element;
@@ -41,6 +42,9 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'file':
       return <File element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+
+    case 'table':
+      return <Table element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     default:
       return (
