@@ -18,9 +18,10 @@ interface LinkProps {
   element: LinkElement;
   isSelected?: boolean;
   onSelect?: () => void;
+  parentColumnId?: string;
 }
 
-export default function Link({ element, isSelected, onSelect }: LinkProps) {
+export default function Link({ element, isSelected, onSelect, parentColumnId }: LinkProps) {
   const { updateElement } = useElementStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditingUrl, setIsEditingUrl] = useState(!element.content.url);
@@ -28,7 +29,8 @@ export default function Link({ element, isSelected, onSelect }: LinkProps) {
   const [title, setTitle] = useState(element.content.title || '');
 
   const { handleMouseDown } = useDraggable({
-    elementId: element.id
+    elementId: element.id,
+    parentColumnId
   });
 
   const handleSaveUrl = async () => {

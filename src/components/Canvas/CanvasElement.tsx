@@ -13,21 +13,22 @@ interface CanvasElementProps {
   element: Element;
   isSelected: boolean;
   onSelect: () => void;
+  parentColumnId?: string;
 }
 
-export default function CanvasElement({ element, isSelected, onSelect }: CanvasElementProps) {
+export default function CanvasElement({ element, isSelected, onSelect, parentColumnId }: CanvasElementProps) {
   switch (element.type) {
     case 'note':
-      return <Note element={element} isSelected={isSelected} onSelect={onSelect} />;
+      return <Note element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'image':
-      return <Image element={element} isSelected={isSelected} onSelect={onSelect} />;
+      return <Image element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'column':
       return <Column element={element} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'link':
-      return <Link element={element} isSelected={isSelected} onSelect={onSelect} />;
+      return <Link element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'section':
       // TODO: Implement Section component

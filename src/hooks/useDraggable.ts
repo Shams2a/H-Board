@@ -4,18 +4,20 @@
  */
 
 import { useRef, useCallback } from 'react';
-import { useElementStore, useUIStore } from '../store';
+import { useElementStore, useUIStore, useDragStore } from '../store';
 import type { Position } from '../types';
 
 interface UseDraggableOptions {
   elementId: string;
+  parentColumnId?: string | null;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
 
-export function useDraggable({ elementId, onDragStart, onDragEnd }: UseDraggableOptions) {
+export function useDraggable({ elementId, parentColumnId = null, onDragStart, onDragEnd }: UseDraggableOptions) {
   const { updatePosition, getElementById } = useElementStore();
   const { gridEnabled, zoom } = useUIStore();
+  const { setDraggedElement, clearDrag } = useDragStore();
 
   const isDragging = useRef(false);
   const startPos = useRef<Position>({ x: 0, y: 0 });
@@ -54,6 +56,9 @@ export function useDraggable({ elementId, onDragStart, onDragEnd }: UseDraggable
     startPos.current = { x: e.clientX, y: e.clientY };
     elementStartPos.current = { ...element.position };
 
+    // Notify drag store
+    setDraggedElement(elementId, parentColumnId);
+
     onDragStart?.();
 
     // Add event listeners to window for smooth dragging
@@ -63,7 +68,7 @@ export function useDraggable({ elementId, onDragStart, onDragEnd }: UseDraggable
     // Change cursor
     document.body.style.cursor = 'grabbing';
     document.body.style.userSelect = 'none';
-  }, [elementId, onDragStart]);
+  }, [elementId, parentColumnId, onDragStart, setDraggedElement]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging.current) return;
@@ -103,8 +108,11 @@ export function useDraggable({ elementId, onDragStart, onDragEnd }: UseDraggable
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
 
+    // Clear drag store
+    clearDrag();
+
     onDragEnd?.();
-  }, [onDragEnd]);
+  }, [onDragEnd, clearDrag]);
 
   return {
     handleMouseDown,

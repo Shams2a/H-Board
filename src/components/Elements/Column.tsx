@@ -5,7 +5,7 @@
 
 import { useRef, useState } from 'react';
 import type { ColumnElement } from '../../types';
-import { useElementStore } from '../../store';
+import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
 import { Plus } from 'lucide-react';
@@ -19,9 +19,12 @@ interface ColumnProps {
 
 export default function Column({ element, isSelected, onSelect }: ColumnProps) {
   const { updateElement, getElementById, elements } = useElementStore();
+  const { draggedElementId, draggedFromColumnId } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(element.content.title || 'Untitled Column');
+  const [isHovering, setIsHovering] = useState(false);
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id
@@ -46,6 +49,56 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       }
     });
     setIsEditingTitle(false);
+  };
+
+  // Handle drop zone hover
+  const handleMouseEnter = () => {
+    if (draggedElementId && draggedElementId !== element.id) {
+      setIsHovering(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+  };
+
+  const handleMouseUp = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // Check if we're dropping an element into this column
+    if (draggedElementId && isHovering && draggedElementId !== element.id) {
+      const draggedElement = getElementById(draggedElementId);
+      if (!draggedElement) return;
+
+      // Don't add columns to columns, or if element is already in this column
+      if (draggedElement.type === 'column' || element.content.childrenIds.includes(draggedElementId)) {
+        setIsHovering(false);
+        return;
+      }
+
+      // Remove from previous column if needed
+      if (draggedFromColumnId) {
+        const previousColumn = getElementById(draggedFromColumnId);
+        if (previousColumn && previousColumn.type === 'column') {
+          await updateElement(draggedFromColumnId, {
+            content: {
+              ...previousColumn.content,
+              childrenIds: previousColumn.content.childrenIds.filter(id => id !== draggedElementId)
+            }
+          });
+        }
+      }
+
+      // Add to this column
+      await updateElement(element.id, {
+        content: {
+          ...element.content,
+          childrenIds: [...element.content.childrenIds, draggedElementId]
+        }
+      });
+
+      setIsHovering(false);
+    }
   };
 
   // Get child elements
@@ -126,9 +179,21 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       </div>
 
       {/* Content Area - Child Elements */}
-      <div className="p-3 space-y-3 min-h-[100px]">
+      <div
+        ref={contentRef}
+        className={`
+          p-3 space-y-3 min-h-[100px] transition-colors
+          ${isHovering && draggedElementId ? 'bg-primary-50 ring-2 ring-inset ring-primary-300' : ''}
+        `}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+      >
         {childElements.length === 0 ? (
-          <div className="flex items-center justify-center h-24 border-2 border-dashed border-gray-300 rounded text-gray-400 text-sm">
+          <div className={`
+            flex items-center justify-center h-24 border-2 border-dashed rounded text-sm transition-colors
+            ${isHovering && draggedElementId ? 'border-primary-400 text-primary-600 bg-primary-50' : 'border-gray-300 text-gray-400'}
+          `}>
             Drag elements here or click + to add
           </div>
         ) : (
@@ -148,6 +213,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
                   element={child}
                   isSelected={false}
                   onSelect={() => {}}
+                  parentColumnId={element.id}
                 />
               </div>
             ))}

@@ -17,9 +17,10 @@ interface ImageProps {
   element: ImageElement;
   isSelected?: boolean;
   onSelect?: () => void;
+  parentColumnId?: string;
 }
 
-export default function Image({ element, isSelected, onSelect }: ImageProps) {
+export default function Image({ element, isSelected, onSelect, parentColumnId }: ImageProps) {
   const { updateElement } = useElementStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +28,8 @@ export default function Image({ element, isSelected, onSelect }: ImageProps) {
   const [isUploading, setIsUploading] = useState(false);
 
   const { handleMouseDown } = useDraggable({
-    elementId: element.id
+    elementId: element.id,
+    parentColumnId
   });
 
   const { handleMouseDown: handleResizeMouseDown } = useResizable({

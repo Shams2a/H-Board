@@ -25,14 +25,16 @@ interface NoteProps {
   element: NoteElement;
   isSelected?: boolean;
   onSelect?: () => void;
+  parentColumnId?: string;
 }
 
-export default function Note({ element, isSelected, onSelect }: NoteProps) {
+export default function Note({ element, isSelected, onSelect, parentColumnId }: NoteProps) {
   const { updateElement } = useElementStore();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { handleMouseDown } = useDraggable({
-    elementId: element.id
+    elementId: element.id,
+    parentColumnId
   });
 
   const { handleMouseDown: handleResizeMouseDown } = useResizable({
