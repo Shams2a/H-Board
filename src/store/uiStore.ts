@@ -4,7 +4,7 @@
  */
 
 import { create } from 'zustand';
-import type { ElementType } from '../types';
+import type { ElementType, Element } from '../types';
 
 interface UIState {
   // Sidebar
@@ -41,6 +41,17 @@ interface UIState {
   // Loading states
   saving: boolean;
   setSaving: (saving: boolean) => void;
+
+  // Selection
+  selectedElements: string[];
+  setSelectedElements: (ids: string[]) => void;
+  toggleElementSelection: (id: string) => void;
+  clearSelection: () => void;
+
+  // Clipboard
+  clipboard: Element[];
+  setClipboard: (elements: Element[]) => void;
+  clearClipboard: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -81,5 +92,21 @@ export const useUIStore = create<UIState>((set) => ({
 
   // Loading states
   saving: false,
-  setSaving: (saving: boolean) => set({ saving: saving })
+  setSaving: (saving: boolean) => set({ saving: saving }),
+
+  // Selection
+  selectedElements: [],
+  setSelectedElements: (ids: string[]) => set({ selectedElements: ids }),
+  toggleElementSelection: (id: string) =>
+    set((state) => ({
+      selectedElements: state.selectedElements.includes(id)
+        ? state.selectedElements.filter((eid) => eid !== id)
+        : [...state.selectedElements, id]
+    })),
+  clearSelection: () => set({ selectedElements: [] }),
+
+  // Clipboard
+  clipboard: [],
+  setClipboard: (elements: Element[]) => set({ clipboard: elements }),
+  clearClipboard: () => set({ clipboard: [] })
 }));

@@ -7,12 +7,46 @@ import { useEffect, useRef } from 'react';
 import { useBoardStore, useElementStore, useUIStore } from '../../store';
 import type { NoteElement } from '../../types';
 import CanvasElement from './CanvasElement';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
 export default function Canvas() {
   const { currentBoardId, getCurrentBoard } = useBoardStore();
-  const { loadElements, elements, createElement, selectElement, selectedIds, clearSelection } = useElementStore();
+  const {
+    loadElements,
+    elements,
+    createElement,
+    selectElement,
+    selectedIds,
+    clearSelection,
+    deleteElements,
+    copy,
+    paste,
+    duplicate
+  } = useElementStore();
   const { zoom, panX, panY, gridEnabled, activeTool, setActiveTool } = useUIStore();
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    onDelete: () => {
+      if (selectedIds.length > 0) {
+        deleteElements(selectedIds);
+      }
+    },
+    onCopy: () => {
+      if (selectedIds.length > 0) {
+        copy();
+      }
+    },
+    onPaste: async () => {
+      await paste();
+    },
+    onDuplicate: async () => {
+      if (selectedIds.length > 0) {
+        await duplicate(selectedIds);
+      }
+    }
+  });
 
   const currentBoard = getCurrentBoard();
 
