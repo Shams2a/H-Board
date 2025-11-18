@@ -8,6 +8,7 @@ import { useEffect, useRef } from 'react';
 import type { NoteElement } from '../../types';
 import { useElementStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
+import { useResizable } from '../../hooks/useResizable';
 import {
   Bold,
   Italic,
@@ -56,6 +57,14 @@ export default function Note({ element, isSelected, onSelect }: NoteProps) {
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id
+  });
+
+  const { handleMouseDown: handleResizeMouseDown } = useResizable({
+    elementId: element.id,
+    minWidth: 200,
+    minHeight: 100,
+    maxWidth: 1200,
+    maxHeight: 1200
   });
 
   const editor = useEditor({
@@ -256,13 +265,11 @@ export default function Note({ element, isSelected, onSelect }: NoteProps) {
       </div>
 
       {/* Resize handle */}
-      {isSelected && (
+      {isSelected && !element.locked && (
         <div
-          className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize"
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            // Resize logic will be implemented next
-          }}
+          className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
+          onMouseDown={handleResizeMouseDown}
+          title="Drag to resize"
         />
       )}
     </div>
