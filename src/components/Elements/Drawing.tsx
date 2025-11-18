@@ -11,7 +11,8 @@ import { useResizable } from '../../hooks/useResizable';
 import {
   Pencil,
   Eraser,
-  Trash2
+  Trash2,
+  GripVertical
 } from 'lucide-react';
 
 interface DrawingProps {
@@ -193,22 +194,22 @@ export default function Drawing({ element, isSelected, onSelect, parentColumnId 
         e.stopPropagation();
         onSelect?.();
       }}
-      onMouseDown={(e) => {
-        // Only trigger drag if not clicking on canvas or toolbar
-        if (
-          e.target === containerRef.current ||
-          (e.target instanceof HTMLElement && e.target.closest('.drawing-toolbar'))
-        ) {
-          handleDragMouseDown(e);
-        }
-      }}
     >
+      {/* Title Bar for Dragging */}
+      <div
+        className="drawing-header absolute top-0 left-0 right-0 bg-gray-100 border-b border-gray-200 px-2 py-1 flex items-center gap-2 cursor-move z-10"
+        onMouseDown={handleDragMouseDown}
+      >
+        <GripVertical className="w-4 h-4 text-gray-400" />
+        <span className="text-xs text-gray-600 flex-1">Drawing</span>
+      </div>
+
       {/* Drawing Canvas */}
       <canvas
         ref={canvasRef}
         width={element.size.width}
-        height={element.size.height - (isSelected ? 48 : 0)} // Reserve space for toolbar
-        className={`block ${isSelected && !element.locked ? 'cursor-crosshair' : ''}`}
+        height={element.size.height - 28 - (isSelected ? 48 : 0)} // Reserve space for title bar and toolbar
+        className={`block mt-7 ${isSelected && !element.locked ? 'cursor-crosshair' : ''}`}
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
