@@ -69,15 +69,15 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
         ref={setNodeRef}
         style={style}
         {...attributes}
-        {...listeners}
-        onClick={handleOpen}
-        className="group bg-white hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+        className="group bg-white hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
       >
-        <div className="px-6 py-4 flex items-center gap-4">
-          {/* Icon */}
+        <div className="px-6 py-4 flex items-center gap-4 cursor-pointer" onClick={handleOpen}>
+          {/* Icon - Drag handle */}
           <div
-            className="w-12 h-12 rounded flex items-center justify-center flex-shrink-0"
+            {...listeners}
+            className="w-12 h-12 rounded flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing"
             style={{ backgroundColor: board.settings.backgroundColor || '#E0E7FF' }}
+            onClick={(e) => e.stopPropagation()}
           >
             <FileText className="w-6 h-6 text-primary-600 opacity-60" />
           </div>
@@ -114,7 +114,10 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          <div
+            className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={handleEdit}
               className="p-2 hover:bg-gray-100 rounded transition-colors"
@@ -148,46 +151,34 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
-      onClick={handleOpen}
-      className="group bg-white rounded-lg hover:shadow-md transition-all cursor-pointer border border-gray-200 hover:border-primary-300 overflow-hidden"
+      className="group bg-white rounded-lg hover:shadow-md transition-all border border-gray-200 hover:border-primary-300 overflow-hidden"
     >
-      {/* Rectangular Icon/Preview */}
+      {/* Rectangular Icon/Preview - Drag handle only */}
       <div
-        className="h-24 flex items-center justify-center relative"
+        {...listeners}
+        className="h-24 flex items-center justify-center relative cursor-grab active:cursor-grabbing"
         style={{ backgroundColor: board.settings.backgroundColor || '#E0E7FF' }}
       >
         <FileText className="w-12 h-12 text-primary-600 opacity-40" />
-
-        {/* Quick actions overlay */}
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={handleEdit}
-            className="p-1.5 bg-white/90 hover:bg-white rounded shadow-sm transition-colors"
-            title="Modifier"
-          >
-            <Edit3 className="w-3.5 h-3.5 text-gray-700" />
-          </button>
-        </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
+      {/* Content - Click to open */}
+      <div className="p-4" onClick={handleOpen}>
         {/* Title */}
-        <h3 className="font-medium text-gray-900 mb-1 truncate">
+        <h3 className="font-medium text-gray-900 mb-1 truncate cursor-pointer">
           {board.name}
         </h3>
 
         {/* Description */}
         {board.description && (
-          <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-[2.5rem]">
+          <p className="text-sm text-gray-500 mb-3 line-clamp-2 min-h-[2.5rem] cursor-pointer">
             {board.description}
           </p>
         )}
 
         {/* Tags */}
         {board.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1.5 mb-3 cursor-pointer">
             {board.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
@@ -206,13 +197,23 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
 
         {/* Metadata and Actions */}
         <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 cursor-pointer">
             <Calendar className="w-3.5 h-3.5" />
             <span>{formatDate(board.updatedAt)}</span>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div
+            className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={handleEdit}
+              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+              title="Modifier"
+            >
+              <Edit3 className="w-3.5 h-3.5 text-gray-600" />
+            </button>
             <button
               onClick={handleDuplicate}
               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
