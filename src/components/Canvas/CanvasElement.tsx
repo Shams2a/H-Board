@@ -12,6 +12,7 @@ import Section from '../Elements/Section';
 import TodoList from '../Elements/TodoList';
 import File from '../Elements/File';
 import Table from '../Elements/Table';
+import Line from '../Elements/Line';
 
 interface CanvasElementProps {
   element: Element;
@@ -36,6 +37,9 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'section':
       return <Section element={element} isSelected={isSelected} onSelect={onSelect} />;
+
+    case 'line':
+      return <Line element={element} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'todo':
       return <TodoList element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
