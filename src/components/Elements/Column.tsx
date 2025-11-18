@@ -8,7 +8,7 @@ import type { ColumnElement } from '../../types';
 import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
-import { Plus } from 'lucide-react';
+import { Plus, GripVertical } from 'lucide-react';
 import CanvasElement from '../Canvas/CanvasElement';
 
 interface ColumnProps {
@@ -110,7 +110,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
     <div
       ref={containerRef}
       className={`
-        element-card absolute border-2 border-gray-300 cursor-move
+        element-card absolute border-2 border-gray-300
         ${isSelected ? 'selected ring-2 ring-primary-500 border-primary-400' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
       `}
@@ -126,10 +126,20 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
         e.stopPropagation();
         onSelect?.();
       }}
-      onMouseDown={handleMouseDown}
     >
       {/* Header */}
       <div className="bg-gray-50 border-b border-gray-300 p-3 flex items-center gap-2">
+        {/* Grip handle for dragging */}
+        <div
+          className="cursor-move hover:bg-gray-200 rounded p-1 -ml-1 transition-colors"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            handleMouseDown(e);
+          }}
+          title="Drag to move"
+        >
+          <GripVertical className="w-4 h-4 text-gray-400" />
+        </div>
         {/* Title */}
         {isEditingTitle ? (
           <input
