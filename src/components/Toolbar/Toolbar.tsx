@@ -17,7 +17,7 @@ import {
   CheckSquare,
   Table
 } from 'lucide-react';
-import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement } from '../../types';
+import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement } from '../../types';
 
 export default function Toolbar() {
   const { activeTool, setActiveTool, gridEnabled } = useUIStore();
@@ -146,6 +146,29 @@ export default function Toolbar() {
           }
         };
         await createElement(newLink);
+        break;
+      }
+
+      case 'todo': {
+        const newTodo: TodoElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'todo',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 350, height: 250 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            items: [],
+            showProgress: false
+          },
+          style: {
+            backgroundColor: '#FFFFFF'
+          }
+        };
+        await createElement(newTodo);
         break;
       }
 
