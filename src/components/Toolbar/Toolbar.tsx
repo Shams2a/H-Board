@@ -3,7 +3,7 @@
  * Bottom toolbar with creation tools and controls
  */
 
-import { useUIStore } from '../../store';
+import { useUIStore, useBoardStore, useElementStore } from '../../store';
 import {
   StickyNote,
   Image,
@@ -23,10 +23,12 @@ import {
   Undo,
   Redo
 } from 'lucide-react';
-import type { ElementType } from '../../types';
+import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement } from '../../types';
 
 export default function Toolbar() {
   const { activeTool, setActiveTool, zoom, setZoom, gridEnabled, toggleGrid, resetView } = useUIStore();
+  const { currentBoardId } = useBoardStore();
+  const { createElement, elements } = useElementStore();
 
   const tools: Array<{ type: ElementType; icon: React.ReactNode; label: string; shortcut: string }> = [
     { type: 'note', icon: <StickyNote className="w-5 h-5" />, label: 'Note', shortcut: 'N' },
@@ -45,6 +47,127 @@ export default function Toolbar() {
   const handleZoomIn = () => setZoom(zoom + 0.1);
   const handleZoomOut = () => setZoom(zoom - 0.1);
 
+  const handleToolClick = async (toolType: ElementType) => {
+    if (!currentBoardId) return;
+
+    // Calculate center position (accounting for typical window size)
+    // Position at center of visible canvas area
+    const centerX = 400;
+    const centerY = 300;
+
+    // Grid snapping
+    const gridSize = gridEnabled ? 8 : 1;
+    const snappedX = Math.round(centerX / gridSize) * gridSize;
+    const snappedY = Math.round(centerY / gridSize) * gridSize;
+
+    // Create element based on type
+    switch (toolType) {
+      case 'note': {
+        const newNote: NoteElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'note',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 300, height: 200 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            text: '',
+            textFormat: 'html'
+          },
+          style: {
+            backgroundColor: '#FFFFFF'
+          }
+        };
+        await createElement(newNote);
+        break;
+      }
+
+      case 'image': {
+        const newImage: ImageElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'image',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 400, height: 300 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            src: '',
+            alt: '',
+            originalName: ''
+          },
+          style: {
+            backgroundColor: '#F9FAFB'
+          }
+        };
+        await createElement(newImage);
+        break;
+      }
+
+      case 'column': {
+        const newColumn: ColumnElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'column',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 350, height: 400 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            title: 'New Column',
+            childrenIds: [],
+            maxWidth: 800
+          },
+          style: {
+            backgroundColor: '#FFFFFF'
+          }
+        };
+        await createElement(newColumn);
+        break;
+      }
+
+      case 'link': {
+        const newLink: LinkElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'link',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 350, height: 120 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            url: '',
+            title: '',
+            description: '',
+            favicon: ''
+          },
+          style: {
+            backgroundColor: '#FFFFFF'
+          }
+        };
+        await createElement(newLink);
+        break;
+      }
+
+      default:
+        // For other types, just set active tool for now
+        setActiveTool(activeTool === toolType ? null : toolType);
+        return;
+    }
+
+    // Clear active tool after creation
+    setActiveTool(null);
+  };
+
   return (
     <div className="h-16 bg-white border-t border-border flex items-center justify-between px-4 z-toolbar">
       {/* Creation Tools */}
@@ -52,7 +175,7 @@ export default function Toolbar() {
         {tools.map(tool => (
           <button
             key={tool.type}
-            onClick={() => setActiveTool(activeTool === tool.type ? null : tool.type)}
+            onClick={() => handleToolClick(tool.type)}
             className={`
               toolbar-button
               ${activeTool === tool.type ? 'active' : ''}

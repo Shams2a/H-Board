@@ -5,7 +5,6 @@
 
 import { useEffect, useRef } from 'react';
 import { useBoardStore, useElementStore, useUIStore } from '../../store';
-import type { NoteElement, ImageElement, ColumnElement, LinkElement } from '../../types';
 import CanvasElement from './CanvasElement';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 
@@ -14,7 +13,6 @@ export default function Canvas() {
   const {
     loadElements,
     elements,
-    createElement,
     selectElement,
     selectedIds,
     clearSelection,
@@ -23,7 +21,7 @@ export default function Canvas() {
     paste,
     duplicate
   } = useElementStore();
-  const { zoom, panX, panY, gridEnabled, activeTool, setActiveTool } = useUIStore();
+  const { zoom, panX, panY, gridEnabled } = useUIStore();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Keyboard shortcuts
@@ -57,129 +55,11 @@ export default function Canvas() {
   }, [currentBoardId, loadElements]);
 
   const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only create element if clicking directly on canvas (not on an element)
+    // Only handle click if clicking directly on canvas (not on an element)
     if (e.target !== e.currentTarget) return;
 
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect || !currentBoardId) return;
-
-    // Calculate position accounting for zoom and pan
-    const x = (e.clientX - rect.left) / zoom - panX;
-    const y = (e.clientY - rect.top) / zoom - panY;
-
-    // Snap to grid if enabled
-    const gridSize = gridEnabled ? 8 : 1;
-    const snappedX = Math.round(x / gridSize) * gridSize;
-    const snappedY = Math.round(y / gridSize) * gridSize;
-
-    // Create element based on active tool
-    if (activeTool === 'note') {
-      const newNote: NoteElement = {
-        id: crypto.randomUUID(),
-        boardId: currentBoardId,
-        type: 'note',
-        position: { x: snappedX, y: snappedY },
-        size: { width: 300, height: 200 },
-        zIndex: elements.length,
-        locked: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        content: {
-          text: '',
-          textFormat: 'html'
-        },
-        style: {
-          backgroundColor: '#FFFFFF'
-        }
-      };
-
-      await createElement(newNote);
-      setActiveTool(null); // Reset tool after creation
-    }
-
-    // Create image element
-    if (activeTool === 'image') {
-      const newImage: ImageElement = {
-        id: crypto.randomUUID(),
-        boardId: currentBoardId,
-        type: 'image',
-        position: { x: snappedX, y: snappedY },
-        size: { width: 400, height: 300 },
-        zIndex: elements.length,
-        locked: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        content: {
-          src: '', // Empty initially - user will upload
-          alt: '',
-          originalName: ''
-        },
-        style: {
-          backgroundColor: '#F9FAFB'
-        }
-      };
-
-      await createElement(newImage);
-      setActiveTool(null); // Reset tool after creation
-    }
-
-    // Create column element
-    if (activeTool === 'column') {
-      const newColumn: ColumnElement = {
-        id: crypto.randomUUID(),
-        boardId: currentBoardId,
-        type: 'column',
-        position: { x: snappedX, y: snappedY },
-        size: { width: 350, height: 400 },
-        zIndex: elements.length,
-        locked: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        content: {
-          title: 'New Column',
-          childrenIds: [],
-          maxWidth: 800
-        },
-        style: {
-          backgroundColor: '#FFFFFF'
-        }
-      };
-
-      await createElement(newColumn);
-      setActiveTool(null); // Reset tool after creation
-    }
-
-    // Create link element
-    if (activeTool === 'link') {
-      const newLink: LinkElement = {
-        id: crypto.randomUUID(),
-        boardId: currentBoardId,
-        type: 'link',
-        position: { x: snappedX, y: snappedY },
-        size: { width: 350, height: 120 },
-        zIndex: elements.length,
-        locked: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        content: {
-          url: '',
-          title: '',
-          description: '',
-          favicon: ''
-        },
-        style: {
-          backgroundColor: '#FFFFFF'
-        }
-      };
-
-      await createElement(newLink);
-      setActiveTool(null); // Reset tool after creation
-    }
-
     // Clear selection when clicking on empty canvas
-    if (!activeTool) {
-      clearSelection();
-    }
+    clearSelection();
   };
 
   if (!currentBoard) {
@@ -203,7 +83,6 @@ export default function Canvas() {
       className={`
         w-full h-full overflow-hidden relative
         ${gridEnabled ? 'canvas-grid' : ''}
-        ${activeTool ? 'cursor-crosshair' : 'cursor-default'}
       `}
       style={{
         backgroundColor: currentBoard.settings.backgroundColor || '#F5F5F5'
