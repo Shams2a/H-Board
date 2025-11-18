@@ -10,6 +10,7 @@ import { useBoardStore } from '../store';
 import Breadcrumb from '../components/Canvas/Breadcrumb';
 import Canvas from '../components/Canvas/Canvas';
 import Toolbar from '../components/Toolbar/Toolbar';
+import ViewControls from '../components/Toolbar/ViewControls';
 import CustomizationSidebar from '../components/Sidebar/CustomizationSidebar';
 
 export default function CanvasPage() {
@@ -71,17 +72,13 @@ export default function CanvasPage() {
         </div>
       </div>
 
-      {/* Main Content Area with Sidebars */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Toolbar */}
+      {/* Canvas Area with Floating Controls */}
+      <div className="flex-1 overflow-hidden relative">
+        <Canvas />
+
+        {/* Floating Toolbars */}
         <Toolbar />
-
-        {/* Canvas Area */}
-        <div className="flex-1 overflow-hidden">
-          <Canvas />
-        </div>
-
-        {/* Right Customization Sidebar */}
+        <ViewControls />
         <CustomizationSidebar />
       </div>
     </div>

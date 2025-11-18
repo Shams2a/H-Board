@@ -15,18 +15,12 @@ import {
   Link2,
   FileText,
   CheckSquare,
-  Table,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  Grid,
-  Undo,
-  Redo
+  Table
 } from 'lucide-react';
 import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement } from '../../types';
 
 export default function Toolbar() {
-  const { activeTool, setActiveTool, zoom, setZoom, gridEnabled, toggleGrid, resetView } = useUIStore();
+  const { activeTool, setActiveTool, gridEnabled } = useUIStore();
   const { currentBoardId } = useBoardStore();
   const { createElement, elements } = useElementStore();
 
@@ -43,9 +37,6 @@ export default function Toolbar() {
     { type: 'todo', icon: <CheckSquare className="w-5 h-5" />, label: 'Todo', shortcut: 'T' },
     { type: 'table', icon: <Table className="w-5 h-5" />, label: 'Table', shortcut: 'G' }
   ];
-
-  const handleZoomIn = () => setZoom(zoom + 0.1);
-  const handleZoomOut = () => setZoom(zoom - 0.1);
 
   const handleToolClick = async (toolType: ElementType) => {
     if (!currentBoardId) return;
@@ -169,9 +160,9 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="w-16 bg-white border-r border-border flex flex-col items-center py-4 z-toolbar">
+    <div className="absolute top-20 left-4 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-toolbar">
       {/* Creation Tools */}
-      <div className="flex flex-col items-center gap-2 flex-1">
+      <div className="flex flex-col items-center gap-2">
         {tools.map(tool => (
           <button
             key={tool.type}
@@ -186,69 +177,6 @@ export default function Toolbar() {
             {tool.icon}
           </button>
         ))}
-      </div>
-
-      {/* View Controls */}
-      <div className="flex flex-col items-center gap-2 border-t border-gray-200 pt-4 mt-4">
-        {/* Grid Toggle */}
-        <button
-          onClick={toggleGrid}
-          className={`toolbar-button ${gridEnabled ? 'active' : ''}`}
-          title="Toggle Grid"
-          aria-label="Toggle grid"
-        >
-          <Grid className="w-5 h-5" />
-        </button>
-
-        {/* Zoom Out */}
-        <button
-          onClick={handleZoomOut}
-          className="toolbar-button"
-          title="Zoom Out"
-          aria-label="Zoom out"
-          disabled={zoom <= 0.25}
-        >
-          <ZoomOut className="w-5 h-5" />
-        </button>
-
-        {/* Zoom In */}
-        <button
-          onClick={handleZoomIn}
-          className="toolbar-button"
-          title="Zoom In"
-          aria-label="Zoom in"
-          disabled={zoom >= 2}
-        >
-          <ZoomIn className="w-5 h-5" />
-        </button>
-
-        {/* Reset View */}
-        <button
-          onClick={resetView}
-          className="toolbar-button"
-          title="Reset View (Ctrl+0)"
-          aria-label="Reset view"
-        >
-          <Maximize className="w-5 h-5" />
-        </button>
-
-        {/* Undo */}
-        <button
-          className="toolbar-button"
-          title="Undo (Ctrl+Z)"
-          aria-label="Undo"
-        >
-          <Undo className="w-5 h-5" />
-        </button>
-
-        {/* Redo */}
-        <button
-          className="toolbar-button"
-          title="Redo (Ctrl+Y)"
-          aria-label="Redo"
-        >
-          <Redo className="w-5 h-5" />
-        </button>
       </div>
     </div>
   );

@@ -6,12 +6,7 @@
 import { useRef, useState } from 'react';
 import { useElementStore } from '../../../store';
 import type { ImageElement } from '../../../types';
-import {
-  Upload,
-  Palette,
-  ChevronDown,
-  ChevronRight
-} from 'lucide-react';
+import { Upload } from 'lucide-react';
 
 interface ImageCustomizationProps {
   element: ImageElement;
@@ -27,17 +22,7 @@ const COLORS = [
 export default function ImageCustomization({ element }: ImageCustomizationProps) {
   const { updateElement } = useElementStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [colorExpanded, setColorExpanded] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-
-  const handleColorChange = (color: string) => {
-    updateElement(element.id, {
-      style: {
-        ...element.style,
-        backgroundColor: color
-      }
-    });
-  };
 
   const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -84,68 +69,51 @@ export default function ImageCustomization({ element }: ImageCustomizationProps)
     }
   };
 
+  const handleColorChange = (color: string) => {
+    updateElement(element.id, {
+      style: {
+        ...element.style,
+        backgroundColor: color
+      }
+    });
+  };
+
   return (
     <div className="space-y-4">
-      {/* Upload Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Upload className="w-5 h-5 text-gray-600" />
-          <span className="font-medium text-gray-900">Image</span>
-        </div>
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={isUploading}
-          className="w-full px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isUploading ? 'Uploading...' : element.content.src ? 'Change Image' : 'Upload Image'}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileInputChange}
-        />
-      </div>
+      {/* Upload Button */}
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isUploading}
+        className="w-full px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        <Upload className="w-4 h-4" />
+        {isUploading ? 'Uploading...' : element.content.src ? 'Change Image' : 'Upload Image'}
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
 
-      {/* Background Color Section */}
-      <div>
-        <button
-          onClick={() => setColorExpanded(!colorExpanded)}
-          className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <Palette className="w-5 h-5 text-gray-600" />
-            <span className="font-medium text-gray-900">Background Color</span>
-          </div>
-          {colorExpanded ? (
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          )}
-        </button>
-
-        {colorExpanded && (
-          <div className="mt-2 p-3 bg-gray-50 rounded">
-            <div className="grid grid-cols-2 gap-2">
-              {COLORS.map((color) => (
-                <button
-                  key={color.value}
-                  onClick={() => handleColorChange(color.value)}
-                  className={`
-                    w-full aspect-square rounded border-2 transition-all
-                    ${element.style.backgroundColor === color.value
-                      ? 'border-primary-500 ring-2 ring-primary-200'
-                      : 'border-gray-300 hover:border-gray-400'
-                    }
-                  `}
-                  style={{ backgroundColor: color.value }}
-                  title={color.name}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Color Picker */}
+      <div className="grid grid-cols-2 gap-2">
+        {COLORS.map((color) => (
+          <button
+            key={color.value}
+            onClick={() => handleColorChange(color.value)}
+            className={`
+              w-full aspect-square rounded border-2 transition-all
+              ${element.style.backgroundColor === color.value
+                ? 'border-primary-500 ring-2 ring-primary-200'
+                : 'border-gray-300 hover:border-gray-400'
+              }
+            `}
+            style={{ backgroundColor: color.value }}
+            title={color.name}
+          />
+        ))}
       </div>
     </div>
   );
