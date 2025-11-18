@@ -8,6 +8,7 @@ import Note from '../Elements/Note';
 import Image from '../Elements/Image';
 import Column from '../Elements/Column';
 import Link from '../Elements/Link';
+import Section from '../Elements/Section';
 
 interface CanvasElementProps {
   element: Element;
@@ -31,22 +32,7 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
       return <Link element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'section':
-      // TODO: Implement Section component
-      return (
-        <div
-          className="absolute p-4 border-2 border-dashed border-gray-300 bg-gray-50/50"
-          style={{
-            left: `${element.position.x}px`,
-            top: `${element.position.y}px`,
-            width: `${element.size.width}px`,
-            height: `${element.size.height}px`,
-            zIndex: element.zIndex
-          }}
-          onClick={onSelect}
-        >
-          Section (TODO)
-        </div>
-      );
+      return <Section element={element} isSelected={isSelected} onSelect={onSelect} />;
 
     default:
       return (
