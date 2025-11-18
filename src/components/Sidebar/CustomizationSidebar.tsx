@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useElementStore } from '../../store';
 import { X, Palette, Type, Upload, Link as LinkIcon, ArrowLeft } from 'lucide-react';
 import NoteCustomization from './customizations/NoteCustomization';
+import NoteTextCustomization from './customizations/NoteTextCustomization';
 import ImageCustomization from './customizations/ImageCustomization';
 import ColumnCustomization from './customizations/ColumnCustomization';
 import LinkCustomization from './customizations/LinkCustomization';
@@ -117,7 +118,7 @@ export default function CustomizationSidebar() {
               <LinkCustomization element={selectedElement} />
             )}
             {activePage === 'text' && selectedElement.type === 'note' && (
-              <NoteCustomization element={selectedElement} />
+              <NoteTextCustomization element={selectedElement} />
             )}
             {activePage === 'text' && selectedElement.type === 'column' && (
               <ColumnCustomization element={selectedElement} />
