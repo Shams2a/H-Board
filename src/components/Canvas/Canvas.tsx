@@ -115,7 +115,10 @@ export default function Canvas() {
             </div>
           </div>
         ) : (
-          <div className="relative w-full h-full">
+          <div
+            className="relative w-full h-full"
+            onClick={handleCanvasClick}
+          >
             {/* Render all elements */}
             {elements.map((element) => (
               <CanvasElement
