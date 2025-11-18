@@ -10,6 +10,7 @@ import Column from '../Elements/Column';
 import Link from '../Elements/Link';
 import Section from '../Elements/Section';
 import TodoList from '../Elements/TodoList';
+import File from '../Elements/File';
 
 interface CanvasElementProps {
   element: Element;
@@ -37,6 +38,9 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'todo':
       return <TodoList element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+
+    case 'file':
+      return <File element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     default:
       return (

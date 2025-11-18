@@ -17,7 +17,7 @@ import {
   CheckSquare,
   Table
 } from 'lucide-react';
-import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement } from '../../types';
+import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement } from '../../types';
 
 export default function Toolbar() {
   const { activeTool, setActiveTool, gridEnabled } = useUIStore();
@@ -169,6 +169,31 @@ export default function Toolbar() {
           }
         };
         await createElement(newTodo);
+        break;
+      }
+
+      case 'file': {
+        const newFile: FileElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'file',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 300, height: 200 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            fileName: '',
+            fileType: '',
+            fileSize: 0,
+            fileData: ''
+          },
+          style: {
+            backgroundColor: '#FFFFFF'
+          }
+        };
+        await createElement(newFile);
         break;
       }
 
