@@ -198,7 +198,10 @@ export default function Drawing({ element, isSelected, onSelect, parentColumnId 
       {/* Title Bar for Dragging */}
       <div
         className="drawing-header absolute top-0 left-0 right-0 bg-gray-100 border-b border-gray-200 px-2 py-1 flex items-center gap-2 cursor-move z-10"
-        onMouseDown={handleDragMouseDown}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          handleDragMouseDown(e);
+        }}
       >
         <GripVertical className="w-4 h-4 text-gray-400" />
         <span className="text-xs text-gray-600 flex-1">Drawing</span>
