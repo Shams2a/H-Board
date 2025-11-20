@@ -10,4 +10,5 @@ export interface Folder {
   parentFolderId: string | null; // Support for nested folders
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date | null;  // Soft delete timestamp
 }

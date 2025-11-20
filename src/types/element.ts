@@ -14,7 +14,8 @@ export type ElementType =
   | 'link'
   | 'file'
   | 'todo'
-  | 'table';
+  | 'table'
+  | 'shape';
 
 export interface Position {
   x: number;
@@ -46,12 +47,14 @@ export interface BaseElement {
   parentId?: string; // For elements inside a column
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date | null;  // Soft delete timestamp
   style: ElementStyle;
 }
 
 // Specific element content types
 
 export interface NoteContent {
+  title?: string;
   text: string; // TipTap JSON or HTML
   textFormat: 'html' | 'markdown';
 }
@@ -91,6 +94,7 @@ export interface LineContent {
   arrowStart?: boolean;
   arrowEnd?: boolean;
   curvePoints?: Position[]; // Bezier curve control points
+  label?: string; // Optional text label shown at middle of line
 }
 
 export interface DrawingContent {
@@ -127,6 +131,7 @@ export interface TodoItem {
 }
 
 export interface TodoListContent {
+  title?: string;
   items: TodoItem[];
   showProgress: boolean;
 }
@@ -144,6 +149,12 @@ export interface TableContent {
   columnWidths?: number[];
 }
 
+export type ShapeType = 'rectangle' | 'circle' | 'triangle' | 'star';
+
+export interface ShapeContent {
+  shapeType: ShapeType;
+}
+
 // Union type for all element types with their specific content
 
 export type NoteElement = BaseElement & { type: 'note'; content: NoteContent };
@@ -157,6 +168,7 @@ export type LinkElement = BaseElement & { type: 'link'; content: LinkContent };
 export type FileElement = BaseElement & { type: 'file'; content: FileContent };
 export type TodoElement = BaseElement & { type: 'todo'; content: TodoListContent };
 export type TableElement = BaseElement & { type: 'table'; content: TableContent };
+export type ShapeElement = BaseElement & { type: 'shape'; content: ShapeContent };
 
 export type Element =
   | NoteElement
@@ -169,4 +181,5 @@ export type Element =
   | LinkElement
   | FileElement
   | TodoElement
-  | TableElement;
+  | TableElement
+  | ShapeElement;

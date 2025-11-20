@@ -3,15 +3,9 @@
  * Drawable line/arrow for connecting elements or freeform annotations
  */
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { LineElement } from '../../types';
-import { useElementStore } from '../../store';
-import {
-  ArrowRight,
-  ArrowLeft,
-  Minus,
-  MoreVertical
-} from 'lucide-react';
+import { useElementStore, useUIStore, useDragStore } from '../../store';
 
 interface LineProps {
   element: LineElement;
@@ -20,56 +14,264 @@ interface LineProps {
 }
 
 export default function Line({ element, isSelected, onSelect }: LineProps) {
-  const { updateElement } = useElementStore();
-  const containerRef = useRef<SVGSVGElement>(null);
+  const { updateElement, elements } = useElementStore();
+  const { zoom, panX, panY } = useUIStore();
+  const { draggedElementId, justFinishedDrag } = useDragStore();
+  const { setDraggedElement, clearDrag, setJustFinishedDrag } = useDragStore();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingStart, setIsDraggingStart] = useState(false);
   const [isDraggingEnd, setIsDraggingEnd] = useState(false);
+  const [isDraggingLine, setIsDraggingLine] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState(element.content.label || '');
+
+  // Check if this element is currently being dragged
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Handle Enter key to edit title
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isSelected && e.key === 'Enter' && !isEditingTitle) {
+        e.preventDefault();
+        setIsEditingTitle(true);
+        setTitleValue(element.content.label || '');
+      }
+    };
+
+    if (isSelected) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isSelected, isEditingTitle, element.content.label]);
+
+  // Focus input when editing starts
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
+  const handleTitleSubmit = () => {
+    const trimmedValue = titleValue.trim();
+    updateElement(element.id, {
+      content: {
+        ...element.content,
+        label: trimmedValue || undefined
+      }
+    });
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTitleSubmit();
+    } else if (e.key === 'Escape') {
+      setIsEditingTitle(false);
+      setTitleValue(element.content.label || '');
+    }
+  };
+
+  // Helper function to find element at position
+  const findElementAtPosition = (x: number, y: number): string | null => {
+    const otherElements = elements.filter(el => el.type !== 'line' && el.id !== element.id);
+
+    for (const el of otherElements) {
+      const elLeft = el.position.x;
+      const elTop = el.position.y;
+      const elRight = elLeft + el.size.width;
+      const elBottom = elTop + el.size.height;
+
+      if (x >= elLeft && x <= elRight && y >= elTop && y <= elBottom) {
+        return el.id;
+      }
+    }
+    return null;
+  };
+
+  // Helper function to get connection point for an element
+  const getConnectionPoint = (elementId: string) => {
+    const targetElement = elements.find(el => el.id === elementId);
+    if (!targetElement) return null;
+
+    const parentColumn = elements.find(
+      el => el.type === 'column' && el.content.childrenIds?.includes(elementId)
+    );
+
+    if (parentColumn) {
+      return {
+        x: parentColumn.position.x + parentColumn.size.width / 2,
+        y: parentColumn.position.y + parentColumn.size.height / 2
+      };
+    } else {
+      return {
+        x: targetElement.position.x + targetElement.size.width / 2,
+        y: targetElement.position.y + targetElement.size.height / 2
+      };
+    }
+  };
 
   const startPoint = element.content.startPoint;
   const endPoint = element.content.endPoint;
   const lineStyle = element.content.lineStyle || 'solid';
-  const arrowStart = element.content.arrowStart || false;
-  const arrowEnd = element.content.arrowEnd || true;
+  const arrowStart = element.content.arrowStart ?? false;
+  const arrowEnd = element.content.arrowEnd ?? true;
 
-  // Calculate SVG viewBox to contain both points
+  // Calculate bounding box
   const minX = Math.min(startPoint.x, endPoint.x);
   const minY = Math.min(startPoint.y, endPoint.y);
   const maxX = Math.max(startPoint.x, endPoint.x);
   const maxY = Math.max(startPoint.y, endPoint.y);
-  const width = maxX - minX + 40; // Add padding for arrows
-  const height = maxY - minY + 40;
+  const padding = 20;
+  const width = maxX - minX + padding * 2;
+  const height = maxY - minY + padding * 2;
 
   // Local coordinates within SVG
-  const localStartX = startPoint.x - minX + 20;
-  const localStartY = startPoint.y - minY + 20;
-  const localEndX = endPoint.x - minX + 20;
-  const localEndY = endPoint.y - minY + 20;
+  const localStartX = startPoint.x - minX + padding;
+  const localStartY = startPoint.y - minY + padding;
+  const localEndX = endPoint.x - minX + padding;
+  const localEndY = endPoint.y - minY + padding;
 
-  const handleStartDrag = (e: React.MouseEvent) => {
-    if (element.locked || !isSelected) return;
+  // Custom drag handler for line (moves both points)
+  const handleLineDrag = (e: React.MouseEvent) => {
+    // Always stop propagation to prevent canvas from clearing selection
     e.stopPropagation();
-    setIsDraggingStart(true);
+
+    if (element.locked || isDraggingStart || isDraggingEnd) return;
+
+    // Only start drag on left click
+    if (e.button !== 0) return;
+
+    e.preventDefault();
+
+    const mouseStartX = e.clientX;
+    const mouseStartY = e.clientY;
+    const initialStartPoint = { ...startPoint };
+    const initialEndPoint = { ...endPoint };
+    let hasMoved = false;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const canvas = document.querySelector('.canvas-container');
-      if (!canvas) return;
+      moveEvent.preventDefault();
 
-      const rect = canvas.getBoundingClientRect();
-      const newX = moveEvent.clientX - rect.left;
-      const newY = moveEvent.clientY - rect.top;
+      const deltaX = (moveEvent.clientX - mouseStartX) / zoom;
+      const deltaY = (moveEvent.clientY - mouseStartY) / zoom;
+
+      // Start drag after small movement
+      if (!hasMoved && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
+        hasMoved = true;
+        setIsDraggingLine(true);
+        setDraggedElement(element.id, null);
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
+      }
+
+      if (!hasMoved) return;
 
       updateElement(element.id, {
         content: {
           ...element.content,
-          startPoint: { x: newX, y: newY }
+          startPoint: {
+            x: initialStartPoint.x + deltaX,
+            y: initialStartPoint.y + deltaY
+          },
+          endPoint: {
+            x: initialEndPoint.x + deltaX,
+            y: initialEndPoint.y + deltaY
+          }
         }
       });
     };
 
     const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+
+      if (hasMoved) {
+        setJustFinishedDrag(true);
+        setTimeout(() => setJustFinishedDrag(false), 100);
+      }
+
+      setIsDraggingLine(false);
+      clearDrag();
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (justFinishedDrag) {
+      return;
+    }
+
+    const isMultiSelect = e.ctrlKey || e.metaKey;
+    const { selectElement } = useElementStore.getState();
+    selectElement(element.id, isMultiSelect);
+  };
+
+  const handleStartDrag = (e: React.MouseEvent) => {
+    if (element.locked) return;
+    e.stopPropagation();
+    e.preventDefault();
+    setIsDraggingStart(true);
+
+    const mouseStartX = e.clientX;
+    const mouseStartY = e.clientY;
+    const initialPoint = { ...startPoint };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      moveEvent.preventDefault();
+
+      const deltaX = (moveEvent.clientX - mouseStartX) / zoom;
+      const deltaY = (moveEvent.clientY - mouseStartY) / zoom;
+
+      updateElement(element.id, {
+        content: {
+          ...element.content,
+          startPoint: { x: initialPoint.x + deltaX, y: initialPoint.y + deltaY }
+        }
+      });
+    };
+
+    const handleMouseUp = (upEvent: MouseEvent) => {
       setIsDraggingStart(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+
+      const rect = document.body.getBoundingClientRect();
+      const finalX = (upEvent.clientX - rect.left) / zoom - panX;
+      const finalY = (upEvent.clientY - rect.top) / zoom - panY;
+
+      const targetElementId = findElementAtPosition(finalX, finalY);
+
+      if (targetElementId) {
+        const connectionPoint = getConnectionPoint(targetElementId);
+        if (connectionPoint) {
+          updateElement(element.id, {
+            content: {
+              ...element.content,
+              startPoint: connectionPoint,
+              startElementId: targetElementId
+            }
+          });
+        }
+      } else {
+        updateElement(element.id, {
+          content: {
+            ...element.content,
+            startElementId: undefined
+          }
+        });
+      }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -77,65 +279,63 @@ export default function Line({ element, isSelected, onSelect }: LineProps) {
   };
 
   const handleEndDrag = (e: React.MouseEvent) => {
-    if (element.locked || !isSelected) return;
+    if (element.locked) return;
     e.stopPropagation();
+    e.preventDefault();
     setIsDraggingEnd(true);
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const canvas = document.querySelector('.canvas-container');
-      if (!canvas) return;
+    const mouseStartX = e.clientX;
+    const mouseStartY = e.clientY;
+    const initialPoint = { ...endPoint };
 
-      const rect = canvas.getBoundingClientRect();
-      const newX = moveEvent.clientX - rect.left;
-      const newY = moveEvent.clientY - rect.top;
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      moveEvent.preventDefault();
+
+      const deltaX = (moveEvent.clientX - mouseStartX) / zoom;
+      const deltaY = (moveEvent.clientY - mouseStartY) / zoom;
 
       updateElement(element.id, {
         content: {
           ...element.content,
-          endPoint: { x: newX, y: newY }
+          endPoint: { x: initialPoint.x + deltaX, y: initialPoint.y + deltaY }
         }
       });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (upEvent: MouseEvent) => {
       setIsDraggingEnd(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+
+      const rect = document.body.getBoundingClientRect();
+      const finalX = (upEvent.clientX - rect.left) / zoom - panX;
+      const finalY = (upEvent.clientY - rect.top) / zoom - panY;
+
+      const targetElementId = findElementAtPosition(finalX, finalY);
+
+      if (targetElementId) {
+        const connectionPoint = getConnectionPoint(targetElementId);
+        if (connectionPoint) {
+          updateElement(element.id, {
+            content: {
+              ...element.content,
+              endPoint: connectionPoint,
+              endElementId: targetElementId
+            }
+          });
+        }
+      } else {
+        updateElement(element.id, {
+          content: {
+            ...element.content,
+            endElementId: undefined
+          }
+        });
+      }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const toggleLineStyle = async () => {
-    const styles: Array<'solid' | 'dashed' | 'dotted'> = ['solid', 'dashed', 'dotted'];
-    const currentIndex = styles.indexOf(lineStyle);
-    const nextStyle = styles[(currentIndex + 1) % styles.length];
-
-    await updateElement(element.id, {
-      content: {
-        ...element.content,
-        lineStyle: nextStyle
-      }
-    });
-  };
-
-  const toggleArrowStart = async () => {
-    await updateElement(element.id, {
-      content: {
-        ...element.content,
-        arrowStart: !arrowStart
-      }
-    });
-  };
-
-  const toggleArrowEnd = async () => {
-    await updateElement(element.id, {
-      content: {
-        ...element.content,
-        arrowEnd: !arrowEnd
-      }
-    });
   };
 
   // Get stroke dash array based on style
@@ -151,22 +351,33 @@ export default function Line({ element, isSelected, onSelect }: LineProps) {
   };
 
   return (
-    <>
+    <div
+      ref={containerRef}
+      data-element-id={element.id}
+      className={`
+        element-card absolute
+        ${isSelected ? 'ring-2 ring-primary-500 ring-offset-2' : ''}
+        ${element.locked ? 'cursor-not-allowed' : 'cursor-move'}
+      `}
+      style={{
+        left: `${minX - padding}px`,
+        top: `${minY - padding}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        zIndex: element.zIndex,
+        pointerEvents: isBeingDragged ? 'none' : 'auto',
+        background: 'transparent',
+        boxShadow: 'none',
+        borderRadius: 0
+      }}
+      onClick={handleClick}
+      onMouseDown={handleLineDrag}
+    >
       <svg
-        ref={containerRef}
-        className={`absolute pointer-events-none ${isSelected ? 'selected' : ''}`}
-        style={{
-          left: `${minX - 20}px`,
-          top: `${minY - 20}px`,
-          width: `${width}px`,
-          height: `${height}px`,
-          zIndex: element.zIndex,
-          overflow: 'visible'
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect?.();
-        }}
+        width={width}
+        height={height}
+        className="w-full h-full"
+        style={{ overflow: 'visible' }}
       >
         <defs>
           {/* Arrow marker for end */}
@@ -202,7 +413,7 @@ export default function Line({ element, isSelected, onSelect }: LineProps) {
           </marker>
         </defs>
 
-        {/* Main line */}
+        {/* Main visible line */}
         <line
           x1={localStartX}
           y1={localStartY}
@@ -213,86 +424,106 @@ export default function Line({ element, isSelected, onSelect }: LineProps) {
           strokeDasharray={getStrokeDashArray()}
           markerEnd={arrowEnd ? `url(#arrowhead-end-${element.id})` : undefined}
           markerStart={arrowStart ? `url(#arrowhead-start-${element.id})` : undefined}
-          className="pointer-events-auto cursor-pointer"
+          style={{ pointerEvents: 'none' }}
+        />
+
+        {/* Invisible thicker line for easier clicking */}
+        <line
+          x1={localStartX}
+          y1={localStartY}
+          x2={localEndX}
+          y2={localEndY}
+          stroke="transparent"
+          strokeWidth="16"
+          style={{ pointerEvents: 'stroke' }}
         />
 
         {/* Start point handle */}
         {isSelected && !element.locked && (
-          <circle
-            cx={localStartX}
-            cy={localStartY}
-            r="6"
-            fill="white"
-            stroke="#3B82F6"
-            strokeWidth="2"
-            className="pointer-events-auto cursor-move"
-            onMouseDown={handleStartDrag}
+          <g
             style={{ cursor: isDraggingStart ? 'grabbing' : 'grab' }}
-          />
+            onMouseDown={handleStartDrag}
+          >
+            <circle
+              cx={localStartX}
+              cy={localStartY}
+              r="12"
+              fill="transparent"
+            />
+            <circle
+              cx={localStartX}
+              cy={localStartY}
+              r="6"
+              fill="white"
+              stroke="#3B82F6"
+              strokeWidth="2"
+              style={{ pointerEvents: 'none' }}
+            />
+          </g>
         )}
 
         {/* End point handle */}
         {isSelected && !element.locked && (
-          <circle
-            cx={localEndX}
-            cy={localEndY}
-            r="6"
-            fill="white"
-            stroke="#3B82F6"
-            strokeWidth="2"
-            className="pointer-events-auto cursor-move"
-            onMouseDown={handleEndDrag}
+          <g
             style={{ cursor: isDraggingEnd ? 'grabbing' : 'grab' }}
-          />
+            onMouseDown={handleEndDrag}
+          >
+            <circle
+              cx={localEndX}
+              cy={localEndY}
+              r="12"
+              fill="transparent"
+            />
+            <circle
+              cx={localEndX}
+              cy={localEndY}
+              r="6"
+              fill="white"
+              stroke="#3B82F6"
+              strokeWidth="2"
+              style={{ pointerEvents: 'none' }}
+            />
+          </g>
         )}
       </svg>
 
-      {/* Control Panel when selected */}
-      {isSelected && !element.locked && (
+      {/* Title label - shown at middle of line */}
+      {(element.content.label || isEditingTitle) && (
         <div
-          className="absolute bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-[1000] pointer-events-auto"
+          className="absolute pointer-events-auto"
           style={{
-            left: `${(startPoint.x + endPoint.x) / 2 - 80}px`,
-            top: `${Math.min(startPoint.y, endPoint.y) - 50}px`
+            left: `${(localStartX + localEndX) / 2}px`,
+            top: `${(localStartY + localEndY) / 2}px`,
+            transform: 'translate(-50%, -50%)'
           }}
           onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center gap-1">
-            {/* Arrow Start Toggle */}
-            <button
-              onClick={toggleArrowStart}
-              className={`p-2 rounded hover:bg-gray-100 transition-colors ${
-                arrowStart ? 'bg-primary-100 text-primary-600' : 'text-gray-600'
-              }`}
-              title="Toggle start arrow"
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={titleValue}
+              onChange={(e) => setTitleValue(e.target.value)}
+              onKeyDown={handleTitleKeyDown}
+              onBlur={handleTitleSubmit}
+              className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-w-[60px]"
+              placeholder="Label"
+            />
+          ) : (
+            <span
+              className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditingTitle(true);
+                setTitleValue(element.content.label || '');
+              }}
             >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-
-            {/* Line Style Toggle */}
-            <button
-              onClick={toggleLineStyle}
-              className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-600"
-              title={`Line style: ${lineStyle}`}
-            >
-              {lineStyle === 'solid' && <Minus className="w-4 h-4" />}
-              {lineStyle === 'dashed' && <MoreVertical className="w-4 h-4 rotate-90" />}
-              {lineStyle === 'dotted' && <MoreVertical className="w-4 h-4" />}
-            </button>
-
-            {/* Arrow End Toggle */}
-            <button
-              onClick={toggleArrowEnd}
-              className={`p-2 rounded hover:bg-gray-100 transition-colors ${
-                arrowEnd ? 'bg-primary-100 text-primary-600' : 'text-gray-600'
-              }`}
-              title="Toggle end arrow"
-            >
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+              {element.content.label}
+            </span>
+          )}
         </div>
       )}
-    </>
+    </div>
   );
 }

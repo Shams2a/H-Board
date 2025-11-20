@@ -15,13 +15,14 @@ import {
   Link2,
   FileText,
   CheckSquare,
-  Table
+  Table,
+  Shapes
 } from 'lucide-react';
-import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement } from '../../types';
+import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement, BoardElement, ShapeElement } from '../../types';
 
 export default function Toolbar() {
   const { activeTool, setActiveTool, gridEnabled } = useUIStore();
-  const { currentBoardId } = useBoardStore();
+  const { currentBoardId, createBoard } = useBoardStore();
   const { createElement, elements } = useElementStore();
 
   const tools: Array<{ type: ElementType; icon: React.ReactNode; label: string; shortcut: string }> = [
@@ -30,6 +31,7 @@ export default function Toolbar() {
     { type: 'column', icon: <Columns className="w-6 h-6" />, label: 'Column', shortcut: 'C' },
     { type: 'board', icon: <FolderPlus className="w-6 h-6" />, label: 'Board', shortcut: 'B' },
     { type: 'section', icon: <Square className="w-6 h-6" />, label: 'Section', shortcut: 'S' },
+    { type: 'shape', icon: <Shapes className="w-6 h-6" />, label: 'Shape', shortcut: 'H' },
     { type: 'line', icon: <ArrowRight className="w-6 h-6" />, label: 'Line', shortcut: 'L' },
     { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'D' },
     { type: 'link', icon: <Link2 className="w-6 h-6" />, label: 'Link', shortcut: 'K' },
@@ -93,7 +95,7 @@ export default function Toolbar() {
             originalName: ''
           },
           style: {
-            backgroundColor: '#F9FAFB'
+            backgroundColor: '#FFFFFF'
           }
         };
         await createElement(newImage);
@@ -276,6 +278,59 @@ export default function Toolbar() {
         break;
       }
 
+      case 'board': {
+        // Create a new sub-board
+        const newBoardId = await createBoard('New Sub-Board', currentBoardId);
+
+        // Create a board link element that links to the new sub-board
+        const newBoardLink: BoardElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'board',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 80, height: 100 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            linkedBoardId: newBoardId,
+            title: 'New Sub-Board',
+            description: '',
+            elementCount: 0
+          },
+          style: {
+            backgroundColor: '#DBEAFE'
+          }
+        };
+        await createElement(newBoardLink);
+        break;
+      }
+
+      case 'shape': {
+        const newShape: ShapeElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'shape',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 200, height: 200 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            shapeType: 'rectangle'
+          },
+          style: {
+            backgroundColor: '#3B82F6',
+            borderColor: '#1E40AF',
+            borderWidth: 2
+          }
+        };
+        await createElement(newShape);
+        break;
+      }
+
       default:
         // For other types, just set active tool for now
         setActiveTool(activeTool === toolType ? null : toolType);
@@ -287,7 +342,7 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="absolute top-20 left-4 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-toolbar">
+    <div className="absolute top-20 left-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 z-toolbar">
       {/* Creation Tools */}
       <div className="flex flex-col items-center gap-2">
         {tools.map(tool => (

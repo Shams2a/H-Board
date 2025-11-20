@@ -3,55 +3,69 @@
  * Shows the hierarchical path of the current board
  */
 
-import { useBoardStore } from '../../store';
-import { ChevronRight, Home, ArrowLeft } from 'lucide-react';
+import { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useBoardStore, useDragStore } from '../../store';
+import { ChevronRight, Home } from 'lucide-react';
 
 export default function Breadcrumb() {
-  const { currentBoardId, getBoardPath, setCurrentBoard } = useBoardStore();
+  const navigate = useNavigate();
+  const { currentBoardId, getBoardPath } = useBoardStore();
+  const { draggedElementId, dropTargetBoardId, isDropReady, setDropTargetBoard, setDropReady } = useDragStore();
+  const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) {
+        clearTimeout(hoverTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleDragEnter = (boardId: string) => {
+    if (draggedElementId && boardId !== currentBoardId) {
+      setDropTargetBoard(boardId);
+      hoverTimerRef.current = setTimeout(() => {
+        setDropReady(true);
+      }, 1000);
+    }
+  };
+
+  const handleDragLeave = (boardId: string) => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    if (dropTargetBoardId === boardId) {
+      setDropTargetBoard(null);
+    }
+  };
 
   if (!currentBoardId) {
     return (
-      <div className="h-12 bg-white border-b border-border flex items-center px-4">
-        <Home className="w-4 h-4 text-gray-500" />
-        <span className="ml-2 text-sm text-text-tertiary">No board selected</span>
+      <div className="h-12 bg-white dark:bg-gray-800 border-b border-border dark:border-gray-700 flex items-center px-4">
+        <Home className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+        <span className="ml-2 text-sm text-text-tertiary dark:text-gray-400">No board selected</span>
       </div>
     );
   }
 
   const path = getBoardPath(currentBoardId);
-  const parentBoard = path.length > 1 ? path[path.length - 2] : null;
-
-  const handleGoBack = () => {
-    if (parentBoard) {
-      setCurrentBoard(parentBoard.id);
-    }
-  };
 
   return (
-    <div className="h-12 bg-white border-b border-border flex items-center px-4 gap-2">
-      {/* Back button */}
-      {parentBoard && (
-        <button
-          onClick={handleGoBack}
-          className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-          aria-label="Go back to parent board"
-          title={`Back to ${parentBoard.name}`}
-        >
-          <ArrowLeft className="w-4 h-4 text-gray-600" />
-        </button>
-      )}
-
+    <div className="h-12 bg-white dark:bg-gray-800 border-b border-border dark:border-gray-700 flex items-center px-4 gap-2">
       {/* Home icon */}
       <button
         onClick={() => {
           if (path.length > 0) {
-            setCurrentBoard(path[0].id);
+            navigate(`/board/${path[0].id}`);
           }
         }}
-        className="p-1 hover:bg-gray-100 rounded transition-colors"
+        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
         aria-label="Go to root board"
       >
-        <Home className="w-4 h-4 text-gray-500" />
+        <Home className="w-4 h-4 text-gray-500 dark:text-gray-400" />
       </button>
 
       {/* Breadcrumb path */}
@@ -62,16 +76,26 @@ export default function Breadcrumb() {
           return (
             <div key={board.id} className="flex items-center gap-1">
               {index > 0 && (
-                <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
               )}
 
               <button
-                onClick={() => setCurrentBoard(board.id)}
+                onClick={() => navigate(`/board/${board.id}`)}
+                onMouseEnter={() => !isLast && handleDragEnter(board.id)}
+                onMouseLeave={() => !isLast && handleDragLeave(board.id)}
                 className={`
                   px-2 py-1 rounded text-sm transition-colors whitespace-nowrap
                   ${isLast
-                    ? 'font-semibold text-text-primary bg-gray-100'
-                    : 'text-text-secondary hover:bg-gray-100'
+                    ? 'font-semibold text-text-primary dark:text-gray-100 bg-gray-100 dark:bg-gray-700'
+                    : 'text-text-secondary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }
+                  ${!isLast && dropTargetBoardId === board.id && isDropReady
+                    ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20'
+                    : ''
+                  }
+                  ${!isLast && dropTargetBoardId === board.id && !isDropReady
+                    ? 'ring-2 ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                    : ''
                   }
                 `}
                 aria-current={isLast ? 'page' : undefined}

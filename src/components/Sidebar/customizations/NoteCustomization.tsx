@@ -43,9 +43,9 @@ export default function NoteCustomization({ element }: NoteCustomizationProps) {
             onClick={() => handleColorChange(color.value)}
             className={`
               w-full aspect-square rounded border-2 transition-all
-              ${element.style.backgroundColor === color.value
-                ? 'border-primary-500 ring-2 ring-primary-200'
-                : 'border-gray-300 hover:border-gray-400'
+              ${(element.style.backgroundColor || '#FFFFFF') === color.value
+                ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }
             `}
             style={{ backgroundColor: color.value }}

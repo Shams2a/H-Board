@@ -3,15 +3,14 @@
  * Interactive checklist with add, edit, delete, and reorder capabilities
  */
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { TodoElement, TodoItem } from '../../types';
-import { useElementStore } from '../../store';
+import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
+import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 import {
-  Plus,
   Check,
-  X,
   Trash2,
   GripVertical
 } from 'lucide-react';
@@ -25,23 +24,41 @@ interface TodoListProps {
 
 export default function TodoList({ element, isSelected, onSelect, parentColumnId }: TodoListProps) {
   const { updateElement } = useElementStore();
+  const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const [newItemText, setNewItemText] = useState('');
-  const [isAddingItem, setIsAddingItem] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleText, setTitleText] = useState(element.content.title || '');
+
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Get dark mode adapted background color
+  const backgroundColor = useDarkModeColor(element.style.backgroundColor || '#FFFFFF');
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id,
     parentColumnId
   });
 
-  const { handleMouseDown: handleResizeMouseDown } = useResizable({
+  const { handleMouseDown: handleResizeMouseDownSE } = useResizable({
     elementId: element.id,
     minWidth: 250,
     minHeight: 150,
     maxWidth: 800,
-    maxHeight: 1200
+    maxHeight: 1200,
+    direction: 'se'
+  });
+
+  const { handleMouseDown: handleResizeMouseDownNW } = useResizable({
+    elementId: element.id,
+    minWidth: 250,
+    minHeight: 150,
+    maxWidth: 800,
+    maxHeight: 1200,
+    direction: 'nw'
   });
 
   const items = element.content.items || [];
@@ -62,7 +79,7 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
     });
   };
 
-  const handleAddItem = async (continueAdding: boolean = false) => {
+  const handleAddItem = async () => {
     if (!newItemText.trim()) return;
 
     const newItem: TodoItem = {
@@ -80,11 +97,6 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
     });
 
     setNewItemText('');
-
-    // If continueAdding is true, keep the input field open for the next item
-    if (!continueAdding) {
-      setIsAddingItem(false);
-    }
   };
 
   const handleEditItem = async (itemId: string, continueAdding: boolean = false) => {
@@ -130,29 +142,114 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
     });
   };
 
+  const handleTitleSave = async () => {
+    await updateElement(element.id, {
+      content: {
+        ...element.content,
+        title: titleText.trim() || undefined
+      }
+    });
+    setIsEditingTitle(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enter key to edit title when selected
+    if (e.key === 'Enter' && isSelected && !element.locked && !isEditingTitle && !editingItemId) {
+      e.preventDefault();
+      setIsEditingTitle(true);
+      setTimeout(() => titleInputRef.current?.focus(), 10);
+    }
+  };
+
+  // Focus container when selected for keyboard events
+  useEffect(() => {
+    if (isSelected && containerRef.current) {
+      // Delay focus to allow double-click to register
+      const timer = setTimeout(() => {
+        if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
+          containerRef.current.focus();
+        }
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isSelected]);
+
   return (
     <div
       ref={containerRef}
+      data-element-id={element.id}
       className={`
-        element-card absolute cursor-move
+        element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
+        ${isBeingDragged && dropTargetBoardId && isDropReady ? 'ring-2 ring-green-500 animate-pulse' : ''}
+        ${isBeingDragged && dropTargetBoardId && !isDropReady ? 'ring-2 ring-yellow-500' : ''}
+        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
       `}
       style={{
-        left: `${element.position.x}px`,
-        top: `${element.position.y}px`,
-        width: `${element.size.width}px`,
-        minHeight: `${element.size.height}px`,
-        backgroundColor: element.style.backgroundColor || '#FFFFFF',
-        zIndex: element.zIndex
+        ...((parentColumnId && !isBeingDragged) ? {} : {
+          left: `${element.position.x}px`,
+          top: `${element.position.y}px`,
+        }),
+        width: (parentColumnId && !isBeingDragged) ? '100%' : `${element.size.width}px`,
+        minHeight: (parentColumnId && !isBeingDragged) ? 'auto' : `${element.size.height}px`,
+        backgroundColor,
+        zIndex: element.zIndex,
+        pointerEvents: isBeingDragged ? 'none' : 'auto'
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect?.();
+        // Don't change selection if we just finished dragging
+        if (justFinishedDrag) {
+          return;
+        }
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        const { selectElement } = useElementStore.getState();
+        selectElement(element.id, isMultiSelect);
       }}
       onMouseDown={handleMouseDown}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
     >
       <div className="p-4">
+        {/* Title */}
+        {isEditingTitle ? (
+          <input
+            ref={titleInputRef}
+            type="text"
+            value={titleText}
+            onChange={(e) => setTitleText(e.target.value)}
+            onBlur={handleTitleSave}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleTitleSave();
+              } else if (e.key === 'Escape') {
+                setTitleText(element.content.title || '');
+                setIsEditingTitle(false);
+              }
+              e.stopPropagation();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            placeholder="Add title..."
+            className="w-full px-2 py-1 mb-3 text-lg font-semibold border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+          />
+        ) : (
+          (element.content.title || isSelected) && (
+            <div
+              className={`mb-3 text-lg font-semibold cursor-text ${element.content.title ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                if (isSelected && !element.locked) {
+                  setIsEditingTitle(true);
+                  setTimeout(() => titleInputRef.current?.focus(), 10);
+                }
+              }}
+            >
+              {element.content.title || (isSelected ? 'Press Enter to add title' : '')}
+            </div>
+          )
+        )}
+
         {/* Progress Bar */}
         {element.content.showProgress && totalCount > 0 && (
           <div className="mb-4">
@@ -170,18 +267,40 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
         )}
 
         {/* Todo Items */}
-        <div className="space-y-2 mb-3">
-          {items.length === 0 && !isAddingItem && (
-            <div className="text-center py-6 text-gray-400">
-              <p className="text-sm">No items yet</p>
-              <p className="text-xs mt-1">Click the + button to add one</p>
-            </div>
-          )}
+        <div className="space-y-2">
 
-          {items.map((item) => (
+          {items.map((item, index) => (
             <div
               key={item.id}
-              className="flex items-start gap-2 group hover:bg-gray-50 -mx-2 px-2 py-1.5 rounded transition-colors"
+              className="flex items-start gap-2 group hover:bg-gray-50 dark:hover:bg-gray-700 -mx-2 px-2 py-1.5 rounded transition-colors"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('text/plain', item.id);
+                e.dataTransfer.effectAllowed = 'move';
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              }}
+              onDrop={async (e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData('text/plain');
+                if (draggedId === item.id) return;
+
+                const draggedIndex = items.findIndex(i => i.id === draggedId);
+                if (draggedIndex === -1) return;
+
+                const newItems = [...items];
+                const [draggedItem] = newItems.splice(draggedIndex, 1);
+                newItems.splice(index, 0, draggedItem);
+
+                await updateElement(element.id, {
+                  content: {
+                    ...element.content,
+                    items: newItems.map((item, i) => ({ ...item, order: i }))
+                  }
+                });
+              }}
             >
               {/* Drag Handle */}
               <button
@@ -233,7 +352,7 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
                 <span
                   className={`
                     flex-1 cursor-text
-                    ${item.checked ? 'line-through text-gray-400' : 'text-gray-900'}
+                    ${item.checked ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}
                   `}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
@@ -261,83 +380,51 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
             </div>
           ))}
 
-          {/* Add New Item Input */}
-          {isAddingItem && (
-            <div className="flex items-center gap-2 -mx-2 px-2 py-1.5">
-              <div className="w-4 h-4" /> {/* Spacer for drag handle */}
-              <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white flex-shrink-0" />
-              <input
-                type="text"
-                value={newItemText}
-                onChange={(e) => setNewItemText(e.target.value)}
-                onBlur={() => {
-                  if (!newItemText.trim()) {
-                    setIsAddingItem(false);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddItem(true); // Continue adding mode - keep input open
-                  } else if (e.key === 'Escape') {
-                    setNewItemText('');
-                    setIsAddingItem(false);
-                  }
-                }}
-                autoFocus
-                placeholder="New item..."
-                className="flex-1 px-2 py-1 border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
-                onClick={(e) => e.stopPropagation()}
-              />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setNewItemText('');
-                  setIsAddingItem(false);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsAddingItem(true);
-            }}
-            disabled={isAddingItem}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-primary-600 hover:bg-primary-50 rounded transition-colors disabled:opacity-50"
-          >
-            <Plus className="w-4 h-4" />
-            Add item
-          </button>
-
-          {totalCount > 0 && (
-            <button
-              onClick={(e) => {
+          {/* Always show empty input for new item */}
+          <div className="flex items-center gap-2 -mx-2 px-2 py-1.5">
+            <div className="w-4 h-4" /> {/* Spacer for drag handle */}
+            <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-500 flex-shrink-0" />
+            <input
+              type="text"
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddItem();
+                }
                 e.stopPropagation();
-                handleToggleProgress();
               }}
-              className="ml-auto text-xs text-gray-500 hover:text-gray-700 transition-colors"
-            >
-              {element.content.showProgress ? 'Hide' : 'Show'} progress
-            </button>
-          )}
+              placeholder="New item..."
+              className="flex-1 px-2 py-1 text-sm bg-transparent border-none focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 dark:text-white"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Resize handle */}
+      {/* Resize handles */}
       {isSelected && !element.locked && (
-        <div
-          className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
-          onMouseDown={handleResizeMouseDown}
-          title="Drag to resize"
-        />
+        <>
+          {/* Top-left resize handle */}
+          <div
+            className="absolute top-0 left-0 w-4 h-4 bg-primary-500 rounded-br cursor-nw-resize hover:bg-primary-600 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleResizeMouseDownNW(e);
+            }}
+            title="Drag to resize"
+          />
+          {/* Bottom-right resize handle */}
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleResizeMouseDownSE(e);
+            }}
+            title="Drag to resize"
+          />
+        </>
       )}
     </div>
   );

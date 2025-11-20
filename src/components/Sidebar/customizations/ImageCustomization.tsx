@@ -14,9 +14,9 @@ interface ImageCustomizationProps {
 
 const COLORS = [
   { name: 'White', value: '#FFFFFF' },
-  { name: 'Light Gray', value: '#F9FAFB' },
-  { name: 'Gray', value: '#F3F4F6' },
-  { name: 'Dark Gray', value: '#E5E7EB' }
+  { name: 'Light Gray', value: '#F3F4F6' },
+  { name: 'Gray', value: '#E5E7EB' },
+  { name: 'Dark Gray', value: '#D1D5DB' }
 ];
 
 export default function ImageCustomization({ element }: ImageCustomizationProps) {
@@ -105,9 +105,9 @@ export default function ImageCustomization({ element }: ImageCustomizationProps)
             onClick={() => handleColorChange(color.value)}
             className={`
               w-full aspect-square rounded border-2 transition-all
-              ${element.style.backgroundColor === color.value
-                ? 'border-primary-500 ring-2 ring-primary-200'
-                : 'border-gray-300 hover:border-gray-400'
+              ${(element.style.backgroundColor || '#FFFFFF') === color.value
+                ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }
             `}
             style={{ backgroundColor: color.value }}

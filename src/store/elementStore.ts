@@ -6,6 +6,8 @@
 import { create } from 'zustand';
 import type { Element, Position, Size } from '../types';
 import { elementOperations } from '../utils/db';
+import { newSyncService } from '../services/supabase/newSyncService';
+import { useHistoryStore } from './historyStore';
 
 interface ElementState {
   elements: Element[];
@@ -38,12 +40,19 @@ interface ElementState {
   sendToBack: (id: string) => Promise<void>;
 
   // Position & Size
-  updatePosition: (id: string, position: Position) => Promise<void>;
+  updatePosition: (id: string, position: Position, skipLineUpdate?: boolean) => Promise<void>;
   updateSize: (id: string, size: Size) => Promise<void>;
+  updateConnectedLines: (elementId: string) => Promise<void>;
+  updateMultipleConnectedLines: (elementIds: string[]) => Promise<void>;
 
   // Getters
   getSelectedElements: () => Element[];
   getElementById: (id: string) => Element | undefined;
+
+  // History
+  pushToHistory: () => void;
+  undo: () => Promise<void>;
+  redo: () => Promise<void>;
 }
 
 export const useElementStore = create<ElementState>((set, get) => ({
@@ -56,7 +65,9 @@ export const useElementStore = create<ElementState>((set, get) => ({
   loadElements: async (boardId: string) => {
     set({ loading: true, error: null });
     try {
-      const elements = await elementOperations.getByBoard(boardId);
+      const allElements = await elementOperations.getByBoard(boardId);
+      // Filter out soft-deleted elements
+      const elements = allElements.filter(el => !el.deletedAt);
       set({ elements, loading: false, selectedIds: [] });
     } catch (error) {
       set({
@@ -67,9 +78,16 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   createElement: async (element: Element) => {
+    // Push current state to history before creating
+    get().pushToHistory();
+
     set({ loading: true, error: null });
     try {
       const id = await elementOperations.create(element);
+
+      // Queue sync operation
+      newSyncService.syncAll().catch(() => {});
+
       set(state => ({
         elements: [...state.elements, element],
         loading: false
@@ -87,6 +105,13 @@ export const useElementStore = create<ElementState>((set, get) => ({
   updateElement: async (id: string, updates: Partial<Element>) => {
     try {
       await elementOperations.update(id, updates);
+
+      // Get updated element for sync
+      const updatedElement = await elementOperations.getById(id);
+      if (updatedElement) {
+        newSyncService.syncAll().catch(() => {});
+      }
+
       set(state => ({
         elements: state.elements.map(el =>
           el.id === id ? { ...el, ...updates, updatedAt: new Date() } : el
@@ -101,8 +126,21 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   deleteElement: async (id: string) => {
+    // Push current state to history before deleting
+    get().pushToHistory();
+
     try {
-      await elementOperations.delete(id);
+      // Soft delete - set deletedAt instead of hard delete
+      const deletedAt = new Date();
+      await elementOperations.update(id, {
+        deletedAt,
+        updatedAt: deletedAt
+      });
+
+      // Queue sync operation
+      newSyncService.syncAll().catch(() => {});
+
+      // Remove from local state
       set(state => ({
         elements: state.elements.filter(el => el.id !== id),
         selectedIds: state.selectedIds.filter(selectedId => selectedId !== id)
@@ -116,8 +154,23 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   deleteElements: async (ids: string[]) => {
+    // Push current state to history before deleting
+    get().pushToHistory();
+
     try {
-      await elementOperations.bulkDelete(ids);
+      // Soft delete - set deletedAt for all elements
+      const deletedAt = new Date();
+      for (const id of ids) {
+        await elementOperations.update(id, {
+          deletedAt,
+          updatedAt: deletedAt
+        });
+      }
+
+      // Queue sync operation once
+      newSyncService.syncAll().catch(() => {});
+
+      // Remove from local state
       set(state => ({
         elements: state.elements.filter(el => !ids.includes(el.id)),
         selectedIds: state.selectedIds.filter(id => !ids.includes(id))
@@ -251,8 +304,131 @@ export const useElementStore = create<ElementState>((set, get) => ({
     }
   },
 
-  updatePosition: async (id: string, position: Position) => {
+  updatePosition: async (id: string, position: Position, skipLineUpdate = false) => {
+    const element = get().getElementById(id);
+    if (!element) return;
+
     await get().updateElement(id, { position });
+
+    // Update connected lines only if not skipped
+    if (!skipLineUpdate) {
+      await get().updateConnectedLines(id);
+    }
+  },
+
+  // Helper function to update lines connected to an element
+  updateConnectedLines: async (elementId: string) => {
+    const { elements, updateElement } = get();
+    const movedElement = elements.find(el => el.id === elementId);
+    if (!movedElement) return;
+
+    // Check if the element is in a column
+    const parentColumn = elements.find(
+      el => el.type === 'column' && el.content.childrenIds?.includes(elementId)
+    );
+
+    // Calculate connection point (center of element or parent column)
+    const getConnectionPoint = (): Position => {
+      if (parentColumn) {
+        // If element is in a column, point to column center
+        return {
+          x: parentColumn.position.x + parentColumn.size.width / 2,
+          y: parentColumn.position.y + parentColumn.size.height / 2
+        };
+      } else {
+        // Otherwise, point to element center
+        return {
+          x: movedElement.position.x + movedElement.size.width / 2,
+          y: movedElement.position.y + movedElement.size.height / 2
+        };
+      }
+    };
+
+    const connectionPoint = getConnectionPoint();
+
+    // Find all lines connected to this element
+    const connectedLines = elements.filter(
+      el => el.type === 'line' && (
+        el.content.startElementId === elementId ||
+        el.content.endElementId === elementId
+      )
+    );
+
+    // Update each connected line
+    for (const line of connectedLines) {
+      const updates: any = { content: { ...line.content } };
+
+      if (line.content.startElementId === elementId) {
+        updates.content.startPoint = connectionPoint;
+      }
+      if (line.content.endElementId === elementId) {
+        updates.content.endPoint = connectionPoint;
+      }
+
+      await updateElement(line.id, updates);
+    }
+  },
+
+  // Update lines connected to multiple elements (for multi-element drag)
+  updateMultipleConnectedLines: async (elementIds: string[]) => {
+    const { elements, updateElement } = get();
+    const elementIdSet = new Set(elementIds);
+
+    // Helper to get connection point for an element
+    const getConnectionPointForElement = (elementId: string): Position | null => {
+      const element = elements.find(el => el.id === elementId);
+      if (!element) return null;
+
+      // Check if the element is in a column
+      const parentColumn = elements.find(
+        el => el.type === 'column' && el.content.childrenIds?.includes(elementId)
+      );
+
+      if (parentColumn) {
+        return {
+          x: parentColumn.position.x + parentColumn.size.width / 2,
+          y: parentColumn.position.y + parentColumn.size.height / 2
+        };
+      } else {
+        return {
+          x: element.position.x + element.size.width / 2,
+          y: element.position.y + element.size.height / 2
+        };
+      }
+    };
+
+    // Find all lines connected to any of these elements
+    const connectedLines = elements.filter(
+      el => el.type === 'line' && (
+        (el.content.startElementId && elementIdSet.has(el.content.startElementId)) ||
+        (el.content.endElementId && elementIdSet.has(el.content.endElementId))
+      )
+    );
+
+    // Update each connected line
+    for (const line of connectedLines) {
+      const updates: any = { content: { ...line.content } };
+      let hasUpdate = false;
+
+      if (line.content.startElementId && elementIdSet.has(line.content.startElementId)) {
+        const connectionPoint = getConnectionPointForElement(line.content.startElementId);
+        if (connectionPoint) {
+          updates.content.startPoint = connectionPoint;
+          hasUpdate = true;
+        }
+      }
+      if (line.content.endElementId && elementIdSet.has(line.content.endElementId)) {
+        const connectionPoint = getConnectionPointForElement(line.content.endElementId);
+        if (connectionPoint) {
+          updates.content.endPoint = connectionPoint;
+          hasUpdate = true;
+        }
+      }
+
+      if (hasUpdate) {
+        await updateElement(line.id, updates);
+      }
+    }
   },
 
   updateSize: async (id: string, size: Size) => {
@@ -266,5 +442,35 @@ export const useElementStore = create<ElementState>((set, get) => ({
 
   getElementById: (id: string) => {
     return get().elements.find(el => el.id === id);
+  },
+
+  // History functions
+  pushToHistory: () => {
+    const { elements } = get();
+    useHistoryStore.getState().pushState(elements);
+  },
+
+  undo: async () => {
+    const historyStore = useHistoryStore.getState();
+    if (!historyStore.canUndo()) return;
+
+    const { elements } = get();
+    const previousElements = historyStore.undo(elements);
+    if (previousElements) {
+      // Update local state
+      set({ elements: previousElements });
+    }
+  },
+
+  redo: async () => {
+    const historyStore = useHistoryStore.getState();
+    if (!historyStore.canRedo()) return;
+
+    const { elements } = get();
+    const nextElements = historyStore.redo(elements);
+    if (nextElements) {
+      // Update local state
+      set({ elements: nextElements });
+    }
   }
 }));

@@ -3,11 +3,12 @@
  * Container for organizing elements vertically with a title
  */
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import type { ColumnElement } from '../../types';
 import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
+import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 import { Plus, GripVertical } from 'lucide-react';
 import CanvasElement from '../Canvas/CanvasElement';
 
@@ -18,24 +19,43 @@ interface ColumnProps {
 }
 
 export default function Column({ element, isSelected, onSelect }: ColumnProps) {
-  const { updateElement, getElementById, elements } = useElementStore();
-  const { draggedElementId, draggedFromColumnId } = useDragStore();
+  const { updateElement, getElementById, elements, selectElement, selectedIds } = useElementStore();
+  const { draggedElementId, draggedFromColumnId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(element.content.title || 'Untitled Column');
   const [isHovering, setIsHovering] = useState(false);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const prevDraggedElementIdRef = useRef<string | null>(null);
+  const childRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Get dark mode adapted background color
+  const backgroundColor = useDarkModeColor(element.style.backgroundColor || '#FFFFFF');
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id
   });
 
-  const { handleMouseDown: handleResizeMouseDown } = useResizable({
+  const { handleMouseDown: handleResizeMouseDownSE } = useResizable({
     elementId: element.id,
     minWidth: 250,
     minHeight: 150,
     maxWidth: 800,
-    maxHeight: 2000
+    maxHeight: 2000,
+    direction: 'se'
+  });
+
+  const { handleMouseDown: handleResizeMouseDownNW } = useResizable({
+    elementId: element.id,
+    minWidth: 250,
+    minHeight: 150,
+    maxWidth: 800,
+    maxHeight: 2000,
+    direction: 'nw'
   });
 
   const handleTitleChange = async () => {
@@ -51,6 +71,33 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
     setIsEditingTitle(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enter key to edit title when selected
+    if (e.key === 'Enter' && isSelected && !element.locked && !isEditingTitle) {
+      e.preventDefault();
+      setIsEditingTitle(true);
+      setTimeout(() => titleInputRef.current?.focus(), 10);
+    }
+  };
+
+  const handleContainerMouseDown = (e: React.MouseEvent) => {
+    // Don't drag when clicking on interactive elements
+    const target = e.target as HTMLElement;
+
+    // Allow dragging from title (but not when editing)
+    const clickedOnInput = target.closest('input');
+    const clickedOnButton = target.closest('button');
+    const clickedOnChildElement = target.closest('.element-card') !== containerRef.current;
+
+    if (clickedOnInput || clickedOnButton || clickedOnChildElement) {
+      return;
+    }
+
+    // Prevent event from bubbling up
+    e.stopPropagation();
+    handleMouseDown(e);
+  };
+
   // Handle drop zone hover
   const handleMouseEnter = () => {
     if (draggedElementId && draggedElementId !== element.id) {
@@ -58,48 +105,128 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
     }
   };
 
-  const handleMouseLeave = () => {
-    setIsHovering(false);
-  };
-
-  const handleMouseUp = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    // Check if we're dropping an element into this column
-    if (draggedElementId && isHovering && draggedElementId !== element.id) {
-      const draggedElement = getElementById(draggedElementId);
-      if (!draggedElement) return;
-
-      // Don't add columns to columns, or if element is already in this column
-      if (draggedElement.type === 'column' || element.content.childrenIds.includes(draggedElementId)) {
-        setIsHovering(false);
-        return;
+  const handleMouseMove = (e: React.MouseEvent) => {
+    // Keep hover state active while dragging over the zone
+    if (draggedElementId && draggedElementId !== element.id) {
+      if (!isHovering) {
+        setIsHovering(true);
       }
 
-      // Remove from previous column if needed
-      if (draggedFromColumnId) {
-        const previousColumn = getElementById(draggedFromColumnId);
-        if (previousColumn && previousColumn.type === 'column') {
-          await updateElement(draggedFromColumnId, {
+      // Calculate drop index based on mouse position
+      if (contentRef.current) {
+        const contentRect = contentRef.current.getBoundingClientRect();
+        const mouseY = e.clientY - contentRect.top;
+
+        // Get visible children (excluding the one being dragged)
+        const visibleChildren = element.content.childrenIds.filter(id => id !== draggedElementId);
+
+        let newDropIndex = visibleChildren.length; // Default to end
+
+        // Find the position between elements
+        let currentY = 12; // Initial padding
+        for (let i = 0; i < visibleChildren.length; i++) {
+          const childRef = childRefs.current.get(visibleChildren[i]);
+          if (childRef) {
+            const childHeight = childRef.offsetHeight + 12; // Include margin
+            const midPoint = currentY + childHeight / 2;
+
+            if (mouseY < midPoint) {
+              newDropIndex = i;
+              break;
+            }
+            currentY += childHeight;
+          }
+        }
+
+        setDropIndex(newDropIndex);
+      }
+    }
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent) => {
+    // Only clear hover if we're actually leaving the drop zone
+    // and not just because child elements changed
+    const relatedTarget = e.relatedTarget as HTMLElement | null;
+    if (relatedTarget && relatedTarget instanceof Node && contentRef.current?.contains(relatedTarget)) {
+      // Mouse is still inside the drop zone
+      return;
+    }
+    setIsHovering(false);
+    setDropIndex(null);
+  };
+
+  // Focus container when selected for keyboard events
+  useEffect(() => {
+    if (isSelected && containerRef.current) {
+      // Delay focus to allow double-click to register
+      const timer = setTimeout(() => {
+        if (containerRef.current && !containerRef.current.contains(document.activeElement)) {
+          containerRef.current.focus();
+        }
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [isSelected]);
+
+  // Detect when drag ends and element is over this column
+  useEffect(() => {
+    // Drag just ended (draggedElementId went from something to null)
+    if (prevDraggedElementIdRef.current && !draggedElementId) {
+      const droppedElementId = prevDraggedElementIdRef.current;
+
+      // Check if we were hovering over this column when drag ended
+      if (isHovering) {
+        const draggedElement = getElementById(droppedElementId);
+
+        // Don't add columns to columns
+        if (draggedElement && draggedElement.type !== 'column') {
+          // Remove from previous column if needed
+          if (draggedFromColumnId && draggedFromColumnId !== element.id) {
+            const previousColumn = getElementById(draggedFromColumnId);
+            if (previousColumn && previousColumn.type === 'column') {
+              updateElement(draggedFromColumnId, {
+                content: {
+                  ...previousColumn.content,
+                  childrenIds: previousColumn.content.childrenIds.filter(id => id !== droppedElementId)
+                }
+              });
+            }
+          }
+
+          // Calculate new childrenIds with element at the correct position
+          let newChildrenIds = element.content.childrenIds.filter(id => id !== droppedElementId);
+          const insertAt = dropIndex !== null ? dropIndex : newChildrenIds.length;
+          newChildrenIds.splice(insertAt, 0, droppedElementId);
+
+          // Update this column with reordered children
+          updateElement(element.id, {
             content: {
-              ...previousColumn.content,
-              childrenIds: previousColumn.content.childrenIds.filter(id => id !== draggedElementId)
+              ...element.content,
+              childrenIds: newChildrenIds
             }
           });
         }
+
+        setIsHovering(false);
+        setDropIndex(null);
       }
 
-      // Add to this column
-      await updateElement(element.id, {
-        content: {
-          ...element.content,
-          childrenIds: [...element.content.childrenIds, draggedElementId]
-        }
-      });
-
-      setIsHovering(false);
+      // ALWAYS check if we need to remove the element from THIS column
+      // This happens when the element is dragged out to the canvas or to another column
+      if (element.content.childrenIds.includes(droppedElementId) && !isHovering) {
+        // Remove from this column
+        updateElement(element.id, {
+          content: {
+            ...element.content,
+            childrenIds: element.content.childrenIds.filter(id => id !== droppedElementId)
+          }
+        });
+      }
     }
-  };
+
+    // Update the ref for next comparison
+    prevDraggedElementIdRef.current = draggedElementId;
+  }, [draggedElementId, draggedFromColumnId, isHovering, dropIndex, element.content.childrenIds, element.id, getElementById, updateElement]);
 
   // Get child elements
   const childElements = elements.filter(el =>
@@ -110,42 +237,43 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
     <div
       ref={containerRef}
       className={`
-        element-card absolute border-2 border-gray-300
-        ${isSelected ? 'selected ring-2 ring-primary-500 border-primary-400' : ''}
-        ${element.locked ? 'cursor-not-allowed' : ''}
+        element-card absolute border-2 border-gray-300 dark:border-gray-600
+        ${isSelected ? 'selected ring-2 ring-primary-500 border-primary-400 dark:border-primary-500' : ''}
+        ${element.locked ? 'cursor-not-allowed' : 'cursor-move'}
       `}
       style={{
         left: `${element.position.x}px`,
         top: `${element.position.y}px`,
         width: `${element.size.width}px`,
         minHeight: `${element.size.height}px`,
-        backgroundColor: element.style.backgroundColor || '#FFFFFF',
-        zIndex: element.zIndex
+        backgroundColor,
+        zIndex: element.zIndex,
+        pointerEvents: isBeingDragged ? 'none' : 'auto'
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect?.();
+        // Don't change selection if we just finished dragging
+        if (justFinishedDrag) {
+          return;
+        }
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        const { selectElement } = useElementStore.getState();
+        selectElement(element.id, isMultiSelect);
       }}
+      onMouseDown={handleContainerMouseDown}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
     >
       {/* Header */}
-      <div
-        className="bg-gray-50 border-b border-gray-300 p-3 flex items-center gap-2 cursor-move"
-        onMouseDown={(e) => {
-          // Allow dragging from header except when clicking on title or input
-          const target = e.target as HTMLElement;
-          if (!target.closest('h3') && !target.closest('input') && !target.closest('button')) {
-            e.stopPropagation();
-            handleMouseDown(e);
-          }
-        }}
-      >
+      <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 p-3 flex items-center gap-2">
         {/* Grip handle for dragging - visual indicator */}
         <div className="p-1 -ml-1">
-          <GripVertical className="w-4 h-4 text-gray-400" />
+          <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500" />
         </div>
         {/* Title */}
         {isEditingTitle ? (
           <input
+            ref={titleInputRef}
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -157,14 +285,15 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
                 setTitle(element.content.title || 'Untitled Column');
                 setIsEditingTitle(false);
               }
+              e.stopPropagation();
             }}
             autoFocus
-            className="flex-1 px-2 py-1 border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-gray-900"
+            className="flex-1 px-2 py-1 border border-primary-300 dark:border-primary-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <h3
-            className="flex-1 font-semibold text-gray-900 cursor-text"
+            className="flex-1 font-semibold text-gray-900 dark:text-gray-100 cursor-text"
             onDoubleClick={(e) => {
               e.stopPropagation();
               if (isSelected && !element.locked) {
@@ -179,14 +308,14 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
         {/* Add button */}
         {isSelected && (
           <button
-            className="p-1 hover:bg-gray-200 rounded transition-colors"
+            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
             title="Add element"
             onClick={(e) => {
               e.stopPropagation();
               // TODO: Implement add element to column
             }}
           >
-            <Plus className="w-4 h-4 text-gray-600" />
+            <Plus className="w-4 h-4 text-gray-600 dark:text-gray-300" />
           </button>
         )}
       </div>
@@ -196,51 +325,94 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
         ref={contentRef}
         className={`
           p-3 space-y-3 min-h-[100px] transition-colors
-          ${isHovering && draggedElementId ? 'bg-primary-50 ring-2 ring-inset ring-primary-300' : ''}
+          ${isHovering && draggedElementId ? 'bg-primary-50 dark:bg-primary-900/30 ring-2 ring-inset ring-primary-300 dark:ring-primary-600' : ''}
         `}
         onMouseEnter={handleMouseEnter}
+        onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onMouseUp={handleMouseUp}
       >
         {childElements.length === 0 ? (
           <div className={`
             flex items-center justify-center h-24 border-2 border-dashed rounded text-sm transition-colors
-            ${isHovering && draggedElementId ? 'border-primary-400 text-primary-600 bg-primary-50' : 'border-gray-300 text-gray-400'}
+            ${isHovering && draggedElementId ? 'border-primary-400 text-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'}
           `}>
             Drag elements here or click + to add
           </div>
         ) : (
           <div className="relative">
-            {childElements.map((child, index) => (
-              <div
-                key={child.id}
-                className="mb-3 last:mb-0"
-                style={{
-                  // Override absolute positioning for children in column
-                  position: 'relative',
-                  left: 0,
-                  top: 0
-                }}
-              >
-                <CanvasElement
-                  element={child}
-                  isSelected={false}
-                  onSelect={() => {}}
-                  parentColumnId={element.id}
-                />
-              </div>
-            ))}
+            {element.content.childrenIds
+              .map((childId, index) => {
+                const child = childElements.find(el => el.id === childId);
+                if (!child) return null;
+
+                const isBeingDraggedChild = childId === draggedElementId;
+                // Calculate the visual index (excluding dragged element)
+                const visualIndex = element.content.childrenIds
+                  .slice(0, index)
+                  .filter(id => id !== draggedElementId).length;
+
+                return (
+                  <div key={child.id}>
+                    {/* Drop indicator before this element */}
+                    {isHovering && dropIndex === visualIndex && !isBeingDraggedChild && (
+                      <div className="h-1 bg-primary-500 rounded-full mb-4 animate-pulse" />
+                    )}
+                    <div
+                      ref={(el) => {
+                        if (el) {
+                          childRefs.current.set(child.id, el);
+                        } else {
+                          childRefs.current.delete(child.id);
+                        }
+                      }}
+                      className={`mb-4 last:mb-0 ${isBeingDraggedChild ? 'invisible h-0 overflow-hidden' : ''}`}
+                      style={{
+                        // Override absolute positioning for children in column
+                        position: 'relative',
+                        left: 0,
+                        top: 0
+                      }}
+                    >
+                      <CanvasElement
+                        element={child}
+                        isSelected={selectedIds.includes(child.id)}
+                        onSelect={() => selectElement(child.id)}
+                        parentColumnId={element.id}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            {/* Drop indicator at the end */}
+            {isHovering && dropIndex === element.content.childrenIds.filter(id => id !== draggedElementId).length && (
+              <div className="h-1 bg-primary-500 rounded-full animate-pulse" />
+            )}
           </div>
         )}
       </div>
 
-      {/* Resize handle */}
+      {/* Resize handles */}
       {isSelected && !element.locked && (
-        <div
-          className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
-          onMouseDown={handleResizeMouseDown}
-          title="Drag to resize"
-        />
+        <>
+          {/* Top-left resize handle */}
+          <div
+            className="absolute top-0 left-0 w-4 h-4 bg-primary-500 rounded-br cursor-nw-resize hover:bg-primary-600 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleResizeMouseDownNW(e);
+            }}
+            title="Drag to resize"
+          />
+          {/* Bottom-right resize handle */}
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleResizeMouseDownSE(e);
+            }}
+            title="Drag to resize"
+          />
+        </>
       )}
     </div>
   );

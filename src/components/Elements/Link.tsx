@@ -5,8 +5,9 @@
 
 import { useRef, useState } from 'react';
 import type { LinkElement } from '../../types';
-import { useElementStore } from '../../store';
+import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
+import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 import {
   ExternalLink,
   Link as LinkIcon,
@@ -23,10 +24,16 @@ interface LinkProps {
 
 export default function Link({ element, isSelected, onSelect, parentColumnId }: LinkProps) {
   const { updateElement } = useElementStore();
+  const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditingUrl, setIsEditingUrl] = useState(!element.content.url);
   const [url, setUrl] = useState(element.content.url || '');
   const [title, setTitle] = useState(element.content.title || '');
+
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Get dark mode adapted background color
+  const backgroundColor = useDarkModeColor(element.style.backgroundColor || '#FFFFFF');
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id,
@@ -87,23 +94,34 @@ export default function Link({ element, isSelected, onSelect, parentColumnId }: 
   return (
     <div
       ref={containerRef}
+      data-element-id={element.id}
       className={`
-        element-card absolute cursor-move
+        element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
-        ${!hasValidUrl ? 'border-2 border-dashed border-gray-300' : ''}
+        ${!hasValidUrl ? 'border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}
+        ${parentColumnId && !isBeingDragged && hasValidUrl ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
       `}
       style={{
-        left: `${element.position.x}px`,
-        top: `${element.position.y}px`,
-        width: `${element.size.width}px`,
-        minHeight: `${element.size.height}px`,
-        backgroundColor: element.style.backgroundColor || '#FFFFFF',
-        zIndex: element.zIndex
+        ...((parentColumnId && !isBeingDragged) ? {} : {
+          left: `${element.position.x}px`,
+          top: `${element.position.y}px`,
+        }),
+        width: (parentColumnId && !isBeingDragged) ? '100%' : `${element.size.width}px`,
+        minHeight: (parentColumnId && !isBeingDragged) ? 'auto' : `${element.size.height}px`,
+        backgroundColor,
+        zIndex: element.zIndex,
+        pointerEvents: isBeingDragged ? 'none' : 'auto'
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect?.();
+        // Don't change selection if we just finished dragging
+        if (justFinishedDrag) {
+          return;
+        }
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        const { selectElement } = useElementStore.getState();
+        selectElement(element.id, isMultiSelect);
       }}
       onMouseDown={handleMouseDown}
     >
@@ -113,7 +131,7 @@ export default function Link({ element, isSelected, onSelect, parentColumnId }: 
         {isEditingUrl ? (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 URL *
               </label>
               <input
@@ -122,7 +140,7 @@ export default function Link({ element, isSelected, onSelect, parentColumnId }: 
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com"
                 autoFocus
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -135,7 +153,7 @@ export default function Link({ element, isSelected, onSelect, parentColumnId }: 
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Title (optional)
               </label>
               <input
@@ -143,7 +161,7 @@ export default function Link({ element, isSelected, onSelect, parentColumnId }: 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Link title"
-                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -208,7 +226,7 @@ export default function Link({ element, isSelected, onSelect, parentColumnId }: 
             </div>
 
             {/* External link icon */}
-            <ExternalLink className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" />
+            <ExternalLink className="w-4 h-4 text-gray-400 dark:text-gray-300 flex-shrink-0 mt-1" />
           </div>
         ) : (
           <div

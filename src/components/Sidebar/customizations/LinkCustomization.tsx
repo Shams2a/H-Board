@@ -14,7 +14,7 @@ interface LinkCustomizationProps {
 
 const COLORS = [
   { name: 'White', value: '#FFFFFF' },
-  { name: 'Light Gray', value: '#F9FAFB' },
+  { name: 'Light Gray', value: '#F3F4F6' },
   { name: 'Blue', value: '#EFF6FF' },
   { name: 'Green', value: '#F0FDF4' }
 ];
@@ -75,7 +75,7 @@ export default function LinkCustomization({ element }: LinkCustomizationProps) {
     <div className="space-y-4">
       {/* URL Input */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
           URL *
         </label>
         <input
@@ -84,13 +84,13 @@ export default function LinkCustomization({ element }: LinkCustomizationProps) {
           onChange={(e) => setUrl(e.target.value)}
           onBlur={handleSaveUrl}
           placeholder="https://example.com"
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 
       {/* Title Input */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">
+        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
           Title (optional)
         </label>
         <input
@@ -99,7 +99,7 @@ export default function LinkCustomization({ element }: LinkCustomizationProps) {
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleSaveUrl}
           placeholder="Link title"
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         />
       </div>
 
@@ -122,9 +122,9 @@ export default function LinkCustomization({ element }: LinkCustomizationProps) {
             onClick={() => handleColorChange(color.value)}
             className={`
               w-full aspect-square rounded border-2 transition-all
-              ${element.style.backgroundColor === color.value
-                ? 'border-primary-500 ring-2 ring-primary-200'
-                : 'border-gray-300 hover:border-gray-400'
+              ${(element.style.backgroundColor || '#FFFFFF') === color.value
+                ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
+                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
               }
             `}
             style={{ backgroundColor: color.value }}

@@ -11,6 +11,14 @@ import NoteTextCustomization from './customizations/NoteTextCustomization';
 import ImageCustomization from './customizations/ImageCustomization';
 import ColumnCustomization from './customizations/ColumnCustomization';
 import LinkCustomization from './customizations/LinkCustomization';
+import BoardLinkCustomization from './customizations/BoardLinkCustomization';
+import FileCustomization from './customizations/FileCustomization';
+import TableCustomization from './customizations/TableCustomization';
+import TodoListCustomization from './customizations/TodoListCustomization';
+import DrawingCustomization from './customizations/DrawingCustomization';
+import SectionCustomization from './customizations/SectionCustomization';
+import ShapeCustomization from './customizations/ShapeCustomization';
+import LineCustomization from './customizations/LineCustomization';
 
 type CustomizationPage = 'color' | 'text' | 'image' | 'link' | null;
 
@@ -41,7 +49,7 @@ export default function CustomizationSidebar() {
     });
 
     // Type-specific options
-    if (selectedElement.type === 'note' || selectedElement.type === 'column') {
+    if (selectedElement.type === 'note') {
       options.push({
         icon: <Type className="w-6 h-6" />,
         label: 'Text',
@@ -71,7 +79,7 @@ export default function CustomizationSidebar() {
   const options = getCustomizationOptions();
 
   return (
-    <div className="absolute top-20 right-4 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-toolbar">
+    <div className="absolute top-20 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-toolbar">
       {activePage === null ? (
         /* Icon View */
         <div className="p-2 flex flex-col gap-2">
@@ -90,15 +98,15 @@ export default function CustomizationSidebar() {
         /* Subpage View */
         <div className="w-80 max-h-[500px] flex flex-col">
           {/* Subpage Header */}
-          <div className="p-3 border-b border-gray-200 flex items-center gap-2">
+          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
             <button
               onClick={() => setActivePage(null)}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
               title="Back"
             >
-              <ArrowLeft className="w-4 h-4 text-gray-600" />
+              <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
             </button>
-            <h3 className="font-semibold text-gray-900 flex-1">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex-1">
               {options.find(opt => opt.page === activePage)?.label}
             </h3>
           </div>
@@ -117,11 +125,32 @@ export default function CustomizationSidebar() {
             {activePage === 'color' && selectedElement.type === 'link' && (
               <LinkCustomization element={selectedElement} />
             )}
+            {activePage === 'color' && selectedElement.type === 'board' && (
+              <BoardLinkCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'file' && (
+              <FileCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'table' && (
+              <TableCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'todo' && (
+              <TodoListCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'drawing' && (
+              <DrawingCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'section' && (
+              <SectionCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'shape' && (
+              <ShapeCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'line' && (
+              <LineCustomization element={selectedElement} />
+            )}
             {activePage === 'text' && selectedElement.type === 'note' && (
               <NoteTextCustomization element={selectedElement} />
-            )}
-            {activePage === 'text' && selectedElement.type === 'column' && (
-              <ColumnCustomization element={selectedElement} />
             )}
             {activePage === 'image' && selectedElement.type === 'image' && (
               <ImageCustomization element={selectedElement} />

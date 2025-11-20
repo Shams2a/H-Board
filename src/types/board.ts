@@ -11,7 +11,11 @@ export interface Board {
   parentId: string | null; // Sub-board hierarchy
   createdAt: Date;
   updatedAt: Date;
+  deletedAt?: Date | null;  // Soft delete timestamp
   settings: BoardSettings;
+
+  // Champs pour la gestion du cache (optionnels)
+  lastAccess?: Date;        // Dernière fois que le board a été ouvert
 }
 
 export interface BoardSettings {

@@ -6,6 +6,9 @@
 import { create } from 'zustand';
 import type { Board } from '../types';
 import { boardOperations } from '../utils/db';
+import { newSyncService } from '../services/supabase/newSyncService';
+import { cacheManager } from '../services/CacheManager';
+import { storageManager } from '../services/StorageManager';
 
 interface BoardState {
   boards: Board[];
@@ -37,7 +40,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   loadBoards: async () => {
     set({ loading: true, error: null });
     try {
-      const boards = await boardOperations.getAll();
+      // Use cacheManager to load boards list (fetches from server if online)
+      const allBoards = await cacheManager.preloadBoardsList();
+      // Filter out soft-deleted boards
+      const boards = allBoards.filter(b => !b.deletedAt);
       set({ boards, loading: false });
 
       // If no current board, select the first root board
@@ -57,6 +63,11 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
   setCurrentBoard: (boardId: string) => {
     set({ currentBoardId: boardId });
+
+    // Update board access time for LRU cache
+    storageManager.updateBoardAccess(boardId).catch(error => {
+      console.error('Failed to update board access time:', error);
+    });
   },
 
   createBoard: async (name: string, parentId?: string, description?: string, tags?: string[]) => {
@@ -82,6 +93,12 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       };
 
       await boardOperations.create(newBoard);
+
+      // Trigger immediate sync
+      newSyncService.syncAll().catch(err => {
+        console.warn('Sync failed (will retry automatically):', err);
+      });
+
       await get().loadBoards();
       set({ loading: false });
 
@@ -99,6 +116,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       await boardOperations.update(id, updates);
+
+      // Trigger sync
+      newSyncService.syncAll().catch(() => {});
+
       await get().loadBoards();
       set({ loading: false });
     } catch (error) {
@@ -113,12 +134,20 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   deleteBoard: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      await boardOperations.delete(id);
+      // Soft delete - set deletedAt instead of hard delete
+      const deletedAt = new Date();
+      await boardOperations.update(id, {
+        deletedAt,
+        updatedAt: deletedAt
+      });
+
+      // Trigger sync
+      newSyncService.syncAll().catch(() => {});
 
       // If deleting current board, switch to a root board
       if (get().currentBoardId === id) {
         const boards = await boardOperations.getAll();
-        const rootBoard = boards.find(b => !b.parentId);
+        const rootBoard = boards.find(b => !b.parentId && !b.deletedAt);
         set({ currentBoardId: rootBoard?.id || null });
       }
 
@@ -137,6 +166,10 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const newBoardId = await boardOperations.duplicate(id, newName);
+
+      // Trigger sync
+      newSyncService.syncAll().catch(() => {});
+
       await get().loadBoards();
       set({ loading: false });
       return newBoardId;
@@ -179,7 +212,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const board = get().boards.find(b => b.id === boardId);
     if (!board) return;
 
-    const tags = [...new Set([...board.tags, tag])]; // Avoid duplicates
+    const tags = [...new Set([...(board.tags || []), tag])]; // Avoid duplicates
     await get().updateBoard(boardId, { tags });
   },
 
@@ -187,13 +220,13 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const board = get().boards.find(b => b.id === boardId);
     if (!board) return;
 
-    const tags = board.tags.filter(t => t !== tag);
+    const tags = (board.tags || []).filter(t => t !== tag);
     await get().updateBoard(boardId, { tags });
   },
 
   getAllTags: (): string[] => {
     const { boards } = get();
-    const allTags = boards.flatMap(b => b.tags);
+    const allTags = boards.flatMap(b => b.tags || []);
     return [...new Set(allTags)].sort();
   }
 }));

@@ -5,9 +5,10 @@
 
 import { useRef, useState } from 'react';
 import type { SectionElement } from '../../types';
-import { useElementStore } from '../../store';
+import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
+import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 
 interface SectionProps {
   element: SectionElement;
@@ -17,20 +18,38 @@ interface SectionProps {
 
 export default function Section({ element, isSelected, onSelect }: SectionProps) {
   const { updateElement } = useElementStore();
+  const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(element.content.title || '');
+
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Get dark mode adapted background color (transparent becomes transparent)
+  const backgroundColor = element.style.backgroundColor === 'transparent'
+    ? 'transparent'
+    : useDarkModeColor(element.style.backgroundColor || 'transparent');
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id
   });
 
-  const { handleMouseDown: handleResizeMouseDown } = useResizable({
+  const { handleMouseDown: handleResizeMouseDownSE } = useResizable({
     elementId: element.id,
     minWidth: 300,
     minHeight: 200,
     maxWidth: 2000,
-    maxHeight: 1500
+    maxHeight: 1500,
+    direction: 'se'
+  });
+
+  const { handleMouseDown: handleResizeMouseDownNW } = useResizable({
+    elementId: element.id,
+    minWidth: 300,
+    minHeight: 200,
+    maxWidth: 2000,
+    maxHeight: 1500,
+    direction: 'nw'
   });
 
   const handleTitleChange = async () => {
@@ -58,11 +77,18 @@ export default function Section({ element, isSelected, onSelect }: SectionProps)
         width: `${element.size.width}px`,
         height: `${element.size.height}px`,
         zIndex: element.zIndex,
-        backgroundColor: element.style.backgroundColor || 'transparent'
+        pointerEvents: isBeingDragged ? 'none' : 'auto',
+        backgroundColor
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect?.();
+        // Don't change selection if we just finished dragging
+        if (justFinishedDrag) {
+          return;
+        }
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        const { selectElement } = useElementStore.getState();
+        selectElement(element.id, isMultiSelect);
       }}
       onMouseDown={handleMouseDown}
     >
@@ -104,13 +130,28 @@ export default function Section({ element, isSelected, onSelect }: SectionProps)
         </div>
       )}
 
-      {/* Resize handle */}
+      {/* Resize handles */}
       {isSelected && !element.locked && (
-        <div
-          className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
-          onMouseDown={handleResizeMouseDown}
-          title="Drag to resize"
-        />
+        <>
+          {/* Top-left resize handle */}
+          <div
+            className="absolute top-0 left-0 w-4 h-4 bg-primary-500 rounded-br cursor-nw-resize hover:bg-primary-600 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleResizeMouseDownNW(e);
+            }}
+            title="Drag to resize"
+          />
+          {/* Bottom-right resize handle */}
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              handleResizeMouseDownSE(e);
+            }}
+            title="Drag to resize"
+          />
+        </>
       )}
     </div>
   );

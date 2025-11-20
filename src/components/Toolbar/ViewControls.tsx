@@ -3,11 +3,13 @@
  * Bottom-right floating controls for view management
  */
 
-import { useUIStore } from '../../store';
+import { useState, useEffect, useCallback } from 'react';
+import { useUIStore, useElementStore, useHistoryStore } from '../../store';
 import {
   ZoomIn,
   ZoomOut,
   Maximize,
+  Minimize,
   Grid,
   Undo,
   Redo
@@ -15,12 +17,43 @@ import {
 
 export default function ViewControls() {
   const { zoom, setZoom, gridEnabled, toggleGrid, resetView } = useUIStore();
+  const { undo, redo } = useElementStore();
+  const canUndo = useHistoryStore(state => state.canUndo());
+  const canRedo = useHistoryStore(state => state.canRedo());
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Toggle fullscreen
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        setIsFullscreen(true);
+      } else {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Fullscreen error:', err);
+    }
+  }, []);
+
+  // Listen for fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const handleZoomIn = () => setZoom(zoom + 0.1);
   const handleZoomOut = () => setZoom(zoom - 0.1);
 
   return (
-    <div className="absolute bottom-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-toolbar">
+    <div className="absolute bottom-4 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 z-toolbar">
       <div className="flex flex-col items-center gap-2">
         {/* Grid Toggle */}
         <button
@@ -32,7 +65,7 @@ export default function ViewControls() {
           <Grid className="w-6 h-6" />
         </button>
 
-        <div className="w-full h-px bg-gray-200" />
+        <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
 
         {/* Zoom Out */}
         <button
@@ -56,35 +89,46 @@ export default function ViewControls() {
           <ZoomIn className="w-6 h-6" />
         </button>
 
-        {/* Reset View */}
+        {/* Fullscreen Toggle */}
         <button
-          onClick={resetView}
-          className="toolbar-button"
-          title="Reset View (Ctrl+0)"
-          aria-label="Reset view"
+          onClick={toggleFullscreen}
+          className={`toolbar-button ${isFullscreen ? 'active' : ''}`}
+          title={isFullscreen ? "Exit Fullscreen (Esc)" : "Fullscreen"}
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
         >
-          <Maximize className="w-6 h-6" />
+          {isFullscreen ? <Minimize className="w-6 h-6" /> : <Maximize className="w-6 h-6" />}
         </button>
 
         <div className="w-full h-px bg-gray-200" />
 
         {/* Undo */}
         <button
+          onClick={undo}
           className="toolbar-button"
           title="Undo (Ctrl+Z)"
           aria-label="Undo"
+          disabled={!canUndo}
         >
           <Undo className="w-6 h-6" />
         </button>
 
         {/* Redo */}
         <button
+          onClick={redo}
           className="toolbar-button"
           title="Redo (Ctrl+Y)"
           aria-label="Redo"
+          disabled={!canRedo}
         >
           <Redo className="w-6 h-6" />
         </button>
+
+        <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
+
+        {/* Zoom Level */}
+        <div className="text-xs font-medium text-gray-600 dark:text-gray-300 px-2">
+          {Math.round(zoom * 100)}%
+        </div>
       </div>
     </div>
   );

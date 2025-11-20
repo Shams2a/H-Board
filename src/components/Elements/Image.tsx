@@ -5,9 +5,10 @@
 
 import { useRef, useState } from 'react';
 import type { ImageElement } from '../../types';
-import { useElementStore } from '../../store';
+import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
+import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 import {
   Upload,
   X
@@ -22,22 +23,40 @@ interface ImageProps {
 
 export default function Image({ element, isSelected, onSelect, parentColumnId }: ImageProps) {
   const { updateElement } = useElementStore();
+  const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showLightbox, setShowLightbox] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Get dark mode adapted background color
+  // Convert old F9FAFB to FFFFFF for proper dark mode color (gray-600 instead of gray-800)
+  const bgColor = element.style.backgroundColor === '#F9FAFB' ? '#FFFFFF' : (element.style.backgroundColor || '#FFFFFF');
+  const backgroundColor = useDarkModeColor(bgColor);
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id,
     parentColumnId
   });
 
-  const { handleMouseDown: handleResizeMouseDown } = useResizable({
+  const { handleMouseDown: handleResizeMouseDownSE } = useResizable({
     elementId: element.id,
     minWidth: 100,
     minHeight: 100,
     maxWidth: 1600,
-    maxHeight: 1200
+    maxHeight: 1200,
+    direction: 'se'
+  });
+
+  const { handleMouseDown: handleResizeMouseDownNW } = useResizable({
+    elementId: element.id,
+    minWidth: 100,
+    minHeight: 100,
+    maxWidth: 1600,
+    maxHeight: 1200,
+    direction: 'nw'
   });
 
   const handleFileSelect = async (file: File) => {
@@ -107,23 +126,36 @@ export default function Image({ element, isSelected, onSelect, parentColumnId }:
     <>
       <div
         ref={containerRef}
+        data-element-id={element.id}
         className={`
-          element-card absolute overflow-hidden cursor-move
+          element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} overflow-hidden cursor-move
           ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
           ${element.locked ? 'cursor-not-allowed' : ''}
-          ${!hasImage ? 'border-2 border-dashed border-gray-300' : ''}
+          ${!hasImage ? 'border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}
+          ${isBeingDragged && dropTargetBoardId && isDropReady ? 'ring-2 ring-green-500 animate-pulse' : ''}
+          ${isBeingDragged && dropTargetBoardId && !isDropReady ? 'ring-2 ring-yellow-500' : ''}
+          ${parentColumnId && !isBeingDragged && hasImage ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
         `}
         style={{
-          left: `${element.position.x}px`,
-          top: `${element.position.y}px`,
-          width: `${element.size.width}px`,
+          ...((parentColumnId && !isBeingDragged) ? {} : {
+            left: `${element.position.x}px`,
+            top: `${element.position.y}px`,
+          }),
+          width: (parentColumnId && !isBeingDragged) ? '100%' : `${element.size.width}px`,
           height: `${element.size.height}px`,
-          backgroundColor: element.style.backgroundColor || '#F9FAFB',
-          zIndex: element.zIndex
+          backgroundColor,
+          zIndex: element.zIndex,
+          pointerEvents: isBeingDragged ? 'none' : 'auto'
         }}
         onClick={(e) => {
           e.stopPropagation();
-          onSelect?.();
+          // Don't change selection if we just finished dragging
+          if (justFinishedDrag) {
+            return;
+          }
+          const isMultiSelect = e.ctrlKey || e.metaKey;
+          const { selectElement } = useElementStore.getState();
+          selectElement(element.id, isMultiSelect);
         }}
         onMouseDown={handleMouseDown}
         onDrop={handleDrop}
@@ -148,12 +180,12 @@ export default function Image({ element, isSelected, onSelect, parentColumnId }:
             className="w-full h-full flex flex-col items-center justify-center gap-3 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="w-12 h-12 text-gray-400" />
+            <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500" />
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 {isUploading ? 'Uploading...' : 'Click or drag to upload'}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 PNG, JPG, GIF up to 5MB
               </p>
             </div>
@@ -169,13 +201,28 @@ export default function Image({ element, isSelected, onSelect, parentColumnId }:
           onChange={handleFileInputChange}
         />
 
-        {/* Resize handle */}
+        {/* Resize handles */}
         {isSelected && !element.locked && (
-          <div
-            className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
-            onMouseDown={handleResizeMouseDown}
-            title="Drag to resize"
-          />
+          <>
+            {/* Top-left resize handle */}
+            <div
+              className="absolute top-0 left-0 w-4 h-4 bg-primary-500 rounded-br cursor-nw-resize hover:bg-primary-600 transition-colors"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                handleResizeMouseDownNW(e);
+              }}
+              title="Drag to resize"
+            />
+            {/* Bottom-right resize handle */}
+            <div
+              className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors"
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                handleResizeMouseDownSE(e);
+              }}
+              title="Drag to resize"
+            />
+          </>
         )}
       </div>
 

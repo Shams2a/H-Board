@@ -5,8 +5,9 @@
 
 import { useRef, useState } from 'react';
 import type { FileElement } from '../../types';
-import { useElementStore } from '../../store';
+import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
+import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 import {
   Upload,
   FileText,
@@ -49,9 +50,15 @@ const formatFileSize = (bytes: number): string => {
 
 export default function File({ element, isSelected, onSelect, parentColumnId }: FileProps) {
   const { updateElement, deleteElement } = useElementStore();
+  const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  const isBeingDragged = draggedElementId === element.id;
+
+  // Get dark mode adapted background color
+  const backgroundColor = useDarkModeColor(element.style.backgroundColor || '#FFFFFF');
 
   const { handleMouseDown } = useDraggable({
     elementId: element.id,
@@ -143,23 +150,34 @@ export default function File({ element, isSelected, onSelect, parentColumnId }: 
   return (
     <div
       ref={containerRef}
+      data-element-id={element.id}
       className={`
-        element-card absolute cursor-move
+        element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
-        ${!hasFile ? 'border-2 border-dashed border-gray-300' : ''}
+        ${!hasFile ? 'border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}
+        ${parentColumnId && !isBeingDragged && hasFile ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
       `}
       style={{
-        left: `${element.position.x}px`,
-        top: `${element.position.y}px`,
-        width: `${element.size.width}px`,
-        minHeight: `${element.size.height}px`,
-        backgroundColor: element.style.backgroundColor || '#FFFFFF',
-        zIndex: element.zIndex
+        ...((parentColumnId && !isBeingDragged) ? {} : {
+          left: `${element.position.x}px`,
+          top: `${element.position.y}px`,
+        }),
+        width: (parentColumnId && !isBeingDragged) ? '100%' : `${element.size.width}px`,
+        minHeight: (parentColumnId && !isBeingDragged) ? 'auto' : `${element.size.height}px`,
+        backgroundColor,
+        zIndex: element.zIndex,
+        pointerEvents: isBeingDragged ? 'none' : 'auto'
       }}
       onClick={(e) => {
         e.stopPropagation();
-        onSelect?.();
+        // Don't change selection if we just finished dragging
+        if (justFinishedDrag) {
+          return;
+        }
+        const isMultiSelect = e.ctrlKey || e.metaKey;
+        const { selectElement } = useElementStore.getState();
+        selectElement(element.id, isMultiSelect);
       }}
       onMouseDown={handleMouseDown}
       onDrop={handleDrop}
@@ -246,16 +264,16 @@ export default function File({ element, isSelected, onSelect, parentColumnId }: 
             className="flex flex-col items-center justify-center py-8 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Upload className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+              <Upload className="w-8 h-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="text-sm font-medium text-gray-700">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {isUploading ? 'Uploading...' : 'Click or drag to upload'}
             </p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Max 10MB
             </p>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
               PDF, DOC, Images, Videos, etc.
             </p>
           </div>

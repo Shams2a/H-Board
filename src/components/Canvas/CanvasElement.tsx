@@ -14,6 +14,8 @@ import File from '../Elements/File';
 import Table from '../Elements/Table';
 import Line from '../Elements/Line';
 import Drawing from '../Elements/Drawing';
+import BoardLink from '../Elements/BoardLink';
+import Shape from '../Elements/Shape';
 
 interface CanvasElementProps {
   element: Element;
@@ -32,6 +34,9 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'column':
       return <Column element={element} isSelected={isSelected} onSelect={onSelect} />;
+
+    case 'board':
+      return <BoardLink element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'link':
       return <Link element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
@@ -53,6 +58,9 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'table':
       return <Table element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+
+    case 'shape':
+      return <Shape element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     default:
       return (

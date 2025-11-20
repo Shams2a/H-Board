@@ -5,12 +5,15 @@
 
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
-import type { Board, Element, Folder } from '../types';
+import type { Board, Element, Folder, SyncOperation, CacheMetadata, StorageSettings } from '../types';
 
 export class HBoardDatabase extends Dexie {
   boards!: Table<Board, string>;
   elements!: Table<Element, string>;
   folders!: Table<Folder, string>;
+  syncQueue!: Table<SyncOperation, string>;
+  cacheMetadata!: Table<CacheMetadata & { boardId: string }, string>;
+  settings!: Table<{ key: string; value: any }, string>;
 
   constructor() {
     super('HBoardDB');
@@ -26,6 +29,16 @@ export class HBoardDatabase extends Dexie {
       boards: 'id, name, parentId, folderId, createdAt, updatedAt',
       elements: 'id, boardId, type, parentId, createdAt, updatedAt, zIndex',
       folders: 'id, name, parentFolderId, createdAt, updatedAt'
+    });
+
+    // Version 3: Add sync support and cache management
+    this.version(3).stores({
+      boards: 'id, name, parentId, folderId, createdAt, updatedAt, lastAccess',
+      elements: 'id, boardId, type, parentId, createdAt, updatedAt, zIndex',
+      folders: 'id, name, parentFolderId, createdAt, updatedAt',
+      syncQueue: '++id, timestamp, syncStatus, entityType, entityId',
+      cacheMetadata: 'boardId, lastAccess',
+      settings: 'key'
     });
   }
 }
@@ -320,35 +333,11 @@ async function getDescendantBoards(parentId: string): Promise<Board[]> {
 }
 
 /**
- * Initialize database with a default root board
+ * Initialize database
  */
 export async function initializeDatabase(): Promise<void> {
-  const boards = await db.boards.toArray();
-
-  if (boards.length === 0) {
-    // Create default root board
-    const defaultBoard: Board = {
-      id: crypto.randomUUID(),
-      name: 'My First Board',
-      description: 'Welcome to H-Board! Start organizing your ideas here.',
-      tags: ['getting-started'],
-      folderId: null,
-      parentId: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      settings: {
-        gridEnabled: true,
-        gridSize: 8,
-        backgroundColor: '#F5F5F5',
-        zoom: 1,
-        panX: 0,
-        panY: 0
-      }
-    };
-
-    await db.boards.add(defaultBoard);
-    console.log('✅ Database initialized with default board');
-  }
+  // Database is ready, no default data created
+  console.log('✅ Database initialized');
 }
 
 // Export db instance as default

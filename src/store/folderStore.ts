@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import type { Folder } from '../types';
 import { folderOperations } from '../utils/db';
+import { newSyncService } from '../services/supabase/newSyncService';
 
 interface FolderState {
   folders: Folder[];
@@ -29,7 +30,9 @@ export const useFolderStore = create<FolderState>((set, get) => ({
   loadFolders: async () => {
     set({ loading: true, error: null });
     try {
-      const folders = await folderOperations.getAll();
+      const allFolders = await folderOperations.getAll();
+      // Filter out soft-deleted folders
+      const folders = allFolders.filter(f => !f.deletedAt);
       set({ folders, loading: false });
     } catch (error) {
       set({
@@ -52,6 +55,10 @@ export const useFolderStore = create<FolderState>((set, get) => ({
       };
 
       await folderOperations.create(newFolder);
+
+      // Queue sync operation
+      newSyncService.syncAll().catch(() => {});
+
       await get().loadFolders();
       set({ loading: false });
       return newFolder.id;
@@ -68,6 +75,13 @@ export const useFolderStore = create<FolderState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       await folderOperations.update(id, updates);
+
+      // Queue sync operation
+      const updatedFolder = await folderOperations.getById(id);
+      if (updatedFolder) {
+        newSyncService.syncAll().catch(() => {});
+      }
+
       await get().loadFolders();
       set({ loading: false });
     } catch (error) {
@@ -82,7 +96,16 @@ export const useFolderStore = create<FolderState>((set, get) => ({
   deleteFolder: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      await folderOperations.delete(id);
+      // Soft delete - set deletedAt instead of hard delete
+      const deletedAt = new Date();
+      await folderOperations.update(id, {
+        deletedAt,
+        updatedAt: deletedAt
+      });
+
+      // Queue sync operation
+      newSyncService.syncAll().catch(() => {});
+
       await get().loadFolders();
       set({ loading: false });
     } catch (error) {
