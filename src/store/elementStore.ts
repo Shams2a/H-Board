@@ -68,7 +68,13 @@ export const useElementStore = create<ElementState>((set, get) => ({
       const allElements = await elementOperations.getByBoard(boardId);
       // Filter out soft-deleted elements
       const elements = allElements.filter(el => !el.deletedAt);
-      set({ elements, loading: false, selectedIds: [] });
+
+      // Preserve selection for elements that still exist
+      const currentSelectedIds = get().selectedIds;
+      const elementIds = new Set(elements.map(el => el.id));
+      const preservedSelection = currentSelectedIds.filter(id => elementIds.has(id));
+
+      set({ elements, loading: false, selectedIds: preservedSelection });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load elements',
