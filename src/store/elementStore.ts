@@ -41,6 +41,7 @@ interface ElementState {
 
   // Position & Size
   updatePosition: (id: string, position: Position, skipLineUpdate?: boolean) => Promise<void>;
+  batchUpdatePositions: (updates: Map<string, Position>, persistToDB?: boolean) => Promise<void>;
   updateSize: (id: string, size: Size) => Promise<void>;
   updateConnectedLines: (elementId: string) => Promise<void>;
   updateMultipleConnectedLines: (elementIds: string[]) => Promise<void>;
@@ -319,6 +320,34 @@ export const useElementStore = create<ElementState>((set, get) => ({
     // Update connected lines only if not skipped
     if (!skipLineUpdate) {
       await get().updateConnectedLines(id);
+    }
+  },
+
+  // Batch update positions - optimized for drag operations
+  batchUpdatePositions: async (updates: Map<string, Position>, persistToDB = false) => {
+    if (updates.size === 0) return;
+
+    // Single state update for all elements
+    set(state => ({
+      elements: state.elements.map(el => {
+        const newPosition = updates.get(el.id);
+        if (newPosition) {
+          return { ...el, position: newPosition, updatedAt: new Date() };
+        }
+        return el;
+      })
+    }));
+
+    // Only persist to DB when drag ends (not during drag)
+    if (persistToDB) {
+      const updatePromises: Promise<void>[] = [];
+      updates.forEach((position, id) => {
+        updatePromises.push(elementOperations.update(id, { position }));
+      });
+      await Promise.all(updatePromises);
+
+      // Single sync call after all DB updates
+      newSyncService.syncAll().catch(() => {});
     }
   },
 

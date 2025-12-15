@@ -10,3 +10,4 @@ export { useDragStore } from './dragStore';
 export { useThemeStore } from './themeStore';
 export { useEditorStore } from './editorStore';
 export { useHistoryStore } from './historyStore';
+export { useArrowConnectionStore } from './arrowConnectionStore';

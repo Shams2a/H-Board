@@ -11,6 +11,7 @@ import {
   FolderPlus,
   Square,
   ArrowRight,
+  MoveRight,
   Pencil,
   Link2,
   FileText,
@@ -21,7 +22,7 @@ import {
 import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement, BoardElement, ShapeElement } from '../../types';
 
 export default function Toolbar() {
-  const { activeTool, setActiveTool, gridEnabled } = useUIStore();
+  const { activeTool, setActiveTool, gridEnabled, panX, panY, zoom } = useUIStore();
   const { currentBoardId, createBoard } = useBoardStore();
   const { createElement, elements } = useElementStore();
 
@@ -33,6 +34,7 @@ export default function Toolbar() {
     { type: 'section', icon: <Square className="w-6 h-6" />, label: 'Section', shortcut: 'S' },
     { type: 'shape', icon: <Shapes className="w-6 h-6" />, label: 'Shape', shortcut: 'H' },
     { type: 'line', icon: <ArrowRight className="w-6 h-6" />, label: 'Line', shortcut: 'L' },
+    { type: 'arrow', icon: <MoveRight className="w-6 h-6" />, label: 'Arrow', shortcut: 'A' },
     { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'D' },
     { type: 'link', icon: <Link2 className="w-6 h-6" />, label: 'Link', shortcut: 'K' },
     { type: 'file', icon: <FileText className="w-6 h-6" />, label: 'File', shortcut: 'F' },
@@ -43,10 +45,20 @@ export default function Toolbar() {
   const handleToolClick = async (toolType: ElementType) => {
     if (!currentBoardId) return;
 
-    // Calculate center position (accounting for typical window size)
-    // Position at center of visible canvas area
-    const centerX = 400;
-    const centerY = 300;
+    // Special case for Arrow tool - just activate the mode, don't create element
+    if (toolType === 'arrow') {
+      setActiveTool(activeTool === 'arrow' ? null : 'arrow');
+      return;
+    }
+
+    // Calculate center position based on current viewport
+    // Convert viewport center to canvas coordinates
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Calculate the center of the visible canvas area
+    const centerX = (-panX + viewportWidth / 2) / zoom;
+    const centerY = (-panY + viewportHeight / 2) / zoom;
 
     // Grid snapping
     const gridSize = gridEnabled ? 8 : 1;

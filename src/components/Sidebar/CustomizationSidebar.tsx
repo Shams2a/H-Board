@@ -19,6 +19,7 @@ import DrawingCustomization from './customizations/DrawingCustomization';
 import SectionCustomization from './customizations/SectionCustomization';
 import ShapeCustomization from './customizations/ShapeCustomization';
 import LineCustomization from './customizations/LineCustomization';
+import ArrowCustomization from './customizations/ArrowCustomization';
 
 type CustomizationPage = 'color' | 'text' | 'image' | 'link' | null;
 
@@ -148,6 +149,9 @@ export default function CustomizationSidebar() {
             )}
             {activePage === 'color' && selectedElement.type === 'line' && (
               <LineCustomization element={selectedElement} />
+            )}
+            {activePage === 'color' && selectedElement.type === 'arrow' && (
+              <ArrowCustomization element={selectedElement} />
             )}
             {activePage === 'text' && selectedElement.type === 'note' && (
               <NoteTextCustomization element={selectedElement} />

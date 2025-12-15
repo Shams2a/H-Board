@@ -15,7 +15,7 @@ interface UseDraggableOptions {
 }
 
 export function useDraggable({ elementId, parentColumnId = null, onDragStart, onDragEnd }: UseDraggableOptions) {
-  const { updatePosition, getElementById, selectedIds, updateElement } = useElementStore();
+  const { updatePosition, getElementById, selectedIds, updateElement, batchUpdatePositions } = useElementStore();
   const { gridEnabled, zoom, panX, panY } = useUIStore();
   const { setDraggedElement, clearDrag, setJustFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
 
@@ -27,6 +27,7 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
   const hasMovedRef = useRef(false);
   const isMultiSelectRef = useRef(false);
   const currentMousePosRef = useRef<Position>({ x: 0, y: 0 });
+  const lastPositionUpdatesRef = useRef<Map<string, Position>>(new Map());
 
   // Cleanup function to stop dragging
   const cleanup = useCallback(() => {
@@ -37,6 +38,13 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
     }
 
     if (!isDraggingRef.current) return;
+
+    // Persist final positions to DB if we moved
+    if (hasMovedRef.current && lastPositionUpdatesRef.current.size > 0) {
+      const { batchUpdatePositions } = useElementStore.getState();
+      batchUpdatePositions(lastPositionUpdatesRef.current, true);
+      lastPositionUpdatesRef.current = new Map();
+    }
 
     // Mark that we just finished a drag if we moved
     if (hasMovedRef.current) {
@@ -206,15 +214,16 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
       newY = Math.round(newY / gridSize) * gridSize;
     }
 
-    // Update position of primary element (skip line update for now)
-    updatePosition(elementId, { x: newX, y: newY }, true);
+    // Build batch update map for all selected elements
+    const positionUpdates = new Map<string, Position>();
+    positionUpdates.set(elementId, { x: newX, y: newY });
 
     // Collect all moved element IDs
     const movedElementIds = [elementId];
 
-    // Update positions of all other selected elements (skip line update for now)
+    // Add all other selected elements to batch
     selectedElementsStartPosRef.current.forEach((startPos, id) => {
-      if (id !== elementId) { // Don't update the primary element again
+      if (id !== elementId) {
         let newElX = startPos.x + dx;
         let newElY = startPos.y + dy;
 
@@ -225,13 +234,19 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
           newElY = Math.round(newElY / gridSize) * gridSize;
         }
 
-        updatePosition(id, { x: newElX, y: newElY }, true);
+        positionUpdates.set(id, { x: newElX, y: newElY });
         movedElementIds.push(id);
       }
     });
 
-    // Batch update all connected lines after all positions are updated
-    const { updateMultipleConnectedLines } = useElementStore.getState();
+    // Store for persistence on drag end
+    lastPositionUpdatesRef.current = positionUpdates;
+
+    // Single batch update - no DB persistence during drag
+    const { batchUpdatePositions, updateMultipleConnectedLines } = useElementStore.getState();
+    batchUpdatePositions(positionUpdates, false);
+
+    // Update all connected lines after positions are updated
     updateMultipleConnectedLines(movedElementIds);
   }, [elementId, zoom, gridEnabled, getElementById, updatePosition, cleanup, startDragging]);
 

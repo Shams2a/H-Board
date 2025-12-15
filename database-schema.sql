@@ -105,7 +105,7 @@ CREATE INDEX idx_board_tags_tag ON board_tags(tag_id);
 CREATE TABLE elements (
     id VARCHAR(36) PRIMARY KEY,
     board_id VARCHAR(36) NOT NULL,
-    type VARCHAR(20) NOT NULL, -- note, image, column, board, section, line, drawing, link, file, todo, table, shape
+    type VARCHAR(20) NOT NULL, -- note, image, column, board, section, line, arrow, drawing, link, file, todo, table, shape
 
     -- Position stored as JSONB: {x: number, y: number}
     position JSONB NOT NULL DEFAULT '{"x":0,"y":0}',
@@ -134,6 +134,7 @@ CREATE TABLE elements (
     -- board: {"boardId": "string", "boardName": "string"}
     -- section: {"title": "string"}
     -- line: {"points": [{"x": number, "y": number}], "strokeColor": "string", "strokeWidth": number}
+    -- arrow: {"startElementId": "string", "endElementId": "string", "startAnchor": "top|right|bottom|left|center", "endAnchor": "top|right|bottom|left|center", "pathType": "straight|curved|elbow|step", "lineStyle": "solid|dashed|dotted", "arrowHeadStart": "none|triangle|triangle-filled|diamond|circle|bar", "arrowHeadEnd": "triangle-filled", "label": "string", "animated": boolean, "color": "#3B82F6", "thickness": 2}
     -- drawing: {"paths": [{"points": [...], "strokeColor": "string", "strokeWidth": number}], "strokeColor": "string", "strokeWidth": number}
     -- link: {"url": "string", "title": "string", "description": "string", "favicon": "string"}
     -- file: {"name": "string", "size": number, "type": "string", "data": "string", "uploadedAt": "timestamp"}
@@ -159,7 +160,7 @@ CREATE TABLE elements (
 
     -- Validate element type
     CONSTRAINT chk_element_type CHECK (
-        type IN ('note', 'image', 'column', 'board', 'section', 'line', 'drawing', 'link', 'file', 'todo', 'table', 'shape')
+        type IN ('note', 'image', 'column', 'board', 'section', 'line', 'arrow', 'drawing', 'link', 'file', 'todo', 'table', 'shape')
     )
 );
 

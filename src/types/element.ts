@@ -10,6 +10,7 @@ export type ElementType =
   | 'board'
   | 'section'
   | 'line'
+  | 'arrow'
   | 'drawing'
   | 'link'
   | 'file'
@@ -97,6 +98,25 @@ export interface LineContent {
   label?: string; // Optional text label shown at middle of line
 }
 
+export type AnchorPosition = 'top' | 'top-right' | 'right' | 'bottom-right' | 'bottom' | 'bottom-left' | 'left' | 'top-left' | 'center';
+export type ArrowPathType = 'curved' | 'straight' | 'elbow' | 'step';
+export type ArrowHeadStyle = 'triangle' | 'triangle-filled' | 'diamond' | 'circle' | 'bar' | 'none';
+
+export interface ArrowContent {
+  startElementId: string;
+  endElementId: string;
+  startAnchor: AnchorPosition;
+  endAnchor: AnchorPosition;
+  pathType: ArrowPathType;
+  lineStyle: 'solid' | 'dashed' | 'dotted';
+  arrowHeadStart?: ArrowHeadStyle;
+  arrowHeadEnd?: ArrowHeadStyle;
+  label?: string;
+  animated?: boolean; // For flow animation
+  color?: string;
+  thickness?: number;
+}
+
 export interface DrawingContent {
   paths: DrawingPath[];
 }
@@ -163,6 +183,7 @@ export type ColumnElement = BaseElement & { type: 'column'; content: ColumnConte
 export type BoardElement = BaseElement & { type: 'board'; content: BoardLinkContent };
 export type SectionElement = BaseElement & { type: 'section'; content: SectionContent };
 export type LineElement = BaseElement & { type: 'line'; content: LineContent };
+export type ArrowElement = BaseElement & { type: 'arrow'; content: ArrowContent };
 export type DrawingElement = BaseElement & { type: 'drawing'; content: DrawingContent };
 export type LinkElement = BaseElement & { type: 'link'; content: LinkContent };
 export type FileElement = BaseElement & { type: 'file'; content: FileContent };
@@ -177,6 +198,7 @@ export type Element =
   | BoardElement
   | SectionElement
   | LineElement
+  | ArrowElement
   | DrawingElement
   | LinkElement
   | FileElement

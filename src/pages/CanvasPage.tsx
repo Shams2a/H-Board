@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download } from 'lucide-react';
 import { useBoardStore } from '../store';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import Breadcrumb from '../components/Canvas/Breadcrumb';
@@ -14,6 +14,7 @@ import Toolbar from '../components/Toolbar/Toolbar';
 import ViewControls from '../components/Toolbar/ViewControls';
 import CustomizationSidebar from '../components/Sidebar/CustomizationSidebar';
 import KeyboardShortcutsModal from '../components/Modals/KeyboardShortcutsModal';
+import ExportModal from '../components/Modals/ExportModal';
 import { NewSyncStatus } from '../components/SyncStatus/NewSyncStatus';
 import { ThemeToggle } from '../components/ThemeToggle/ThemeToggle';
 
@@ -22,6 +23,7 @@ export default function CanvasPage() {
   const navigate = useNavigate();
   const { setCurrentBoard, getCurrentBoard, loadBoards } = useBoardStore();
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Enable keyboard shortcuts
   useKeyboardShortcuts({
@@ -82,6 +84,15 @@ export default function CanvasPage() {
 
           {/* Controls */}
           <div className="flex items-center gap-2">
+            {/* Export Button */}
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Export (Ctrl+E)"
+            >
+              <Download className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            </button>
+
             {/* Theme Toggle */}
             <ThemeToggle />
 
@@ -93,7 +104,7 @@ export default function CanvasPage() {
 
       {/* Canvas Area with Floating Controls */}
       <div className="flex-1 overflow-hidden relative">
-        <Canvas />
+        <Canvas onExport={() => setShowExportModal(true)} />
 
         {/* Floating Toolbars */}
         <Toolbar />
@@ -105,6 +116,12 @@ export default function CanvasPage() {
       <KeyboardShortcutsModal
         isOpen={showKeyboardShortcuts}
         onClose={() => setShowKeyboardShortcuts(false)}
+      />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
       />
     </div>
   );

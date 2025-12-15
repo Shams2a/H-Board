@@ -9,7 +9,7 @@ import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
 import { useDarkModeColor } from '../../hooks/useDarkModeColor';
-import { Plus, GripVertical } from 'lucide-react';
+import { Plus, GripVertical, ChevronDown, ChevronRight } from 'lucide-react';
 import CanvasElement from '../Canvas/CanvasElement';
 
 interface ColumnProps {
@@ -28,6 +28,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
   const [title, setTitle] = useState(element.content.title || 'Untitled Column');
   const [isHovering, setIsHovering] = useState(false);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(element.content.collapsed || false);
   const prevDraggedElementIdRef = useRef<string | null>(null);
   const childRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -69,6 +70,17 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       }
     });
     setIsEditingTitle(false);
+  };
+
+  const handleToggleCollapse = async () => {
+    const newCollapsed = !isCollapsed;
+    setIsCollapsed(newCollapsed);
+    await updateElement(element.id, {
+      content: {
+        ...element.content,
+        collapsed: newCollapsed
+      }
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -115,6 +127,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       // Calculate drop index based on mouse position
       if (contentRef.current) {
         const contentRect = contentRef.current.getBoundingClientRect();
+        const mouseX = e.clientX - contentRect.left;
         const mouseY = e.clientY - contentRect.top;
 
         // Get visible children (excluding the one being dragged)
@@ -122,19 +135,40 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
 
         let newDropIndex = visibleChildren.length; // Default to end
 
-        // Find the position between elements
-        let currentY = 12; // Initial padding
-        for (let i = 0; i < visibleChildren.length; i++) {
-          const childRef = childRefs.current.get(visibleChildren[i]);
-          if (childRef) {
-            const childHeight = childRef.offsetHeight + 12; // Include margin
-            const midPoint = currentY + childHeight / 2;
+        // Check if we're in horizontal layout mode
+        const isHorizontal = element.size.width >= 500;
 
-            if (mouseY < midPoint) {
-              newDropIndex = i;
-              break;
+        if (isHorizontal) {
+          // Horizontal layout - calculate based on X position
+          let currentX = 12; // Initial padding
+          for (let i = 0; i < visibleChildren.length; i++) {
+            const childRef = childRefs.current.get(visibleChildren[i]);
+            if (childRef) {
+              const childWidth = childRef.offsetWidth + 12; // Include gap
+              const midPoint = currentX + childWidth / 2;
+
+              if (mouseX < midPoint) {
+                newDropIndex = i;
+                break;
+              }
+              currentX += childWidth;
             }
-            currentY += childHeight;
+          }
+        } else {
+          // Vertical layout - calculate based on Y position
+          let currentY = 12; // Initial padding
+          for (let i = 0; i < visibleChildren.length; i++) {
+            const childRef = childRefs.current.get(visibleChildren[i]);
+            if (childRef) {
+              const childHeight = childRef.offsetHeight + 12; // Include margin
+              const midPoint = currentY + childHeight / 2;
+
+              if (mouseY < midPoint) {
+                newDropIndex = i;
+                break;
+              }
+              currentY += childHeight;
+            }
           }
         }
 
@@ -233,6 +267,9 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
     element.content.childrenIds.includes(el.id)
   );
 
+  // Determine layout mode based on column width
+  const isHorizontalLayout = element.size.width >= 500;
+
   return (
     <div
       ref={containerRef}
@@ -245,7 +282,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
         left: `${element.position.x}px`,
         top: `${element.position.y}px`,
         width: `${element.size.width}px`,
-        minHeight: `${element.size.height}px`,
+        minHeight: isCollapsed ? 'auto' : `${element.size.height}px`,
         backgroundColor,
         zIndex: element.zIndex,
         pointerEvents: isBeingDragged ? 'none' : 'auto'
@@ -266,6 +303,21 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
     >
       {/* Header */}
       <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 p-3 flex items-center gap-2">
+        {/* Collapse toggle button */}
+        <button
+          className="p-1 -ml-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleToggleCollapse();
+          }}
+          title={isCollapsed ? 'Expand' : 'Collapse'}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          )}
+        </button>
         {/* Grip handle for dragging - visual indicator */}
         <div className="p-1 -ml-1">
           <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -321,25 +373,27 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       </div>
 
       {/* Content Area - Child Elements */}
-      <div
-        ref={contentRef}
-        className={`
-          p-3 space-y-3 min-h-[100px] transition-colors
-          ${isHovering && draggedElementId ? 'bg-primary-50 dark:bg-primary-900/30 ring-2 ring-inset ring-primary-300 dark:ring-primary-600' : ''}
-        `}
-        onMouseEnter={handleMouseEnter}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-      >
+      {!isCollapsed && (
+        <div
+          ref={contentRef}
+          className={`
+            p-3 min-h-[100px] transition-colors
+            ${isHorizontalLayout ? 'flex flex-wrap gap-3' : 'space-y-3'}
+            ${isHovering && draggedElementId ? 'bg-primary-50 dark:bg-primary-900/30 ring-2 ring-inset ring-primary-300 dark:ring-primary-600' : ''}
+          `}
+          onMouseEnter={handleMouseEnter}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+        >
         {childElements.length === 0 ? (
           <div className={`
-            flex items-center justify-center h-24 border-2 border-dashed rounded text-sm transition-colors
+            flex items-center justify-center h-24 w-full border-2 border-dashed rounded text-sm transition-colors
             ${isHovering && draggedElementId ? 'border-primary-400 text-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'}
           `}>
             Drag elements here or click + to add
           </div>
         ) : (
-          <div className="relative">
+          <div className={`relative ${isHorizontalLayout ? 'flex flex-wrap gap-3 items-start' : ''}`}>
             {element.content.childrenIds
               .map((childId, index) => {
                 const child = childElements.find(el => el.id === childId);
@@ -352,10 +406,10 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
                   .filter(id => id !== draggedElementId).length;
 
                 return (
-                  <div key={child.id}>
+                  <div key={child.id} className={isHorizontalLayout ? 'flex items-stretch' : ''}>
                     {/* Drop indicator before this element */}
                     {isHovering && dropIndex === visualIndex && !isBeingDraggedChild && (
-                      <div className="h-1 bg-primary-500 rounded-full mb-4 animate-pulse" />
+                      <div className={`bg-primary-500 rounded-full animate-pulse ${isHorizontalLayout ? 'w-1 mr-3' : 'h-1 mb-4'}`} />
                     )}
                     <div
                       ref={(el) => {
@@ -365,7 +419,7 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
                           childRefs.current.delete(child.id);
                         }
                       }}
-                      className={`mb-4 last:mb-0 ${isBeingDraggedChild ? 'invisible h-0 overflow-hidden' : ''}`}
+                      className={`${isHorizontalLayout ? '' : 'mb-4 last:mb-0'} ${isBeingDraggedChild ? 'invisible h-0 overflow-hidden' : ''}`}
                       style={{
                         // Override absolute positioning for children in column
                         position: 'relative',
@@ -385,11 +439,12 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
               })}
             {/* Drop indicator at the end */}
             {isHovering && dropIndex === element.content.childrenIds.filter(id => id !== draggedElementId).length && (
-              <div className="h-1 bg-primary-500 rounded-full animate-pulse" />
+              <div className={`bg-primary-500 rounded-full animate-pulse ${isHorizontalLayout ? 'w-1 self-stretch' : 'h-1'}`} />
             )}
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Resize handles */}
       {isSelected && !element.locked && (

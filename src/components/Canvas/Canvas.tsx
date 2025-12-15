@@ -3,17 +3,29 @@
  * Main workspace for placing and manipulating elements
  */
 
-import { useEffect, useRef, useState } from 'react';
-import { useBoardStore, useElementStore, useUIStore, useDragStore } from '../../store';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import { useBoardStore, useElementStore, useUIStore, useDragStore, useArrowConnectionStore } from '../../store';
 import { useDarkModeColor } from '../../hooks/useDarkModeColor';
 import { newSyncService } from '../../services/supabase/newSyncService';
 import CanvasElement from './CanvasElement';
+import AnchorPoints from '../Elements/AnchorPoints';
+import { ContextMenu } from '../ContextMenu';
+import type { AnchorPosition, ArrowElement, Position } from '../../types';
 
-export default function Canvas() {
+// Virtual canvas size (how far users can scroll)
+const CANVAS_VIRTUAL_WIDTH = 10000;
+const CANVAS_VIRTUAL_HEIGHT = 10000;
+
+interface CanvasProps {
+  onExport?: () => void;
+}
+
+export default function Canvas({ onExport }: CanvasProps = {}) {
   const { currentBoardId, getCurrentBoard } = useBoardStore();
   const {
     loadElements,
     elements,
+    createElement,
     selectElement,
     selectedIds,
     clearSelection,
@@ -21,8 +33,9 @@ export default function Canvas() {
     undo,
     redo
   } = useElementStore();
-  const { zoom, panX, panY, gridEnabled, setPan } = useUIStore();
+  const { zoom, panX, panY, gridEnabled, setPan, activeTool, setActiveTool } = useUIStore();
   const { draggedElementId, justFinishedDrag } = useDragStore();
+  const { startConnection, completeConnection } = useArrowConnectionStore();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Selection box state
@@ -31,12 +44,130 @@ export default function Canvas() {
   const [selectionEnd, setSelectionEnd] = useState({ x: 0, y: 0 });
   const [didSelect, setDidSelect] = useState(false);
 
+  // Scrollbar dragging state
+  const [isDraggingScrollbar, setIsDraggingScrollbar] = useState<'horizontal' | 'vertical' | null>(null);
+  const [scrollbarDragStart, setScrollbarDragStart] = useState({ x: 0, y: 0, panX: 0, panY: 0 });
+
+  // Track if we're currently interacting (panning/scrolling) to disable transition
+  const [isInteracting, setIsInteracting] = useState(false);
+
+  // Context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    canvasPosition: { x: number; y: number };
+  } | null>(null);
+
   const currentBoard = getCurrentBoard();
 
   // Get dark mode adapted canvas background color
   const canvasBackgroundColor = useDarkModeColor(
-    currentBoard.settings.backgroundColor || '#F5F5F5'
+    currentBoard?.settings.backgroundColor || '#F5F5F5'
   );
+
+  // Calculate scrollbar dimensions
+  // Optimized: removed 'elements' dependency as scrollbars only depend on zoom and pan
+  const scrollbarInfo = useMemo(() => {
+    const containerWidth = canvasRef.current?.clientWidth || 800;
+    const containerHeight = canvasRef.current?.clientHeight || 600;
+
+    // Visible area in canvas coordinates
+    const visibleWidth = containerWidth / zoom;
+    const visibleHeight = containerHeight / zoom;
+
+    // Scrollbar thumb size (proportion of visible area to total canvas)
+    const hThumbWidth = Math.max(30, (visibleWidth / CANVAS_VIRTUAL_WIDTH) * containerWidth);
+    const vThumbHeight = Math.max(30, (visibleHeight / CANVAS_VIRTUAL_HEIGHT) * containerHeight);
+
+    // Scrollbar thumb position
+    // Pan values are negative when scrolled, so we negate them
+    const maxPanX = CANVAS_VIRTUAL_WIDTH - visibleWidth;
+    const maxPanY = CANVAS_VIRTUAL_HEIGHT - visibleHeight;
+
+    const hThumbPosition = maxPanX > 0 ? ((-panX) / maxPanX) * (containerWidth - hThumbWidth) : 0;
+    const vThumbPosition = maxPanY > 0 ? ((-panY) / maxPanY) * (containerHeight - vThumbHeight) : 0;
+
+    return {
+      containerWidth,
+      containerHeight,
+      hThumbWidth,
+      vThumbHeight,
+      hThumbPosition: Math.max(0, Math.min(hThumbPosition, containerWidth - hThumbWidth)),
+      vThumbPosition: Math.max(0, Math.min(vThumbPosition, containerHeight - vThumbHeight)),
+      maxPanX,
+      maxPanY
+    };
+  }, [zoom, panX, panY]);
+
+  // Handle scrollbar mouse down
+  const handleScrollbarMouseDown = (type: 'horizontal' | 'vertical') => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setIsDraggingScrollbar(type);
+    setIsInteracting(true); // Disable transition during scrollbar drag
+    setScrollbarDragStart({
+      x: e.clientX,
+      y: e.clientY,
+      panX,
+      panY
+    });
+  };
+
+  // Handle scrollbar dragging
+  useEffect(() => {
+    if (!isDraggingScrollbar) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const { containerWidth, containerHeight, hThumbWidth, vThumbHeight, maxPanX, maxPanY } = scrollbarInfo;
+
+      if (isDraggingScrollbar === 'horizontal') {
+        const deltaX = e.clientX - scrollbarDragStart.x;
+        const trackWidth = containerWidth - hThumbWidth;
+        const panDelta = trackWidth > 0 ? (deltaX / trackWidth) * maxPanX : 0;
+        const newPanX = Math.max(-maxPanX, Math.min(0, scrollbarDragStart.panX - panDelta));
+        setPan(newPanX, panY);
+      } else {
+        const deltaY = e.clientY - scrollbarDragStart.y;
+        const trackHeight = containerHeight - vThumbHeight;
+        const panDelta = trackHeight > 0 ? (deltaY / trackHeight) * maxPanY : 0;
+        const newPanY = Math.max(-maxPanY, Math.min(0, scrollbarDragStart.panY - panDelta));
+        setPan(panX, newPanY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingScrollbar(null);
+      setIsInteracting(false); // Re-enable transition after scrollbar drag ends
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingScrollbar, scrollbarDragStart, scrollbarInfo, panX, panY, setPan]);
+
+  // Handle scrollbar track click
+  const handleScrollbarTrackClick = (type: 'horizontal' | 'vertical') => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const { containerWidth, containerHeight, hThumbWidth, vThumbHeight, maxPanX, maxPanY } = scrollbarInfo;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+
+    if (type === 'horizontal') {
+      const clickX = e.clientX - rect.left;
+      const trackWidth = containerWidth - hThumbWidth;
+      const ratio = trackWidth > 0 ? clickX / containerWidth : 0;
+      const newPanX = -ratio * maxPanX;
+      setPan(Math.max(-maxPanX, Math.min(0, newPanX)), panY);
+    } else {
+      const clickY = e.clientY - rect.top;
+      const trackHeight = containerHeight - vThumbHeight;
+      const ratio = trackHeight > 0 ? clickY / containerHeight : 0;
+      const newPanY = -ratio * maxPanY;
+      setPan(panX, Math.max(-maxPanY, Math.min(0, newPanY)));
+    }
+  };
 
   useEffect(() => {
     if (currentBoardId) {
@@ -99,9 +230,14 @@ export default function Canvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    let wheelTimeout: number;
+
     const handleWheel = (e: WheelEvent) => {
       // Prevent default scroll behavior
       e.preventDefault();
+
+      // Disable transition during panning for better performance
+      setIsInteracting(true);
 
       // Panning speed factor (adjust as needed)
       const panSpeed = 1;
@@ -116,10 +252,19 @@ export default function Canvas() {
       const newPanY = panY - deltaY * panSpeed;
 
       setPan(newPanX, newPanY);
+
+      // Re-enable transition after panning stops
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(() => {
+        setIsInteracting(false);
+      }, 150);
     };
 
     canvas.addEventListener('wheel', handleWheel, { passive: false });
-    return () => canvas.removeEventListener('wheel', handleWheel);
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+      clearTimeout(wheelTimeout);
+    };
   }, [panX, panY, setPan]);
 
   const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
@@ -207,6 +352,81 @@ export default function Canvas() {
     setIsSelecting(false);
   };
 
+  // Handle right-click context menu
+  const handleContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    // Calculate position in canvas coordinates
+    // Transform is: scale(zoom) translate(panX, panY)
+    // So: screenPos = (canvasPos + pan) * zoom
+    // Therefore: canvasPos = screenPos / zoom - pan
+    const canvasX = (e.clientX - rect.left) / zoom - panX;
+    const canvasY = (e.clientY - rect.top) / zoom - panY;
+
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      canvasPosition: { x: canvasX, y: canvasY }
+    });
+  };
+
+  const handleCloseContextMenu = () => {
+    setContextMenu(null);
+  };
+
+  // Handle anchor point click for arrow connections
+  const handleAnchorClick = async (elementId: string, anchor: AnchorPosition) => {
+    if (activeTool !== 'arrow') return;
+
+    // First click - start connection
+    const connectionData = completeConnection(elementId, anchor);
+
+    if (!connectionData) {
+      // This is the first click
+      startConnection(elementId, anchor);
+      return;
+    }
+
+    // Second click - create arrow
+    const maxZ = Math.max(0, ...elements.map(el => el.zIndex));
+
+    const newArrow: ArrowElement = {
+      id: crypto.randomUUID(),
+      boardId: currentBoardId!,
+      type: 'arrow',
+      position: { x: 0, y: 0 }, // Will be calculated from connected elements
+      size: { width: 100, height: 100 }, // Will be calculated from path bounds
+      zIndex: maxZ + 1,
+      locked: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      style: {
+        borderColor: '#3B82F6',
+        borderWidth: 2
+      },
+      content: {
+        startElementId: connectionData.startElementId,
+        endElementId: connectionData.endElementId,
+        startAnchor: connectionData.startAnchor,
+        endAnchor: connectionData.endAnchor,
+        pathType: 'curved', // Default to curved, can be changed via customization panel
+        lineStyle: 'solid',
+        arrowHeadEnd: 'triangle-filled',
+        arrowHeadStart: 'none',
+        color: '#3B82F6',
+        thickness: 2
+      }
+    };
+
+    await createElement(newArrow);
+
+    // Deactivate arrow tool after creation
+    setActiveTool(null);
+  };
+
   if (!currentBoard) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-background-canvas">
@@ -245,6 +465,7 @@ export default function Canvas() {
       onMouseMove={handleCanvasMouseMove}
       onMouseUp={handleCanvasMouseUp}
       onMouseLeave={handleCanvasMouseUp}
+      onContextMenu={handleContextMenu}
     >
       {/* Canvas content with zoom and pan */}
       <div
@@ -253,7 +474,8 @@ export default function Canvas() {
           transformOrigin: 'top left',
           width: '100%',
           height: '100%',
-          transition: 'transform 0.1s ease-out',
+          // Disable transition during interaction for better performance
+          transition: isInteracting ? 'none' : 'transform 0.1s ease-out',
           position: 'relative'
         }}
       >
@@ -299,12 +521,18 @@ export default function Canvas() {
                 return !isChildOfColumn;
               })
               .map((element) => (
-                <CanvasElement
-                  key={element.id}
-                  element={element}
-                  isSelected={selectedIds.includes(element.id)}
-                  onSelect={() => selectElement(element.id)}
-                />
+                <div key={element.id}>
+                  <CanvasElement
+                    element={element}
+                    isSelected={selectedIds.includes(element.id)}
+                    onSelect={() => selectElement(element.id)}
+                  />
+                  {/* Show anchor points when Arrow tool is active */}
+                  <AnchorPoints
+                    element={element}
+                    onAnchorClick={handleAnchorClick}
+                  />
+                </div>
               ))}
           </div>
         )}
@@ -327,9 +555,55 @@ export default function Canvas() {
       </div>
 
       {/* Canvas info (bottom right) */}
-      <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary dark:text-gray-400 pointer-events-none">
+      <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary dark:text-gray-400 pointer-events-none">
         Board: {currentBoard.name} • Elements: {elements.length}
       </div>
+
+      {/* Horizontal Scrollbar */}
+      <div
+        className="absolute bottom-0 left-0 right-3 h-3 bg-gray-200/50 dark:bg-gray-700/50 cursor-pointer"
+        onClick={handleScrollbarTrackClick('horizontal')}
+      >
+        <div
+          className="absolute top-0 h-full bg-gray-400 dark:bg-gray-500 rounded-full hover:bg-gray-500 dark:hover:bg-gray-400 transition-colors cursor-grab active:cursor-grabbing"
+          style={{
+            left: `${scrollbarInfo.hThumbPosition}px`,
+            width: `${scrollbarInfo.hThumbWidth}px`
+          }}
+          onMouseDown={handleScrollbarMouseDown('horizontal')}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+
+      {/* Vertical Scrollbar */}
+      <div
+        className="absolute top-0 right-0 bottom-3 w-3 bg-gray-200/50 dark:bg-gray-700/50 cursor-pointer"
+        onClick={handleScrollbarTrackClick('vertical')}
+      >
+        <div
+          className="absolute left-0 w-full bg-gray-400 dark:bg-gray-500 rounded-full hover:bg-gray-500 dark:hover:bg-gray-400 transition-colors cursor-grab active:cursor-grabbing"
+          style={{
+            top: `${scrollbarInfo.vThumbPosition}px`,
+            height: `${scrollbarInfo.vThumbHeight}px`
+          }}
+          onMouseDown={handleScrollbarMouseDown('vertical')}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+
+      {/* Corner square */}
+      <div className="absolute bottom-0 right-0 w-3 h-3 bg-gray-300/50 dark:bg-gray-600/50" />
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          canvasPosition={contextMenu.canvasPosition}
+          onClose={handleCloseContextMenu}
+          onExport={onExport}
+        />
+      )}
     </div>
   );
 }
