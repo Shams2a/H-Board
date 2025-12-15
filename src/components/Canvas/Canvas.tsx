@@ -404,7 +404,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
       createdAt: new Date(),
       updatedAt: new Date(),
       style: {
-        borderColor: '#3B82F6',
+        borderColor: '#9CA3AF',
         borderWidth: 2
       },
       content: {
@@ -416,7 +416,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
         lineStyle: 'solid',
         arrowHeadEnd: 'triangle-filled',
         arrowHeadStart: 'none',
-        color: '#3B82F6',
+        color: '#9CA3AF',
         thickness: 2
       }
     };

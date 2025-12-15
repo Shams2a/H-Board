@@ -131,7 +131,7 @@ export default function Toolbar() {
             maxWidth: 800
           },
           style: {
-            backgroundColor: '#FFFFFF'
+            backgroundColor: '#FAFAFA'
           }
         };
         await createElement(newColumn);
@@ -156,7 +156,9 @@ export default function Toolbar() {
             favicon: ''
           },
           style: {
-            backgroundColor: '#FFFFFF'
+            backgroundColor: '#FFFFFF',
+            borderColor: '#E5E7EB',
+            borderWidth: 1
           }
         };
         await createElement(newLink);
@@ -234,7 +236,7 @@ export default function Toolbar() {
             columnWidths: []
           },
           style: {
-            backgroundColor: '#FFFFFF'
+            backgroundColor: '#FAFAFA'
           }
         };
         await createElement(newTable);
@@ -260,7 +262,7 @@ export default function Toolbar() {
             arrowEnd: true
           },
           style: {
-            borderColor: '#374151',
+            borderColor: '#D1D5DB',
             borderWidth: 2
           }
         };
@@ -312,7 +314,7 @@ export default function Toolbar() {
             elementCount: 0
           },
           style: {
-            backgroundColor: '#DBEAFE'
+            backgroundColor: '#F5F5F5'
           }
         };
         await createElement(newBoardLink);
@@ -334,8 +336,8 @@ export default function Toolbar() {
             shapeType: 'rectangle'
           },
           style: {
-            backgroundColor: '#3B82F6',
-            borderColor: '#1E40AF',
+            backgroundColor: 'transparent',
+            borderColor: '#9CA3AF',
             borderWidth: 2
           }
         };
