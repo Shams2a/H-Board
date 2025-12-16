@@ -9,6 +9,7 @@ import { DndContext } from '@dnd-kit/core';
 import { useBoardStore, useFolderStore } from '../../store';
 import BoardCard from './BoardCard';
 import BoardEditModal from './BoardEditModal';
+import BoardTypeSelector from './BoardTypeSelector';
 import FolderItem from './FolderItem';
 import FolderEditModal from './FolderEditModal';
 import RootBoardsZone from './RootBoardsZone';
@@ -16,7 +17,7 @@ import { handleDragEnd, groupBoardsByFolder, type DragEndEvent } from '../../uti
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { NewSyncStatus } from '../SyncStatus/NewSyncStatus';
 import { newSyncService } from '../../services/supabase/newSyncService';
-import type { Board, Folder } from '../../types';
+import type { Board, Folder, BoardType } from '../../types';
 
 type SortBy = 'name' | 'created' | 'updated';
 type ViewMode = 'grid' | 'list';
@@ -30,7 +31,6 @@ export default function Dashboard() {
   const [showFilters, setShowFilters] = useState(false);
   const [showNewBoardDialog, setShowNewBoardDialog] = useState(false);
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
-  const [newBoardName, setNewBoardName] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [editingBoard, setEditingBoard] = useState<Board | null>(null);
   const [editingFolder, setEditingFolder] = useState<Folder | null>(null);
@@ -100,10 +100,8 @@ export default function Dashboard() {
     return filtered;
   }, [boards, searchQuery, selectedTags, sortBy]);
 
-  const handleCreateBoard = async () => {
-    if (!newBoardName.trim()) return;
-    await createBoard(newBoardName.trim());
-    setNewBoardName('');
+  const handleCreateBoard = async (name: string, type: BoardType) => {
+    await createBoard(name, type);
     setShowNewBoardDialog(false);
   };
 
@@ -378,45 +376,10 @@ export default function Dashboard() {
 
       {/* New Board Dialog */}
       {showNewBoardDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Nouveau Projet
-              </h2>
-              <button
-                onClick={() => setShowNewBoardDialog(false)}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-            <input
-              type="text"
-              placeholder="Nom du projet"
-              value={newBoardName}
-              onChange={(e) => setNewBoardName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateBoard()}
-              autoFocus
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 mb-4"
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowNewBoardDialog(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleCreateBoard}
-                disabled={!newBoardName.trim()}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 dark:hover:bg-primary-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Créer
-              </button>
-            </div>
-          </div>
-        </div>
+        <BoardTypeSelector
+          onSelect={handleCreateBoard}
+          onClose={() => setShowNewBoardDialog(false)}
+        />
       )}
 
       {/* Edit Board Modal */}

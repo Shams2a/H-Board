@@ -10,6 +10,8 @@ import { newSyncService } from '../../services/supabase/newSyncService';
 import CanvasElement from './CanvasElement';
 import AnchorPoints from '../Elements/AnchorPoints';
 import { ContextMenu } from '../ContextMenu';
+import KanbanBoard from '../Kanban/KanbanBoard';
+import DatabaseBoard from '../Database/DatabaseBoard';
 import type { AnchorPosition, ArrowElement, Position } from '../../types';
 
 // Virtual canvas size (how far users can scroll)
@@ -440,6 +442,16 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
         </div>
       </div>
     );
+  }
+
+  // Route to Kanban board if type is 'kanban'
+  if (currentBoard.type === 'kanban') {
+    return <KanbanBoard boardId={currentBoardId!} />;
+  }
+
+  // Route to Database board if type is 'database'
+  if (currentBoard.type === 'database') {
+    return <DatabaseBoard boardId={currentBoardId!} />;
   }
 
   // Calculate selection box dimensions for rendering

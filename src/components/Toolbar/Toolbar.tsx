@@ -7,7 +7,7 @@ import { useUIStore, useBoardStore, useElementStore } from '../../store';
 import {
   StickyNote,
   Image,
-  Columns,
+  Columns as ColumnsIcon,
   FolderPlus,
   Square,
   ArrowRight,
@@ -16,33 +16,40 @@ import {
   Link2,
   FileText,
   CheckSquare,
-  Table,
-  Shapes
+  Table as TableIcon,
+  Shapes,
+  Trello,
+  Database
 } from 'lucide-react';
 import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement, BoardElement, ShapeElement } from '../../types';
+
+// Extended tool type to support board creation variants
+type ToolType = ElementType | 'kanban-board' | 'database-board';
 
 export default function Toolbar() {
   const { activeTool, setActiveTool, gridEnabled, panX, panY, zoom } = useUIStore();
   const { currentBoardId, createBoard } = useBoardStore();
   const { createElement, elements } = useElementStore();
 
-  const tools: Array<{ type: ElementType; icon: React.ReactNode; label: string; shortcut: string }> = [
+  const tools: Array<{ type: ToolType; icon: React.ReactNode; label: string; shortcut: string }> = [
     { type: 'note', icon: <StickyNote className="w-6 h-6" />, label: 'Note', shortcut: 'N' },
     { type: 'image', icon: <Image className="w-6 h-6" />, label: 'Image', shortcut: 'I' },
-    { type: 'column', icon: <Columns className="w-6 h-6" />, label: 'Column', shortcut: 'C' },
-    { type: 'board', icon: <FolderPlus className="w-6 h-6" />, label: 'Board', shortcut: 'B' },
+    { type: 'column', icon: <ColumnsIcon className="w-6 h-6" />, label: 'Column', shortcut: 'C' },
+    { type: 'board', icon: <FolderPlus className="w-6 h-6" />, label: 'Canvas Board', shortcut: 'B' },
+    { type: 'kanban-board', icon: <Trello className="w-6 h-6" />, label: 'Kanban Board', shortcut: 'K' },
+    { type: 'database-board', icon: <Database className="w-6 h-6" />, label: 'Database Board', shortcut: 'D' },
     { type: 'section', icon: <Square className="w-6 h-6" />, label: 'Section', shortcut: 'S' },
     { type: 'shape', icon: <Shapes className="w-6 h-6" />, label: 'Shape', shortcut: 'H' },
     { type: 'line', icon: <ArrowRight className="w-6 h-6" />, label: 'Line', shortcut: 'L' },
     { type: 'arrow', icon: <MoveRight className="w-6 h-6" />, label: 'Arrow', shortcut: 'A' },
-    { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'D' },
-    { type: 'link', icon: <Link2 className="w-6 h-6" />, label: 'Link', shortcut: 'K' },
+    { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'P' },
+    { type: 'link', icon: <Link2 className="w-6 h-6" />, label: 'Link', shortcut: 'U' },
     { type: 'file', icon: <FileText className="w-6 h-6" />, label: 'File', shortcut: 'F' },
     { type: 'todo', icon: <CheckSquare className="w-6 h-6" />, label: 'Todo', shortcut: 'T' },
-    { type: 'table', icon: <Table className="w-6 h-6" />, label: 'Table', shortcut: 'G' }
+    { type: 'table', icon: <TableIcon className="w-6 h-6" />, label: 'Table', shortcut: 'G' }
   ];
 
-  const handleToolClick = async (toolType: ElementType) => {
+  const handleToolClick = async (toolType: ToolType) => {
     if (!currentBoardId) return;
 
     // Special case for Arrow tool - just activate the mode, don't create element
@@ -293,8 +300,8 @@ export default function Toolbar() {
       }
 
       case 'board': {
-        // Create a new sub-board
-        const newBoardId = await createBoard('New Sub-Board', currentBoardId);
+        // Create a new canvas sub-board
+        const newBoardId = await createBoard('New Canvas Board', 'canvas', currentBoardId);
 
         // Create a board link element that links to the new sub-board
         const newBoardLink: BoardElement = {
@@ -309,7 +316,7 @@ export default function Toolbar() {
           updatedAt: new Date(),
           content: {
             linkedBoardId: newBoardId,
-            title: 'New Sub-Board',
+            title: 'New Canvas Board',
             description: '',
             elementCount: 0
           },
@@ -318,6 +325,64 @@ export default function Toolbar() {
           }
         };
         await createElement(newBoardLink);
+        break;
+      }
+
+      case 'kanban-board': {
+        // Create a new Kanban sub-board
+        const newBoardId = await createBoard('New Kanban Board', 'kanban', currentBoardId);
+
+        // Create a board link element that links to the new Kanban board
+        const newKanbanLink: BoardElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'board',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 80, height: 100 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            linkedBoardId: newBoardId,
+            title: 'New Kanban Board',
+            description: '',
+            elementCount: 0
+          },
+          style: {
+            backgroundColor: '#DBEAFE'
+          }
+        };
+        await createElement(newKanbanLink);
+        break;
+      }
+
+      case 'database-board': {
+        // Create a new Database sub-board
+        const newBoardId = await createBoard('New Database Board', 'database', currentBoardId);
+
+        // Create a board link element that links to the new Database board
+        const newDatabaseLink: BoardElement = {
+          id: crypto.randomUUID(),
+          boardId: currentBoardId,
+          type: 'board',
+          position: { x: snappedX, y: snappedY },
+          size: { width: 80, height: 100 },
+          zIndex: elements.length,
+          locked: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          content: {
+            linkedBoardId: newBoardId,
+            title: 'New Database Board',
+            description: '',
+            elementCount: 0
+          },
+          style: {
+            backgroundColor: '#FEF3C7'
+          }
+        };
+        await createElement(newDatabaseLink);
         break;
       }
 

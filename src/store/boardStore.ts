@@ -4,7 +4,7 @@
  */
 
 import { create } from 'zustand';
-import type { Board } from '../types';
+import type { Board, BoardType } from '../types';
 import { boardOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
 import { cacheManager } from '../services/CacheManager';
@@ -19,7 +19,7 @@ interface BoardState {
   // Actions
   loadBoards: () => Promise<void>;
   setCurrentBoard: (boardId: string) => void;
-  createBoard: (name: string, parentId?: string, description?: string, tags?: string[]) => Promise<string>;
+  createBoard: (name: string, type?: BoardType, parentId?: string, description?: string, tags?: string[]) => Promise<string>;
   updateBoard: (id: string, updates: Partial<Board>) => Promise<void>;
   deleteBoard: (id: string) => Promise<void>;
   duplicateBoard: (id: string, newName?: string) => Promise<string>;
@@ -70,12 +70,13 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     });
   },
 
-  createBoard: async (name: string, parentId?: string, description?: string, tags?: string[]) => {
+  createBoard: async (name: string, type: BoardType = 'canvas', parentId?: string, description?: string, tags?: string[]) => {
     set({ loading: true, error: null });
     try {
       const newBoard: Board = {
         id: crypto.randomUUID(),
         name,
+        type,
         description,
         tags: tags || [],
         folderId: null,
@@ -94,10 +95,12 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
       await boardOperations.create(newBoard);
 
-      // Trigger immediate sync
-      newSyncService.syncAll().catch(err => {
+      // Trigger immediate sync and wait for it to complete
+      try {
+        await newSyncService.syncAll();
+      } catch (err) {
         console.warn('Sync failed (will retry automatically):', err);
-      });
+      }
 
       await get().loadBoards();
       set({ loading: false });

@@ -3,6 +3,7 @@
  * Manages all keyboard shortcuts for the application
  */
 
+import { useEffect, useCallback } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useUIStore, useBoardStore, useElementStore } from '../store';
 import type { ElementType } from '../types';
@@ -12,7 +13,7 @@ interface UseKeyboardShortcutsOptions {
 }
 
 export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
-  const { setActiveTool, zoom, setZoom, gridEnabled, toggleGrid } = useUIStore();
+  const { setActiveTool, zoom, setZoom, gridEnabled, toggleGrid, panX, panY } = useUIStore();
   const { currentBoardId, createBoard } = useBoardStore();
   const {
     createElement,
@@ -25,7 +26,8 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
     paste,
     duplicate,
     selectAll,
-    clearSelection
+    clearSelection,
+    clipboard
   } = useElementStore();
 
   // Helper to check if we're in an input field
@@ -38,6 +40,41 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
       activeElement?.closest('.ProseMirror')
     );
   };
+
+  // Helper to create a Note from external clipboard text
+  const createNoteFromExternalPaste = useCallback(async (text: string) => {
+    if (!currentBoardId) return;
+
+    // Calculate center of viewport
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const centerX = (-panX + viewportWidth / 2) / zoom;
+    const centerY = (-panY + viewportHeight / 2) / zoom;
+
+    const gridSize = gridEnabled ? 8 : 1;
+    const snappedX = Math.round(centerX / gridSize) * gridSize;
+    const snappedY = Math.round(centerY / gridSize) * gridSize;
+
+    const newNote = {
+      id: crypto.randomUUID(),
+      boardId: currentBoardId,
+      type: 'note' as const,
+      position: { x: snappedX, y: snappedY },
+      size: { width: 300, height: 200 },
+      zIndex: elements.length,
+      locked: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      content: {
+        text: text,
+        textFormat: 'html' as const
+      },
+      style: { backgroundColor: '#FFFFFF' }
+    };
+
+    await createElement(newNote);
+  }, [currentBoardId, panX, panY, zoom, gridEnabled, elements.length, createElement]);
 
   // Element creation helper
   const createElementShortcut = async (type: ElementType) => {
@@ -252,20 +289,59 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   }, { enableOnFormTags: false });
 
   // Copy - Ctrl+C (Cmd+C on Mac)
-  useHotkeys('mod+c', (e) => {
+  // Copies to both internal clipboard AND system clipboard with a marker
+  useHotkeys('mod+c', async (e) => {
     if (isInputActive()) return;
     e.preventDefault();
     if (selectedIds && selectedIds.length > 0) {
       copy();
+
+      // Add marker to system clipboard to identify H-Board internal copy
+      try {
+        await navigator.clipboard.writeText('__H_BOARD_INTERNAL_COPY__');
+      } catch (err) {
+        // Clipboard write failed, internal clipboard still works
+      }
     }
   }, { enableOnFormTags: false });
 
-  // Paste - Ctrl+V (Cmd+V on Mac)
-  useHotkeys('mod+v', (e) => {
-    if (isInputActive()) return;
-    e.preventDefault();
-    paste();
-  }, { enableOnFormTags: false });
+  // Native paste event handler for smart paste detection
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      // Ignore paste if we're in an input field
+      const activeElement = document.activeElement;
+      const isTyping = (
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        activeElement?.getAttribute('contenteditable') === 'true' ||
+        activeElement?.closest('.ProseMirror')
+      );
+
+      if (isTyping) return;
+
+      e.preventDefault();
+
+      // Check if clipboard has text data
+      const text = e.clipboardData?.getData('text/plain');
+
+      // If it's our internal copy marker, use internal clipboard
+      if (text === '__H_BOARD_INTERNAL_COPY__') {
+        const { clipboard, paste } = useElementStore.getState();
+        if (clipboard && clipboard.length > 0) {
+          paste();
+        }
+        return;
+      }
+
+      // Otherwise, if there's text, create a Note from it
+      if (text && text.trim()) {
+        await createNoteFromExternalPaste(text);
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [createNoteFromExternalPaste]);
 
   // Duplicate - Ctrl+D (Cmd+D on Mac)
   useHotkeys('mod+d', (e) => {
@@ -354,7 +430,7 @@ export const keyboardShortcuts = [
     shortcuts: [
       { keys: ['Delete', 'Backspace'], description: 'Delete selected element(s)' },
       { keys: ['Ctrl', 'C'], description: 'Copy selected element(s)' },
-      { keys: ['Ctrl', 'V'], description: 'Paste copied element(s)' },
+      { keys: ['Ctrl', 'V'], description: 'Paste copied elements or create Note from clipboard text' },
       { keys: ['Ctrl', 'D'], description: 'Duplicate selected element(s)' },
       { keys: ['Ctrl', 'A'], description: 'Select all elements' },
       { keys: ['Escape'], description: 'Clear selection' },

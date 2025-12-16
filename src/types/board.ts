@@ -1,10 +1,14 @@
 /**
  * Board type definition
- * Represents a canvas workspace in H-Board
+ * Represents a workspace in H-Board (Canvas, Kanban, or Database)
  */
+
+export type BoardType = 'canvas' | 'kanban' | 'database';
+
 export interface Board {
   id: string;
   name: string;
+  type: BoardType; // Type of board: canvas (infinite canvas), kanban, or database
   description?: string;
   tags: string[];
   folderId: string | null; // Folder organization

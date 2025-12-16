@@ -14,7 +14,9 @@ import {
   Clipboard,
   Trash2,
   CheckSquare2,
-  Download
+  Download,
+  Trello,
+  Database
 } from 'lucide-react';
 import type { NoteElement, ColumnElement, BoardElement, TableElement } from '../../types';
 
@@ -120,7 +122,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     if (!currentBoardId) return;
     const pos = getSpawnPosition();
 
-    const newBoardId = await createBoard('New Sub-Board', currentBoardId);
+    const newBoardId = await createBoard('New Canvas Board', 'canvas', currentBoardId);
 
     const newBoardLink: BoardElement = {
       id: crypto.randomUUID(),
@@ -134,7 +136,37 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
       updatedAt: new Date(),
       content: {
         linkedBoardId: newBoardId,
-        title: 'New Sub-Board',
+        title: 'New Canvas Board',
+        description: '',
+        elementCount: 0
+      },
+      style: {
+        backgroundColor: '#F5F5F5'
+      }
+    };
+    await createElement(newBoardLink);
+    onClose();
+  };
+
+  const handleCreateKanbanBoard = async () => {
+    if (!currentBoardId) return;
+    const pos = getSpawnPosition();
+
+    const newBoardId = await createBoard('New Kanban Board', 'kanban', currentBoardId);
+
+    const newKanbanLink: BoardElement = {
+      id: crypto.randomUUID(),
+      boardId: currentBoardId,
+      type: 'board',
+      position: pos,
+      size: { width: 80, height: 100 },
+      zIndex: elements.length,
+      locked: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      content: {
+        linkedBoardId: newBoardId,
+        title: 'New Kanban Board',
         description: '',
         elementCount: 0
       },
@@ -142,7 +174,37 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
         backgroundColor: '#DBEAFE'
       }
     };
-    await createElement(newBoardLink);
+    await createElement(newKanbanLink);
+    onClose();
+  };
+
+  const handleCreateDatabaseBoard = async () => {
+    if (!currentBoardId) return;
+    const pos = getSpawnPosition();
+
+    const newBoardId = await createBoard('New Database Board', 'database', currentBoardId);
+
+    const newDatabaseLink: BoardElement = {
+      id: crypto.randomUUID(),
+      boardId: currentBoardId,
+      type: 'board',
+      position: pos,
+      size: { width: 80, height: 100 },
+      zIndex: elements.length,
+      locked: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      content: {
+        linkedBoardId: newBoardId,
+        title: 'New Database Board',
+        description: '',
+        elementCount: 0
+      },
+      style: {
+        backgroundColor: '#FEF3C7'
+      }
+    };
+    await createElement(newDatabaseLink);
     onClose();
   };
 
@@ -227,7 +289,9 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     { type: 'header', label: 'Create' },
     { type: 'item', label: 'Note', icon: <StickyNote className="w-4 h-4" />, action: handleCreateNote, shortcut: 'N' },
     { type: 'item', label: 'Column', icon: <Columns className="w-4 h-4" />, action: handleCreateColumn, shortcut: 'C' },
-    { type: 'item', label: 'Board', icon: <FolderPlus className="w-4 h-4" />, action: handleCreateBoard, shortcut: 'B' },
+    { type: 'item', label: 'Canvas Board', icon: <FolderPlus className="w-4 h-4" />, action: handleCreateBoard, shortcut: 'B' },
+    { type: 'item', label: 'Kanban Board', icon: <Trello className="w-4 h-4" />, action: handleCreateKanbanBoard },
+    { type: 'item', label: 'Database Board', icon: <Database className="w-4 h-4" />, action: handleCreateDatabaseBoard },
     { type: 'item', label: 'Table', icon: <Table className="w-4 h-4" />, action: handleCreateTable, shortcut: 'G' },
     { type: 'separator' },
     { type: 'item', label: 'Copy', icon: <Copy className="w-4 h-4" />, action: handleCopy, shortcut: 'Ctrl+C', disabled: !hasSelection },

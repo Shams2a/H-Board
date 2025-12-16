@@ -106,10 +106,14 @@ export default function CanvasPage() {
       <div className="flex-1 overflow-hidden relative">
         <Canvas onExport={() => setShowExportModal(true)} />
 
-        {/* Floating Toolbars */}
-        <Toolbar />
-        <ViewControls />
-        <CustomizationSidebar />
+        {/* Floating Toolbars - Only for Canvas boards */}
+        {currentBoard.type === 'canvas' && (
+          <>
+            <Toolbar />
+            <ViewControls />
+            <CustomizationSidebar />
+          </>
+        )}
       </div>
 
       {/* Keyboard Shortcuts Modal */}

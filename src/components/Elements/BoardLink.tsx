@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import type { BoardElement } from '../../types';
 import { useElementStore, useBoardStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
-import { Square, FolderInput } from 'lucide-react';
+import { Square, FolderInput, Trello, Database } from 'lucide-react';
 
 interface BoardLinkProps {
   element: BoardElement;
@@ -23,7 +23,7 @@ export default function BoardLink({ element, isSelected, onSelect, parentColumnI
   const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
   const { updateElement, deleteElement, createElement } = useElementStore();
-  const { updateBoard } = useBoardStore();
+  const { updateBoard, boards } = useBoardStore();
   const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady, setDropTargetBoard, setDropReady } = useDragStore();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(element.content.title || 'Untitled Board');
@@ -31,6 +31,27 @@ export default function BoardLink({ element, isSelected, onSelect, parentColumnI
 
   const isBeingDragged = draggedElementId === element.id;
   const isDropTarget = dropTargetBoardId === element.content.linkedBoardId;
+
+  // Get the linked board to determine its type
+  const linkedBoard = boards.find(b => b.id === element.content.linkedBoardId);
+  const boardType = linkedBoard?.type || 'canvas';
+
+  // Icon based on board type
+  const getBoardIcon = () => {
+    if (isDropTarget && isDropReady) {
+      return <FolderInput className="w-6 h-6 text-green-600 animate-bounce" />;
+    }
+
+    switch (boardType) {
+      case 'kanban':
+        return <Trello className="w-6 h-6 text-blue-600" />;
+      case 'database':
+        return <Database className="w-6 h-6 text-amber-600" />;
+      case 'canvas':
+      default:
+        return <Square className="w-6 h-6 text-primary-600" />;
+    }
+  };
 
   // Clear timer on unmount
   useEffect(() => {
@@ -175,11 +196,7 @@ export default function BoardLink({ element, isSelected, onSelect, parentColumnI
           }
         }}
       >
-        {isDropTarget && isDropReady ? (
-          <FolderInput className="w-6 h-6 text-green-600 animate-bounce" />
-        ) : (
-          <Square className="w-6 h-6 text-primary-600" />
-        )}
+        {getBoardIcon()}
       </div>
 
       {/* Title below */}
