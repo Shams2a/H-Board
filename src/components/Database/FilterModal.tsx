@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
+import { generateId } from '../../utils/uuid';
 import type { DatabaseProperty, DatabaseFilter, FilterOperator } from '../../types';
 
 interface FilterModalProps {
@@ -95,7 +96,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
     const operators = getOperatorsForProperty(firstProperty.id);
 
     const newFilter: DatabaseFilter = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       propertyId: firstProperty.id,
       operator: operators[0],
       value: ''

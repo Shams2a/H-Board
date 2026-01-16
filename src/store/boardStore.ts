@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { generateId } from '../utils/uuid';
 import type { Board, BoardType } from '../types';
 import { boardOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
@@ -74,7 +75,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const newBoard: Board = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name,
         type,
         description,

@@ -5,6 +5,7 @@
 
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
+import { generateId } from './uuid';
 import type { Board, Element, Folder, SyncOperation, CacheMetadata, StorageSettings } from '../types';
 
 export class HBoardDatabase extends Dexie {
@@ -118,7 +119,7 @@ export const boardOperations = {
 
     const newBoard: Board = {
       ...original,
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: newName || `${original.name} (Copy)`,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -131,7 +132,7 @@ export const boardOperations = {
     for (const element of elements) {
       await elementOperations.create({
         ...element,
-        id: crypto.randomUUID(),
+        id: generateId(),
         boardId: newBoardId as string,
         createdAt: new Date(),
         updatedAt: new Date()

@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { generateId } from '../utils/uuid';
 import type { Folder } from '../types';
 import { folderOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
@@ -46,7 +47,7 @@ export const useFolderStore = create<FolderState>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const newFolder: Folder = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name,
         color,
         parentFolderId: parentFolderId || null,

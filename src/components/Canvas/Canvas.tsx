@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useBoardStore, useElementStore, useUIStore, useDragStore, useArrowConnectionStore } from '../../store';
 import { useDarkModeColor } from '../../hooks/useDarkModeColor';
+import { generateId } from '../../utils/uuid';
 import { newSyncService } from '../../services/supabase/newSyncService';
 import CanvasElement from './CanvasElement';
 import AnchorPoints from '../Elements/AnchorPoints';
@@ -396,7 +397,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
     const maxZ = Math.max(0, ...elements.map(el => el.zIndex));
 
     const newArrow: ArrowElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId!,
       type: 'arrow',
       position: { x: 0, y: 0 }, // Will be calculated from connected elements

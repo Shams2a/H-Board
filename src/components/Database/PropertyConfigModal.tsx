@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
+import { generateId } from '../../utils/uuid';
 import type { DatabaseProperty, PropertyConfig, SelectOption } from '../../types';
 
 interface PropertyConfigModalProps {
@@ -52,7 +53,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
   // Select options management
   const handleAddOption = () => {
     const newOption: SelectOption = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       name: 'New Option',
       color: COLORS[Math.floor(Math.random() * COLORS.length)]
     };

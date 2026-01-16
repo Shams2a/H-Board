@@ -3,6 +3,7 @@
  * Gère la queue de synchronisation et la communication avec l'API
  */
 
+import { generateId } from '../utils/uuid';
 import { db } from '../utils/db';
 import { connectionService } from './ConnectionService';
 import { supabaseBoardService } from './supabase/boardService';
@@ -58,7 +59,7 @@ export class SyncService {
     data: any
   ): Promise<void> {
     const operation: SyncOperation = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       type,
       entityType,
       entityId,

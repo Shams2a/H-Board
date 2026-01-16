@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { generateId } from '../utils/uuid';
 import { supabaseKanbanColumnService, supabaseKanbanCardService } from '../services/supabase/kanbanService';
 import type {
   KanbanColumn,
@@ -51,7 +52,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
     const position = boardColumns.length;
 
     const newColumn: KanbanColumn = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId,
       name,
       color,
@@ -177,7 +178,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
     const position = columnCards.length;
 
     const newCard: KanbanCard = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId,
       columnId,
       title,
@@ -386,7 +387,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       if (columns.length === 0) {
         const defaultColumns: KanbanColumn[] = [
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             boardId,
             name: 'À faire',
             color: '#9CA3AF',
@@ -395,7 +396,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
             updatedAt: new Date()
           },
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             boardId,
             name: 'En cours',
             color: '#60A5FA',
@@ -404,7 +405,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
             updatedAt: new Date()
           },
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             boardId,
             name: 'Terminé',
             color: '#34D399',
@@ -463,7 +464,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
         // Create default columns in local state only
         const defaultColumns: KanbanColumn[] = [
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             boardId,
             name: 'À faire',
             color: '#9CA3AF',
@@ -472,7 +473,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
             updatedAt: new Date()
           },
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             boardId,
             name: 'En cours',
             color: '#60A5FA',
@@ -481,7 +482,7 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
             updatedAt: new Date()
           },
           {
-            id: crypto.randomUUID(),
+            id: generateId(),
             boardId,
             name: 'Terminé',
             color: '#34D399',

@@ -5,6 +5,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
+import { generateId } from '../utils/uuid';
 import { useUIStore, useBoardStore, useElementStore } from '../store';
 import type { ElementType } from '../types';
 
@@ -57,7 +58,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
     const snappedY = Math.round(centerY / gridSize) * gridSize;
 
     const newNote = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'note' as const,
       position: { x: snappedX, y: snappedY },
@@ -87,7 +88,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
     const snappedY = Math.round(centerY / gridSize) * gridSize;
 
     const baseElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       position: { x: snappedX, y: snappedY },
       zIndex: elements.length,

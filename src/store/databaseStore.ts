@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { evaluate } from 'mathjs';
+import { generateId } from '../utils/uuid';
 import type {
   DatabaseProperty,
   DatabaseRow,
@@ -69,7 +70,7 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
     const position = boardProperties.length;
 
     const newProperty: DatabaseProperty = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId,
       name,
       type,
@@ -221,7 +222,7 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
     const position = boardRows.length;
 
     const newRow: DatabaseRow = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId,
       properties: values,
       position,
@@ -351,7 +352,7 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         if (originalRow) {
           const newRow: DatabaseRow = {
             ...originalRow,
-            id: crypto.randomUUID(),
+            id: generateId(),
             position: rows.length,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -399,7 +400,7 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
     const isFirst = boardViews.length === 0;
 
     const newView: DatabaseView = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId,
       name,
       type,

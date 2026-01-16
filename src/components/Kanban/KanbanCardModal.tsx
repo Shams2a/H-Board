@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Tag, Flag, CheckSquare, Paperclip, Image as ImageIcon, Trash2, Plus, Download, Upload } from 'lucide-react';
+import { generateId } from '../../utils/uuid';
 import { useKanbanStore } from '../../store/kanbanStore';
 import type { KanbanCard, KanbanPriority, ChecklistItem, Attachment } from '../../types';
 
@@ -168,7 +169,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
   const handleAddChecklistItem = () => {
     if (newChecklistItem.trim()) {
       const newItem: ChecklistItem = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         text: newChecklistItem.trim(),
         completed: false
       };
@@ -202,7 +203,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
       // In a real app, upload to server/storage
       // For now, create a mock attachment with blob URL
       const newAttachment: Attachment = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name: file.name,
         url: URL.createObjectURL(file),
         size: file.size,

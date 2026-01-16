@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { generateId } from '../utils/uuid';
 import type { Element, Position, Size } from '../types';
 import { elementOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
@@ -244,7 +245,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
     for (const element of clipboard) {
       const newElement: Element = {
         ...element,
-        id: crypto.randomUUID(),
+        id: generateId(),
         position: {
           x: element.position.x + offset.x,
           y: element.position.y + offset.y
@@ -264,7 +265,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
     for (const element of elementsToDuplicate) {
       const newElement: Element = {
         ...element,
-        id: crypto.randomUUID(),
+        id: generateId(),
         position: {
           x: element.position.x + 20,
           y: element.position.y + 20

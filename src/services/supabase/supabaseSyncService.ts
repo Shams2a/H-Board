@@ -3,6 +3,7 @@
  * Handles synchronization between IndexedDB and Supabase
  */
 
+import { generateId } from '../../utils/uuid';
 import { supabaseAdapter } from './supabaseAdapter';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import type { Board, BoardElement } from '../../types';
@@ -79,7 +80,7 @@ class SupabaseSyncService {
     data: any
   ): Promise<void> {
     const syncOp: SyncOperation = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       operation,
       entityType,
       entityId,

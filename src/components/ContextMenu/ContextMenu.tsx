@@ -5,6 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useElementStore, useBoardStore, useUIStore } from '../../store';
+import { generateId } from '../../utils/uuid';
 import {
   StickyNote,
   Columns,
@@ -70,7 +71,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     const pos = getSpawnPosition();
 
     const newNote: NoteElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'note',
       position: pos,
@@ -96,7 +97,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     const pos = getSpawnPosition();
 
     const newColumn: ColumnElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'column',
       position: pos,
@@ -125,7 +126,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     const newBoardId = await createBoard('New Canvas Board', 'canvas', currentBoardId);
 
     const newBoardLink: BoardElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'board',
       position: pos,
@@ -155,7 +156,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     const newBoardId = await createBoard('New Kanban Board', 'kanban', currentBoardId);
 
     const newKanbanLink: BoardElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'board',
       position: pos,
@@ -185,7 +186,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     const newBoardId = await createBoard('New Database Board', 'database', currentBoardId);
 
     const newDatabaseLink: BoardElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'board',
       position: pos,
@@ -213,7 +214,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     const pos = getSpawnPosition();
 
     const newTable: TableElement = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       boardId: currentBoardId,
       type: 'table',
       position: pos,

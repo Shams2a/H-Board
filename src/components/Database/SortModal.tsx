@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { X, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { generateId } from '../../utils/uuid';
 import type { DatabaseProperty, DatabaseSort } from '../../types';
 
 interface SortModalProps {
@@ -21,7 +22,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
     if (properties.length === 0) return;
 
     const newSort: DatabaseSort = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       propertyId: properties[0].id,
       direction: 'asc'
     };

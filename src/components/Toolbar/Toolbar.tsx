@@ -21,6 +21,7 @@ import {
   Trello,
   Database
 } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement, BoardElement, ShapeElement } from '../../types';
 
 // Extended tool type to support board creation variants
@@ -76,7 +77,7 @@ export default function Toolbar() {
     switch (toolType) {
       case 'note': {
         const newNote: NoteElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'note',
           position: { x: snappedX, y: snappedY },
@@ -99,7 +100,7 @@ export default function Toolbar() {
 
       case 'image': {
         const newImage: ImageElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'image',
           position: { x: snappedX, y: snappedY },
@@ -123,7 +124,7 @@ export default function Toolbar() {
 
       case 'column': {
         const newColumn: ColumnElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'column',
           position: { x: snappedX, y: snappedY },
@@ -147,7 +148,7 @@ export default function Toolbar() {
 
       case 'link': {
         const newLink: LinkElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'link',
           position: { x: snappedX, y: snappedY },
@@ -174,7 +175,7 @@ export default function Toolbar() {
 
       case 'todo': {
         const newTodo: TodoElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'todo',
           position: { x: snappedX, y: snappedY },
@@ -197,7 +198,7 @@ export default function Toolbar() {
 
       case 'file': {
         const newFile: FileElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'file',
           position: { x: snappedX, y: snappedY },
@@ -222,7 +223,7 @@ export default function Toolbar() {
 
       case 'table': {
         const newTable: TableElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'table',
           position: { x: snappedX, y: snappedY },
@@ -252,7 +253,7 @@ export default function Toolbar() {
 
       case 'line': {
         const newLine: LineElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'line',
           position: { x: snappedX, y: snappedY },
@@ -279,7 +280,7 @@ export default function Toolbar() {
 
       case 'drawing': {
         const newDrawing: DrawingElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'drawing',
           position: { x: snappedX, y: snappedY },
@@ -305,7 +306,7 @@ export default function Toolbar() {
 
         // Create a board link element that links to the new sub-board
         const newBoardLink: BoardElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'board',
           position: { x: snappedX, y: snappedY },
@@ -334,7 +335,7 @@ export default function Toolbar() {
 
         // Create a board link element that links to the new Kanban board
         const newKanbanLink: BoardElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'board',
           position: { x: snappedX, y: snappedY },
@@ -363,7 +364,7 @@ export default function Toolbar() {
 
         // Create a board link element that links to the new Database board
         const newDatabaseLink: BoardElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'board',
           position: { x: snappedX, y: snappedY },
@@ -388,7 +389,7 @@ export default function Toolbar() {
 
       case 'shape': {
         const newShape: ShapeElement = {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           boardId: currentBoardId,
           type: 'shape',
           position: { x: snappedX, y: snappedY },
