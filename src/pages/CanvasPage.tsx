@@ -8,7 +8,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download } from 'lucide-react';
 import { useBoardStore } from '../store';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useRealtimeSync } from '../hooks/useRealtimeSync';
+import { usePresence } from '../hooks/usePresence';
+import { useCursorTracking } from '../hooks/useCursorTracking';
 import Breadcrumb from '../components/Canvas/Breadcrumb';
+import RemoteCursors from '../components/Collaboration/RemoteCursors';
 import Canvas from '../components/Canvas/Canvas';
 import Toolbar from '../components/Toolbar/Toolbar';
 import ViewControls from '../components/Toolbar/ViewControls';
@@ -17,6 +21,7 @@ import KeyboardShortcutsModal from '../components/Modals/KeyboardShortcutsModal'
 import ExportModal from '../components/Modals/ExportModal';
 import { NewSyncStatus } from '../components/SyncStatus/NewSyncStatus';
 import { ThemeToggle } from '../components/ThemeToggle/ThemeToggle';
+import ActiveUsers from '../components/Collaboration/ActiveUsers';
 
 export default function CanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -25,9 +30,39 @@ export default function CanvasPage() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
+  // Generate a consistent user ID (in production, use real auth)
+  const [userId] = useState(() => {
+    let id = localStorage.getItem('h-board-user-id');
+    if (!id) {
+      id = `user-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      localStorage.setItem('h-board-user-id', id);
+    }
+    return id;
+  });
+
+  // Enable real-time collaboration
+  useRealtimeSync({
+    boardId: boardId || '',
+    userId,
+    enabled: !!boardId,
+  });
+
+  // Track active users
+  const { activeUsers } = usePresence({
+    boardId: boardId || '',
+    userId,
+    userName: `User ${userId.slice(0, 8)}`,
+    enabled: !!boardId,
+  });
+
   // Enable keyboard shortcuts
   useKeyboardShortcuts({
     onShowHelp: () => setShowKeyboardShortcuts(true)
+  });
+
+  // Track and broadcast cursor position
+  useCursorTracking({
+    enabled: !!boardId,
   });
 
   useEffect(() => {
@@ -84,6 +119,9 @@ export default function CanvasPage() {
 
           {/* Controls */}
           <div className="flex items-center gap-2">
+            {/* Active Users */}
+            <ActiveUsers users={activeUsers} maxVisible={5} showCount={true} />
+
             {/* Export Button */}
             <button
               onClick={() => setShowExportModal(true)}
@@ -127,6 +165,9 @@ export default function CanvasPage() {
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
       />
+
+      {/* Remote Cursors Overlay */}
+      <RemoteCursors />
     </div>
   );
 }

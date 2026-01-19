@@ -6,6 +6,7 @@
 import { create } from 'zustand';
 import { generateId } from '../utils/uuid';
 import { supabaseKanbanColumnService, supabaseKanbanCardService } from '../services/supabase/kanbanService';
+import { getCollaborationService } from '../services/collaboration/collaborationService';
 import type {
   KanbanColumn,
   KanbanCard,
@@ -40,6 +41,14 @@ interface KanbanStore {
   // Load data
   loadKanbanBoard: (boardId: string) => Promise<void>;
   clearKanbanBoard: (boardId: string) => void;
+
+  // Realtime sync helpers (called by collaboration service)
+  addColumnFromRemote: (column: KanbanColumn) => void;
+  updateColumnFromRemote: (column: KanbanColumn) => void;
+  deleteColumnFromRemote: (columnId: string) => void;
+  addCardFromRemote: (card: KanbanCard) => void;
+  updateCardFromRemote: (card: KanbanCard) => void;
+  deleteCardFromRemote: (cardId: string) => void;
 }
 
 export const useKanbanStore = create<KanbanStore>((set, get) => ({
@@ -80,6 +89,20 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
           [boardId]: (state.columns[boardId] || []).filter(c => c.id !== newColumn.id)
         }
       }));
+    } else {
+      // Broadcast column creation in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'kanban_column_created',
+          payload: newColumn,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast kanban_column_created:', newColumn.id);
+      } catch (err) {
+        console.warn('Failed to broadcast column creation:', err);
+      }
     }
 
     return newColumn;
@@ -108,6 +131,29 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       console.error('Failed to update column in Supabase:', result.error);
       // Rollback on error
       set({ columns: prevState });
+    } else {
+      // Broadcast column update in real-time
+      try {
+        const collabService = getCollaborationService();
+        // Find the updated column
+        let updatedColumn: KanbanColumn | null = null;
+        Object.values(get().columns).forEach(columns => {
+          const found = columns.find(c => c.id === id);
+          if (found) updatedColumn = found;
+        });
+
+        if (updatedColumn) {
+          collabService.broadcast({
+            type: 'kanban_column_updated',
+            payload: updatedColumn,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast kanban_column_updated:', id);
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast column update:', err);
+      }
     }
   },
 
@@ -132,6 +178,20 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       console.error('Failed to delete column in Supabase:', result.error);
       // Rollback on error
       set({ columns: prevState });
+    } else {
+      // Broadcast column deletion in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'kanban_column_deleted',
+          payload: { id },
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast kanban_column_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast column deletion:', err);
+      }
     }
 
     // Note: Cards in deleted column are automatically deleted by ON DELETE CASCADE
@@ -161,6 +221,25 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       console.error('Failed to reorder columns in Supabase:', result.error);
       // Rollback on error
       set({ columns: prevState });
+    } else {
+      // Broadcast ALL reordered columns in real-time
+      try {
+        const collabService = getCollaborationService();
+
+        // Broadcast each reordered column
+        reordered.forEach(column => {
+          collabService.broadcast({
+            type: 'kanban_column_updated',
+            payload: column,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+        });
+
+        console.log(`📢 Broadcast kanban_column_updated (reordered ${reordered.length} columns)`);
+      } catch (err) {
+        console.warn('Failed to broadcast column reorder:', err);
+      }
     }
   },
 
@@ -211,6 +290,20 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
           [boardId]: (state.cards[boardId] || []).filter(c => c.id !== newCard.id)
         }
       }));
+    } else {
+      // Broadcast card creation in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'kanban_card_created',
+          payload: newCard,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast kanban_card_created:', newCard.id);
+      } catch (err) {
+        console.warn('Failed to broadcast card creation:', err);
+      }
     }
 
     return newCard;
@@ -238,6 +331,29 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       console.error('Failed to update card in Supabase:', result.error);
       // Rollback on error
       set({ cards: prevState });
+    } else {
+      // Broadcast card update in real-time
+      try {
+        const collabService = getCollaborationService();
+        // Find the updated card
+        let updatedCard: KanbanCard | null = null;
+        Object.values(get().cards).forEach(cards => {
+          const found = cards.find(c => c.id === id);
+          if (found) updatedCard = found;
+        });
+
+        if (updatedCard) {
+          collabService.broadcast({
+            type: 'kanban_card_updated',
+            payload: updatedCard,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast kanban_card_updated:', id);
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast card update:', err);
+      }
     }
   },
 
@@ -261,6 +377,20 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       console.error('Failed to delete card in Supabase:', result.error);
       // Rollback on error
       set({ cards: prevState });
+    } else {
+      // Broadcast card deletion in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'kanban_card_deleted',
+          payload: { id },
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast kanban_card_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast card deletion:', err);
+      }
     }
   },
 
@@ -310,6 +440,32 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
       console.error('Failed to move card in Supabase:', result.error);
       // Rollback on error
       set({ cards: prevState });
+    } else {
+      // Broadcast ALL affected cards (moved card + reordered cards in target column)
+      try {
+        const collabService = getCollaborationService();
+
+        // Find all cards in the target column (they all got new positions)
+        let affectedCards: KanbanCard[] = [];
+        Object.values(get().cards).forEach(cards => {
+          const columnCards = cards.filter(c => c.columnId === toColumnId);
+          affectedCards = [...affectedCards, ...columnCards];
+        });
+
+        // Broadcast each affected card
+        affectedCards.forEach(card => {
+          collabService.broadcast({
+            type: 'kanban_card_updated',
+            payload: card,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+        });
+
+        console.log(`📢 Broadcast kanban_card_updated (moved ${cardId} + ${affectedCards.length - 1} reordered)`);
+      } catch (err) {
+        console.warn('Failed to broadcast card move:', err);
+      }
     }
   },
 
@@ -515,6 +671,113 @@ export const useKanbanStore = create<KanbanStore>((set, get) => ({
         columns: remainingColumns,
         cards: remainingCards
       };
+    });
+  },
+
+  // Realtime sync helpers
+  addColumnFromRemote: (column: KanbanColumn) => {
+    set((state) => {
+      const boardColumns = state.columns[column.boardId] || [];
+      // Check if already exists (avoid duplicates)
+      if (boardColumns.some(c => c.id === column.id)) {
+        return state;
+      }
+      return {
+        columns: {
+          ...state.columns,
+          [column.boardId]: [...boardColumns, column]
+        }
+      };
+    });
+  },
+
+  updateColumnFromRemote: (column: KanbanColumn) => {
+    set((state) => ({
+      columns: {
+        ...state.columns,
+        [column.boardId]: (state.columns[column.boardId] || []).map(c =>
+          c.id === column.id ? column : c
+        )
+      }
+    }));
+  },
+
+  deleteColumnFromRemote: (columnId: string) => {
+    set((state) => {
+      const updatedColumns: Record<string, KanbanColumn[]> = {};
+      Object.entries(state.columns).forEach(([boardId, columns]) => {
+        updatedColumns[boardId] = columns.filter(c => c.id !== columnId);
+      });
+      return { columns: updatedColumns };
+    });
+  },
+
+  addCardFromRemote: (card: KanbanCard) => {
+    set((state) => {
+      const boardCards = state.cards[card.boardId] || [];
+      // Check if already exists (avoid duplicates)
+      if (boardCards.some(c => c.id === card.id)) {
+        return state;
+      }
+      return {
+        cards: {
+          ...state.cards,
+          [card.boardId]: [...boardCards, card]
+        }
+      };
+    });
+  },
+
+  updateCardFromRemote: (card: KanbanCard) => {
+    console.log('🔄 [kanbanStore] updateCardFromRemote called:', {
+      cardId: card.id,
+      cardTitle: card.title,
+      columnId: card.columnId,
+      position: card.position,
+      boardId: card.boardId
+    });
+
+    set((state) => {
+      const currentCards = state.cards[card.boardId] || [];
+      const cardExists = currentCards.some(c => c.id === card.id);
+
+      console.log('🔄 [kanbanStore] Current state:', {
+        totalCards: currentCards.length,
+        cardExists,
+        cardsInSameColumn: currentCards.filter(c => c.columnId === card.columnId).length
+      });
+
+      const updatedCards = currentCards.map(c => {
+        if (c.id === card.id) {
+          console.log('🔄 [kanbanStore] Replacing card:', {
+            oldPosition: c.position,
+            newPosition: card.position,
+            oldColumnId: c.columnId,
+            newColumnId: card.columnId
+          });
+          return card;
+        }
+        return c;
+      });
+
+      return {
+        cards: {
+          ...state.cards,
+          [card.boardId]: updatedCards
+        }
+      };
+    });
+
+    console.log('✅ [kanbanStore] updateCardFromRemote completed');
+  },
+
+  deleteCardFromRemote: (cardId: string) => {
+    set((state) => {
+      const updatedCards: Record<string, KanbanCard[]> = {};
+      Object.entries(state.cards).forEach(([boardId, cards]) => {
+        updatedCards[boardId] = cards.filter(c => c.id !== cardId);
+      });
+      return { cards: updatedCards };
     });
   }
 }));

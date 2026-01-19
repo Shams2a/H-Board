@@ -8,6 +8,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeDatabase } from './utils/db';
 import Dashboard from './components/Dashboard/Dashboard';
 import CanvasPage from './pages/CanvasPage';
+import CollaborationTest from './pages/CollaborationTest';
+import RealtimeTest from './pages/RealtimeTest';
 
 function App() {
   // Initialize database on mount
@@ -24,6 +26,12 @@ function App() {
 
           {/* Canvas - Board Editor */}
           <Route path="/board/:boardId" element={<CanvasPage />} />
+
+          {/* Collaboration Test Page */}
+          <Route path="/test/collaboration/:boardId?" element={<CollaborationTest />} />
+
+          {/* Realtime Connection Test */}
+          <Route path="/test/realtime" element={<RealtimeTest />} />
 
           {/* Redirect unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />

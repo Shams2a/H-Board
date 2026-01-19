@@ -11,3 +11,4 @@ export { useThemeStore } from './themeStore';
 export { useEditorStore } from './editorStore';
 export { useHistoryStore } from './historyStore';
 export { useArrowConnectionStore } from './arrowConnectionStore';
+export { useEditingStore } from './editingStore';

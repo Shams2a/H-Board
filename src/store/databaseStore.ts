@@ -23,6 +23,7 @@ import {
   supabaseDatabaseRowService,
   supabaseDatabaseViewService
 } from '../services/supabase/databaseService';
+import { getCollaborationService } from '../services/collaboration/collaborationService';
 
 interface DatabaseStore {
   // State
@@ -57,6 +58,17 @@ interface DatabaseStore {
   // Load data
   loadDatabase: (boardId: string) => Promise<void>;
   clearDatabase: (boardId: string) => void;
+
+  // Remote updates (for real-time collaboration)
+  addPropertyFromRemote: (property: DatabaseProperty) => void;
+  updatePropertyFromRemote: (property: DatabaseProperty) => void;
+  deletePropertyFromRemote: (propertyId: string) => void;
+  addRowFromRemote: (row: DatabaseRow) => void;
+  updateRowFromRemote: (row: DatabaseRow) => void;
+  deleteRowFromRemote: (rowId: string) => void;
+  addViewFromRemote: (view: DatabaseView) => void;
+  updateViewFromRemote: (view: DatabaseView) => void;
+  deleteViewFromRemote: (viewId: string) => void;
 }
 
 export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
@@ -102,6 +114,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         }));
         throw new Error(result.error);
       }
+
+      // Broadcast property creation in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_property_created',
+          payload: newProperty,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_property_created:', newProperty.id);
+      } catch (err) {
+        console.warn('Failed to broadcast property creation:', err);
+      }
     } catch (error) {
       console.error('Error persisting property:', error);
       throw error;
@@ -135,6 +161,29 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         // Rollback on error
         set({ properties: oldProperties });
         throw new Error(result.error);
+      }
+
+      // Broadcast property update in real-time
+      try {
+        const collabService = getCollaborationService();
+        // Get the updated property from state
+        let updatedProperty: DatabaseProperty | undefined;
+        Object.values(get().properties).forEach((properties) => {
+          const found = properties.find((p) => p.id === id);
+          if (found) updatedProperty = found;
+        });
+
+        if (updatedProperty) {
+          collabService.broadcast({
+            type: 'database_property_updated',
+            payload: updatedProperty,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast database_property_updated:', id);
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast property update:', err);
       }
     } catch (error) {
       console.error('Error persisting property update:', error);
@@ -177,6 +226,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         set({ properties: oldProperties, rows: oldRows });
         throw new Error(result.error);
       }
+
+      // Broadcast property deletion in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_property_deleted',
+          payload: { id },
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_property_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast property deletion:', err);
+      }
     } catch (error) {
       console.error('Error deleting property:', error);
       throw error;
@@ -210,6 +273,22 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         // Rollback on error
         set({ properties: oldProperties });
         throw new Error(result.error);
+      }
+
+      // Broadcast ALL reordered properties in real-time
+      try {
+        const collabService = getCollaborationService();
+        reordered.forEach(property => {
+          collabService.broadcast({
+            type: 'database_property_updated',
+            payload: property,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+        });
+        console.log(`📢 Broadcast database_property_updated (reordered ${reordered.length} properties)`);
+      } catch (err) {
+        console.warn('Failed to broadcast property reorder:', err);
       }
     } catch (error) {
       console.error('Error persisting property reorder:', error);
@@ -251,6 +330,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
           }
         }));
         throw new Error(result.error);
+      }
+
+      // Broadcast row creation in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_row_created',
+          payload: newRow,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_row_created:', newRow.id);
+      } catch (err) {
+        console.warn('Failed to broadcast row creation:', err);
       }
     } catch (error) {
       console.error('Error persisting row:', error);
@@ -304,6 +397,29 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         set({ rows: oldRows });
         throw new Error(result.error);
       }
+
+      // Broadcast row update in real-time
+      try {
+        const collabService = getCollaborationService();
+        // Get the updated row from state
+        let updatedRow: DatabaseRow | undefined;
+        Object.values(get().rows).forEach((rows) => {
+          const found = rows.find((r) => r.id === id);
+          if (found) updatedRow = found;
+        });
+
+        if (updatedRow) {
+          collabService.broadcast({
+            type: 'database_row_updated',
+            payload: updatedRow,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast database_row_updated:', id);
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast row update:', err);
+      }
     } catch (error) {
       console.error('Error persisting row update:', error);
       throw error;
@@ -333,6 +449,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         // Rollback on error
         set({ rows: oldRows });
         throw new Error(result.error);
+      }
+
+      // Broadcast row deletion in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_row_deleted',
+          payload: { id },
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_row_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast row deletion:', err);
       }
     } catch (error) {
       console.error('Error deleting row:', error);
@@ -386,6 +516,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         });
         throw new Error(result.error);
       }
+
+      // Broadcast row creation in real-time (duplication creates a new row)
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_row_created',
+          payload: duplicatedRow,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_row_created (duplicate):', duplicatedRow.id);
+      } catch (err) {
+        console.warn('Failed to broadcast row duplication:', err);
+      }
     } catch (error) {
       console.error('Error persisting duplicated row:', error);
       throw error;
@@ -437,6 +581,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         }));
         throw new Error(result.error);
       }
+
+      // Broadcast view creation in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_view_created',
+          payload: newView,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_view_created:', newView.id);
+      } catch (err) {
+        console.warn('Failed to broadcast view creation:', err);
+      }
     } catch (error) {
       console.error('Error persisting view:', error);
       throw error;
@@ -470,6 +628,29 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         // Rollback on error
         set({ views: oldViews });
         throw new Error(result.error);
+      }
+
+      // Broadcast view update in real-time
+      try {
+        const collabService = getCollaborationService();
+        // Get the updated view from state
+        let updatedView: DatabaseView | undefined;
+        Object.values(get().views).forEach((views) => {
+          const found = views.find((v) => v.id === id);
+          if (found) updatedView = found;
+        });
+
+        if (updatedView) {
+          collabService.broadcast({
+            type: 'database_view_updated',
+            payload: updatedView,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast database_view_updated:', id);
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast view update:', err);
       }
     } catch (error) {
       console.error('Error persisting view update:', error);
@@ -508,6 +689,20 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         // Rollback on error
         set({ views: oldViews, currentViewId: oldCurrentViewId });
         throw new Error(result.error);
+      }
+
+      // Broadcast view deletion in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'database_view_deleted',
+          payload: { id },
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast database_view_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast view deletion:', err);
       }
     } catch (error) {
       console.error('Error deleting view:', error);
@@ -664,6 +859,172 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
         views: remainingViews,
         currentViewId: remainingCurrentViewId
       };
+    });
+  },
+
+  // ============================================
+  // Remote updates (for real-time collaboration)
+  // ============================================
+
+  addPropertyFromRemote: (property: DatabaseProperty) => {
+    console.log('🔵 [databaseStore] addPropertyFromRemote:', property.id);
+    set((state) => {
+      const boardProperties = state.properties[property.boardId] || [];
+      const exists = boardProperties.some((p) => p.id === property.id);
+      if (exists) {
+        console.log('⚠️ Property already exists, skipping');
+        return state;
+      }
+      return {
+        properties: {
+          ...state.properties,
+          [property.boardId]: [...boardProperties, property]
+        }
+      };
+    });
+  },
+
+  updatePropertyFromRemote: (property: DatabaseProperty) => {
+    console.log('🟡 [databaseStore] updatePropertyFromRemote:', property.id);
+    set((state) => {
+      const boardProperties = state.properties[property.boardId] || [];
+      const exists = boardProperties.some((p) => p.id === property.id);
+      if (!exists) {
+        console.log('⚠️ Property not found, adding it');
+        return {
+          properties: {
+            ...state.properties,
+            [property.boardId]: [...boardProperties, property]
+          }
+        };
+      }
+      return {
+        properties: {
+          ...state.properties,
+          [property.boardId]: boardProperties.map((p) =>
+            p.id === property.id ? property : p
+          )
+        }
+      };
+    });
+  },
+
+  deletePropertyFromRemote: (propertyId: string) => {
+    console.log('🔴 [databaseStore] deletePropertyFromRemote:', propertyId);
+    set((state) => {
+      const updatedProperties: Record<string, DatabaseProperty[]> = {};
+      Object.entries(state.properties).forEach(([boardId, properties]) => {
+        updatedProperties[boardId] = properties.filter((p) => p.id !== propertyId);
+      });
+      return { properties: updatedProperties };
+    });
+  },
+
+  addRowFromRemote: (row: DatabaseRow) => {
+    console.log('🔵 [databaseStore] addRowFromRemote:', row.id);
+    set((state) => {
+      const boardRows = state.rows[row.boardId] || [];
+      const exists = boardRows.some((r) => r.id === row.id);
+      if (exists) {
+        console.log('⚠️ Row already exists, skipping');
+        return state;
+      }
+      return {
+        rows: {
+          ...state.rows,
+          [row.boardId]: [...boardRows, row]
+        }
+      };
+    });
+  },
+
+  updateRowFromRemote: (row: DatabaseRow) => {
+    console.log('🟡 [databaseStore] updateRowFromRemote:', row.id);
+    set((state) => {
+      const boardRows = state.rows[row.boardId] || [];
+      const exists = boardRows.some((r) => r.id === row.id);
+      if (!exists) {
+        console.log('⚠️ Row not found, adding it');
+        return {
+          rows: {
+            ...state.rows,
+            [row.boardId]: [...boardRows, row]
+          }
+        };
+      }
+      return {
+        rows: {
+          ...state.rows,
+          [row.boardId]: boardRows.map((r) =>
+            r.id === row.id ? row : r
+          )
+        }
+      };
+    });
+  },
+
+  deleteRowFromRemote: (rowId: string) => {
+    console.log('🔴 [databaseStore] deleteRowFromRemote:', rowId);
+    set((state) => {
+      const updatedRows: Record<string, DatabaseRow[]> = {};
+      Object.entries(state.rows).forEach(([boardId, rows]) => {
+        updatedRows[boardId] = rows.filter((r) => r.id !== rowId);
+      });
+      return { rows: updatedRows };
+    });
+  },
+
+  addViewFromRemote: (view: DatabaseView) => {
+    console.log('🔵 [databaseStore] addViewFromRemote:', view.id);
+    set((state) => {
+      const boardViews = state.views[view.boardId] || [];
+      const exists = boardViews.some((v) => v.id === view.id);
+      if (exists) {
+        console.log('⚠️ View already exists, skipping');
+        return state;
+      }
+      return {
+        views: {
+          ...state.views,
+          [view.boardId]: [...boardViews, view]
+        }
+      };
+    });
+  },
+
+  updateViewFromRemote: (view: DatabaseView) => {
+    console.log('🟡 [databaseStore] updateViewFromRemote:', view.id);
+    set((state) => {
+      const boardViews = state.views[view.boardId] || [];
+      const exists = boardViews.some((v) => v.id === view.id);
+      if (!exists) {
+        console.log('⚠️ View not found, adding it');
+        return {
+          views: {
+            ...state.views,
+            [view.boardId]: [...boardViews, view]
+          }
+        };
+      }
+      return {
+        views: {
+          ...state.views,
+          [view.boardId]: boardViews.map((v) =>
+            v.id === view.id ? view : v
+          )
+        }
+      };
+    });
+  },
+
+  deleteViewFromRemote: (viewId: string) => {
+    console.log('🔴 [databaseStore] deleteViewFromRemote:', viewId);
+    set((state) => {
+      const updatedViews: Record<string, DatabaseView[]> = {};
+      Object.entries(state.views).forEach(([boardId, views]) => {
+        updatedViews[boardId] = views.filter((v) => v.id !== viewId);
+      });
+      return { views: updatedViews };
     });
   }
 }));

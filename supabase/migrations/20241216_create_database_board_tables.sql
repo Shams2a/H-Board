@@ -19,15 +19,27 @@ CREATE TABLE IF NOT EXISTS database_properties (
     FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE
 );
 
--- Check constraint for valid property types
-ALTER TABLE database_properties
-ADD CONSTRAINT chk_database_properties_type
-CHECK (type IN (
-    'title', 'text', 'number', 'select', 'multi_select', 'date',
-    'checkbox', 'url', 'email', 'phone', 'file', 'person',
-    'formula', 'relation', 'rollup', 'created_time', 'created_by',
-    'last_edited_time', 'last_edited_by'
-));
+-- Check constraint for valid property types (idempotent)
+DO $$
+BEGIN
+    -- Drop constraint if it exists
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'chk_database_properties_type'
+    ) THEN
+        ALTER TABLE database_properties DROP CONSTRAINT chk_database_properties_type;
+    END IF;
+
+    -- Add constraint (includes 'board' type)
+    ALTER TABLE database_properties
+    ADD CONSTRAINT chk_database_properties_type
+    CHECK (type IN (
+        'title', 'text', 'number', 'select', 'multi_select', 'date',
+        'checkbox', 'url', 'email', 'phone', 'board', 'file', 'person',
+        'formula', 'relation', 'rollup', 'created_time', 'created_by',
+        'last_edited_time', 'last_edited_by'
+    ));
+END $$;
 
 -- Indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_database_properties_board_id ON database_properties(board_id);
@@ -68,10 +80,22 @@ CREATE TABLE IF NOT EXISTS database_views (
     FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE
 );
 
--- Check constraint for valid view types
-ALTER TABLE database_views
-ADD CONSTRAINT chk_database_views_type
-CHECK (type IN ('table', 'list', 'board', 'calendar', 'gallery'));
+-- Check constraint for valid view types (idempotent)
+DO $$
+BEGIN
+    -- Drop constraint if it exists
+    IF EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'chk_database_views_type'
+    ) THEN
+        ALTER TABLE database_views DROP CONSTRAINT chk_database_views_type;
+    END IF;
+
+    -- Add constraint
+    ALTER TABLE database_views
+    ADD CONSTRAINT chk_database_views_type
+    CHECK (type IN ('table', 'list', 'board', 'calendar', 'gallery'));
+END $$;
 
 -- Indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_database_views_board_id ON database_views(board_id);
@@ -127,7 +151,7 @@ COMMENT ON TABLE database_properties IS 'Stores property definitions for Databas
 COMMENT ON TABLE database_rows IS 'Stores row data for Database boards with flexible schema';
 COMMENT ON TABLE database_views IS 'Stores view configurations for Database boards';
 
-COMMENT ON COLUMN database_properties.type IS 'Property type: title, text, number, select, multi_select, date, checkbox, url, email, phone, file, person, formula, relation, rollup, created_time, created_by, last_edited_time, last_edited_by';
+COMMENT ON COLUMN database_properties.type IS 'Property type: title, text, number, select, multi_select, date, checkbox, url, email, phone, board, file, person, formula, relation, rollup, created_time, created_by, last_edited_time, last_edited_by';
 COMMENT ON COLUMN database_properties.config IS 'Type-specific configuration (e.g., select options, number format, date format)';
 COMMENT ON COLUMN database_rows.properties IS 'Cell values as key-value pairs {propertyId: value}';
 COMMENT ON COLUMN database_views.filters IS 'Array of filter objects {propertyId, operator, value}';

@@ -9,6 +9,7 @@ import type { Element, Position, Size } from '../types';
 import { elementOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
 import { useHistoryStore } from './historyStore';
+import { getCollaborationService } from '../services/collaboration/collaborationService';
 
 interface ElementState {
   elements: Element[];
@@ -18,6 +19,7 @@ interface ElementState {
   error: string | null;
 
   // Actions
+  setElements: (elementsOrUpdater: Element[] | ((prev: Element[]) => Element[])) => void;
   loadElements: (boardId: string) => Promise<void>;
   createElement: (element: Element) => Promise<string>;
   updateElement: (id: string, updates: Partial<Element>) => Promise<void>;
@@ -64,6 +66,14 @@ export const useElementStore = create<ElementState>((set, get) => ({
   loading: false,
   error: null,
 
+  setElements: (elementsOrUpdater) => {
+    set((state) => ({
+      elements: typeof elementsOrUpdater === 'function'
+        ? elementsOrUpdater(state.elements)
+        : elementsOrUpdater
+    }));
+  },
+
   loadElements: async (boardId: string) => {
     set({ loading: true, error: null });
     try {
@@ -93,8 +103,23 @@ export const useElementStore = create<ElementState>((set, get) => ({
     try {
       const id = await elementOperations.create(element);
 
-      // Queue sync operation
-      newSyncService.syncAll().catch(() => {});
+      // DON'T sync immediately - it causes conflicts with download overwriting local changes
+      // The periodic sync will handle Supabase sync later
+      // newSyncService.syncAll().catch(() => {});
+
+      // Broadcast element creation for real-time collaboration
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'element_created',
+          payload: element,
+          userId: '', // Will be set by service
+          timestamp: Date.now()
+        });
+        console.log('🔊 Broadcasted element_created:', element.id);
+      } catch (err) {
+        console.warn('Failed to broadcast element creation:', err);
+      }
 
       set(state => ({
         elements: [...state.elements, element],
@@ -111,13 +136,35 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   updateElement: async (id: string, updates: Partial<Element>) => {
+    console.log('🔧 updateElement called:', { id, updates });
+
     try {
       await elementOperations.update(id, updates);
 
-      // Get updated element for sync
+      // Get updated element for sync and broadcast
       const updatedElement = await elementOperations.getById(id);
+      console.log('📖 Got updated element from DB:', updatedElement);
+
       if (updatedElement) {
-        newSyncService.syncAll().catch(() => {});
+        // DON'T sync immediately - it causes conflicts with download overwriting local changes
+        // The periodic sync will handle Supabase sync later
+        // newSyncService.syncAll().catch(() => {});
+
+        // Broadcast element update for real-time collaboration
+        try {
+          const collabService = getCollaborationService();
+          collabService.broadcast({
+            type: 'element_updated',
+            payload: updatedElement,
+            userId: '',
+            timestamp: Date.now()
+          });
+          console.log('🔊 Broadcasted element_updated:', { id, elementType: updatedElement.type });
+        } catch (err) {
+          console.warn('Failed to broadcast element update:', err);
+        }
+      } else {
+        console.warn('⚠️ Could not get updated element from DB for broadcasting');
       }
 
       set(state => ({
@@ -134,6 +181,8 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   deleteElement: async (id: string) => {
+    console.log('🗑️ deleteElement called:', { id });
+
     // Push current state to history before deleting
     get().pushToHistory();
 
@@ -144,9 +193,25 @@ export const useElementStore = create<ElementState>((set, get) => ({
         deletedAt,
         updatedAt: deletedAt
       });
+      console.log('✅ Element soft-deleted in DB:', id);
 
-      // Queue sync operation
-      newSyncService.syncAll().catch(() => {});
+      // DON'T sync immediately - it causes conflicts with download overwriting local changes
+      // The periodic sync will handle Supabase sync later
+      // newSyncService.syncAll().catch(() => {});
+
+      // Broadcast element deletion for real-time collaboration
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'element_deleted',
+          payload: { id },
+          userId: '',
+          timestamp: Date.now()
+        });
+        console.log('🔊 Broadcasted element_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast element deletion:', err);
+      }
 
       // Remove from local state
       set(state => ({
@@ -162,6 +227,8 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   deleteElements: async (ids: string[]) => {
+    console.log('🗑️ deleteElements called:', { ids, count: ids.length });
+
     // Push current state to history before deleting
     get().pushToHistory();
 
@@ -174,9 +241,27 @@ export const useElementStore = create<ElementState>((set, get) => ({
           updatedAt: deletedAt
         });
       }
+      console.log(`✅ ${ids.length} elements soft-deleted in DB`);
 
-      // Queue sync operation once
-      newSyncService.syncAll().catch(() => {});
+      // DON'T sync immediately - it causes conflicts with download overwriting local changes
+      // The periodic sync will handle Supabase sync later
+      // newSyncService.syncAll().catch(() => {});
+
+      // Broadcast element deletions for real-time collaboration
+      try {
+        const collabService = getCollaborationService();
+        for (const id of ids) {
+          collabService.broadcast({
+            type: 'element_deleted',
+            payload: { id },
+            userId: '',
+            timestamp: Date.now()
+          });
+          console.log('🔊 Broadcasted element_deleted:', id);
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast element deletions:', err);
+      }
 
       // Remove from local state
       set(state => ({
@@ -328,6 +413,8 @@ export const useElementStore = create<ElementState>((set, get) => ({
   batchUpdatePositions: async (updates: Map<string, Position>, persistToDB = false) => {
     if (updates.size === 0) return;
 
+    console.log(`📍 batchUpdatePositions: ${updates.size} elements, persistToDB: ${persistToDB}`);
+
     // Single state update for all elements
     set(state => ({
       elements: state.elements.map(el => {
@@ -342,13 +429,35 @@ export const useElementStore = create<ElementState>((set, get) => ({
     // Only persist to DB when drag ends (not during drag)
     if (persistToDB) {
       const updatePromises: Promise<void>[] = [];
+      const broadcastPromises: Promise<void>[] = [];
+
       updates.forEach((position, id) => {
+        // Update in IndexedDB
         updatePromises.push(elementOperations.update(id, { position }));
       });
       await Promise.all(updatePromises);
 
-      // Single sync call after all DB updates
-      newSyncService.syncAll().catch(() => {});
+      // Broadcast position updates for real-time collaboration
+      try {
+        const collabService = getCollaborationService();
+        for (const [id, position] of updates.entries()) {
+          const element = await elementOperations.getById(id);
+          if (element) {
+            collabService.broadcast({
+              type: 'element_updated',
+              payload: element,
+              userId: '',
+              timestamp: Date.now()
+            });
+            console.log('🔊 Broadcasted position update:', id);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to broadcast position updates:', err);
+      }
+
+      // DON'T sync immediately - periodic sync will handle it
+      // newSyncService.syncAll().catch(() => {});
     }
   },
 

@@ -36,10 +36,11 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
     undo,
     redo
   } = useElementStore();
-  const { zoom, panX, panY, gridEnabled, setPan, activeTool, setActiveTool } = useUIStore();
+  const { zoom, panX, panY, gridEnabled, setPan, resetView, activeTool, setActiveTool } = useUIStore();
   const { draggedElementId, justFinishedDrag } = useDragStore();
   const { startConnection, completeConnection } = useArrowConnectionStore();
   const canvasRef = useRef<HTMLDivElement>(null);
+  const previousBoardIdRef = useRef<string | null>(null);
 
   // Selection box state
   const [isSelecting, setIsSelecting] = useState(false);
@@ -175,8 +176,16 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
   useEffect(() => {
     if (currentBoardId) {
       loadElements(currentBoardId);
+
+      // Reset view when changing boards to prevent scroll/pan issues
+      if (previousBoardIdRef.current && previousBoardIdRef.current !== currentBoardId) {
+        console.log('🔄 Board changed, resetting view');
+        resetView();
+      }
+
+      previousBoardIdRef.current = currentBoardId;
     }
-  }, [currentBoardId, loadElements]);
+  }, [currentBoardId, loadElements, resetView]);
 
   // Refresh elements when sync downloads new data
   useEffect(() => {
@@ -268,7 +277,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
       canvas.removeEventListener('wheel', handleWheel);
       clearTimeout(wheelTimeout);
     };
-  }, [panX, panY, setPan]);
+  }, [panX, panY, setPan, currentBoardId]); // Added currentBoardId to reinitialize listeners on board change
 
   const handleCanvasClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     // Don't clear selection if we just finished a selection box

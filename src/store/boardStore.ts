@@ -10,6 +10,7 @@ import { boardOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
 import { cacheManager } from '../services/CacheManager';
 import { storageManager } from '../services/StorageManager';
+import { getCollaborationService } from '../services/collaboration/collaborationService';
 
 interface BoardState {
   boards: Board[];
@@ -41,8 +42,14 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   loadBoards: async () => {
     set({ loading: true, error: null });
     try {
-      // Use cacheManager to load boards list (fetches from server if online)
-      const allBoards = await cacheManager.preloadBoardsList();
+      // Try to load from IndexedDB first for instant updates
+      let allBoards = await boardOperations.getAll();
+
+      // If no boards in IndexedDB, fetch from server
+      if (allBoards.length === 0) {
+        allBoards = await cacheManager.preloadBoardsList();
+      }
+
       // Filter out soft-deleted boards
       const boards = allBoards.filter(b => !b.deletedAt);
       set({ boards, loading: false });
@@ -94,17 +101,34 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         }
       };
 
+      // Create in IndexedDB
       await boardOperations.create(newBoard);
 
-      // Trigger immediate sync and wait for it to complete
+      // Immediately update UI state (optimistic update)
+      const currentBoards = get().boards;
+      set({
+        boards: [...currentBoards, newBoard],
+        loading: false
+      });
+
+      // Broadcast board creation in real-time
       try {
-        await newSyncService.syncAll();
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'board_created',
+          payload: newBoard,
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast board_created:', newBoard.id);
       } catch (err) {
-        console.warn('Sync failed (will retry automatically):', err);
+        console.warn('Failed to broadcast board creation:', err);
       }
 
-      await get().loadBoards();
-      set({ loading: false });
+      // Trigger sync in background (don't wait)
+      newSyncService.syncAll().catch((err) => {
+        console.warn('Background sync failed (will retry automatically):', err);
+      });
 
       return newBoard.id;
     } catch (error) {
@@ -119,13 +143,39 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   updateBoard: async (id: string, updates: Partial<Board>) => {
     set({ loading: true, error: null });
     try {
+      // Update in IndexedDB
       await boardOperations.update(id, updates);
 
-      // Trigger sync
-      newSyncService.syncAll().catch(() => {});
+      // Get updated board and immediately update UI state
+      const updatedBoard = await boardOperations.get(id);
+      if (updatedBoard) {
+        const currentBoards = get().boards;
+        set({
+          boards: currentBoards.map(b => b.id === id ? updatedBoard : b),
+          loading: false
+        });
 
-      await get().loadBoards();
-      set({ loading: false });
+        // Broadcast board update in real-time
+        try {
+          const collabService = getCollaborationService();
+          collabService.broadcast({
+            type: 'board_updated',
+            payload: updatedBoard,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast board_updated:', id);
+        } catch (err) {
+          console.warn('Failed to broadcast board update:', err);
+        }
+      } else {
+        set({ loading: false });
+      }
+
+      // Trigger sync in background
+      newSyncService.syncAll().catch((err) => {
+        console.warn('Background sync failed (will retry automatically):', err);
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to update board',
@@ -145,18 +195,37 @@ export const useBoardStore = create<BoardState>((set, get) => ({
         updatedAt: deletedAt
       });
 
-      // Trigger sync
-      newSyncService.syncAll().catch(() => {});
+      // Immediately update UI state - remove deleted board
+      const currentBoards = get().boards;
+      set({
+        boards: currentBoards.filter(b => b.id !== id),
+        loading: false
+      });
 
       // If deleting current board, switch to a root board
       if (get().currentBoardId === id) {
-        const boards = await boardOperations.getAll();
-        const rootBoard = boards.find(b => !b.parentId && !b.deletedAt);
+        const rootBoard = currentBoards.find(b => !b.parentId && b.id !== id);
         set({ currentBoardId: rootBoard?.id || null });
       }
 
-      await get().loadBoards();
-      set({ loading: false });
+      // Broadcast board deletion in real-time
+      try {
+        const collabService = getCollaborationService();
+        collabService.broadcast({
+          type: 'board_deleted',
+          payload: { id },
+          userId: (collabService as any).userId,
+          timestamp: Date.now(),
+        });
+        console.log('📢 Broadcast board_deleted:', id);
+      } catch (err) {
+        console.warn('Failed to broadcast board deletion:', err);
+      }
+
+      // Trigger sync in background
+      newSyncService.syncAll().catch((err) => {
+        console.warn('Background sync failed (will retry automatically):', err);
+      });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to delete board',
@@ -169,13 +238,40 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   duplicateBoard: async (id: string, newName?: string) => {
     set({ loading: true, error: null });
     try {
+      // Duplicate the board in IndexedDB
       const newBoardId = await boardOperations.duplicate(id, newName);
 
-      // Trigger sync
-      newSyncService.syncAll().catch(() => {});
+      // Get the new board and immediately update UI state
+      const newBoard = await boardOperations.get(newBoardId);
+      if (newBoard) {
+        const currentBoards = get().boards;
+        set({
+          boards: [...currentBoards, newBoard],
+          loading: false
+        });
 
-      await get().loadBoards();
-      set({ loading: false });
+        // Broadcast board creation (duplication creates a new board)
+        try {
+          const collabService = getCollaborationService();
+          collabService.broadcast({
+            type: 'board_created',
+            payload: newBoard,
+            userId: (collabService as any).userId,
+            timestamp: Date.now(),
+          });
+          console.log('📢 Broadcast board_created (duplicate):', newBoardId);
+        } catch (err) {
+          console.warn('Failed to broadcast board duplication:', err);
+        }
+      } else {
+        set({ loading: false });
+      }
+
+      // Trigger sync in background
+      newSyncService.syncAll().catch((err) => {
+        console.warn('Background sync failed (will retry automatically):', err);
+      });
+
       return newBoardId;
     } catch (error) {
       set({
