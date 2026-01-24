@@ -6,8 +6,7 @@
 import { supabaseBoardService } from './boardService';
 import { supabaseElementService } from './elementService';
 import { supabaseFolderService } from './folderService';
-import type { Board, BoardElement } from '../../types';
-import type { Folder } from '../../utils/db';
+import type { Board, BoardElement, Folder } from '../../types';
 
 export interface ApiResponse<T = any> {
   success: boolean;

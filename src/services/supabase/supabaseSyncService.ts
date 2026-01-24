@@ -6,8 +6,7 @@
 import { generateId } from '../../utils/uuid';
 import { supabaseAdapter } from './supabaseAdapter';
 import { isSupabaseConfigured } from '../../lib/supabase';
-import type { Board, BoardElement } from '../../types';
-import type { Folder } from '../../utils/db';
+import type { Board, BoardElement, Folder } from '../../types';
 
 interface SyncOperation {
   id: string;

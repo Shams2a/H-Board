@@ -187,7 +187,7 @@ export const supabaseKanbanColumnService = {
     try {
       // Update each column's position
       const updates = columnIds.map((id, index) =>
-        supabase
+        supabase!
           .from('kanban_columns')
           .update({ position: positions[index] })
           .eq('id', id)

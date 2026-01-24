@@ -13,7 +13,7 @@ import AnchorPoints from '../Elements/AnchorPoints';
 import { ContextMenu } from '../ContextMenu';
 import KanbanBoard from '../Kanban/KanbanBoard';
 import DatabaseBoard from '../Database/DatabaseBoard';
-import type { AnchorPosition, ArrowElement, Position } from '../../types';
+import type { AnchorPosition, ArrowElement } from '../../types';
 
 // Virtual canvas size (how far users can scroll)
 const CANVAS_VIRTUAL_WIDTH = 10000;
@@ -242,7 +242,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    let wheelTimeout: number;
+    let wheelTimeout: NodeJS.Timeout;
 
     const handleWheel = (e: WheelEvent) => {
       // Prevent default scroll behavior

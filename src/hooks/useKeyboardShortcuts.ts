@@ -19,7 +19,6 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   const {
     createElement,
     deleteElement,
-    selectedElementId,
     elements,
     selectedIds,
     deleteElements,
@@ -198,7 +197,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
 
       case 'board': {
         // Create a new sub-board first
-        const newBoardId = await createBoard('New Sub-Board', currentBoardId);
+        const newBoardId = await createBoard('New Sub-Board', currentBoardId as any);
 
         // Then create a board link element
         element = {
@@ -284,8 +283,6 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
     e.preventDefault();
     if (selectedIds && selectedIds.length > 0) {
       deleteElements(selectedIds);
-    } else if (selectedElementId) {
-      deleteElement(selectedElementId);
     }
   }, { enableOnFormTags: false });
 

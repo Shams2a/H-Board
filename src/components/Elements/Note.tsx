@@ -134,7 +134,7 @@ export default function Note({ element, isSelected, onSelect, parentColumnId }: 
       // Only update if content actually changed to avoid unnecessary updates
       if (currentContent !== newContent) {
         console.log('🔄 Updating editor content from external change');
-        editor.commands.setContent(newContent, false); // false = don't emit update event
+        editor.commands.setContent(newContent, { emitUpdate: false }); // Don't emit update event
       }
     }
   }, [element.content.text, editor, isEditing]);

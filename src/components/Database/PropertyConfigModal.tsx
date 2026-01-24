@@ -3,7 +3,7 @@
  * Modal for editing property configuration (number format, select options, etc.)
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { generateId } from '../../utils/uuid';
 import type { DatabaseProperty, PropertyConfig, SelectOption } from '../../types';
@@ -36,6 +36,9 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
     setConfig({
       ...config,
       numberFormat: {
+        type: config.numberFormat?.type || 'number',
+        decimals: config.numberFormat?.decimals,
+        currency: config.numberFormat?.currency,
         ...config.numberFormat,
         [field]: value
       }

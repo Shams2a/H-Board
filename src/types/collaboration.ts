@@ -81,6 +81,8 @@ export interface BroadcastEvent {
     | 'element_created'
     | 'element_updated'
     | 'element_deleted'
+    | 'element_marked_reusable'
+    | 'element_reference_created'
     | 'editing_started'
     | 'editing_stopped'
     | 'editing_heartbeat'

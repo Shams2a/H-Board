@@ -3,6 +3,7 @@
  * Routes to the appropriate element component based on type
  */
 
+import { useElementStore } from '../../store';
 import type { Element } from '../../types';
 import Note from '../Elements/Note';
 import Image from '../Elements/Image';
@@ -26,60 +27,67 @@ interface CanvasElementProps {
 }
 
 export default function CanvasElement({ element, isSelected, onSelect, parentColumnId }: CanvasElementProps) {
-  switch (element.type) {
+  const { resolveElement } = useElementStore();
+
+  // Resolve the element - if it's a reference, this will merge source content with instance position/size
+  const resolvedElement = resolveElement(element.id) || element;
+  switch (resolvedElement.type) {
     case 'note':
-      return <Note element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <Note element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'image':
-      return <Image element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <Image element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'column':
-      return <Column element={element} isSelected={isSelected} onSelect={onSelect} />;
+      return <Column element={resolvedElement} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'board':
-      return <BoardLink element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <BoardLink element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'link':
-      return <Link element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <Link element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'section':
-      return <Section element={element} isSelected={isSelected} onSelect={onSelect} />;
+      return <Section element={resolvedElement} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'line':
-      return <Line element={element} isSelected={isSelected} onSelect={onSelect} />;
+      return <Line element={resolvedElement} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'arrow':
-      return <Arrow element={element} isSelected={isSelected} />;
+      return <Arrow element={resolvedElement} isSelected={isSelected} />;
 
     case 'drawing':
-      return <Drawing element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <Drawing element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'todo':
-      return <TodoList element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <TodoList element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'file':
-      return <File element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <File element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'table':
-      return <Table element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <Table element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     case 'shape':
-      return <Shape element={element} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
+      return <Shape element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
 
     default:
+      // TypeScript exhaustiveness check - should never reach here
+      // Cast to any to access properties in case a new type is added
+      const fallbackElement = resolvedElement as any;
       return (
         <div
           className="element-card absolute p-4"
           style={{
-            left: `${element.position.x}px`,
-            top: `${element.position.y}px`,
-            width: `${element.size.width}px`,
-            height: `${element.size.height}px`,
-            zIndex: element.zIndex
+            left: `${fallbackElement.position.x}px`,
+            top: `${fallbackElement.position.y}px`,
+            width: `${fallbackElement.size.width}px`,
+            height: `${fallbackElement.size.height}px`,
+            zIndex: fallbackElement.zIndex
           }}
           onClick={onSelect}
         >
-          {element.type} (Not implemented)
+          {fallbackElement.type} (Not implemented)
         </div>
       );
   }

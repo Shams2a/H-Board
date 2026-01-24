@@ -526,7 +526,7 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
           userId: (collabService as any).userId,
           timestamp: Date.now(),
         });
-        console.log('📢 Broadcast database_row_created (duplicate):', duplicatedRow.id);
+        console.log('📢 Broadcast database_row_created (duplicate):', (duplicatedRow as any).id);
       } catch (err) {
         console.warn('Failed to broadcast row duplication:', err);
       }
@@ -551,9 +551,11 @@ export const useDatabaseStore = create<DatabaseStore>((set, get) => ({
       config: {},
       filters: [],
       sorts: [],
+      visibleProperties: [], // All properties visible by default
       position,
       isDefault: isFirst, // First view is default
-      createdAt: new Date()
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
     // Optimistic update
@@ -1035,7 +1037,7 @@ function applyFilter(value: any, operator: FilterOperator, filterValue: any, pro
   if (operator === 'contains') {
     return String(value || '').toLowerCase().includes(String(filterValue).toLowerCase());
   }
-  if (operator === 'does_not_contain') {
+  if (operator === 'not_contains') {
     return !String(value || '').toLowerCase().includes(String(filterValue).toLowerCase());
   }
   if (operator === 'is') {
@@ -1061,7 +1063,7 @@ function applyFilter(value: any, operator: FilterOperator, filterValue: any, pro
   if (operator === 'equals') {
     return Number(value) === Number(filterValue);
   }
-  if (operator === 'does_not_equal') {
+  if (operator === 'not_equals') {
     return Number(value) !== Number(filterValue);
   }
   if (operator === 'greater_than') {

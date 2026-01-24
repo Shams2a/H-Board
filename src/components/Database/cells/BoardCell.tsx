@@ -17,7 +17,7 @@ interface BoardCellProps {
 export default function BoardCell({ value, onChange }: BoardCellProps) {
   const [showMenu, setShowMenu] = useState(false);
   const { boards } = useBoardStore();
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
 
   const selectedBoard = boards.find(b => b.id === value);
 

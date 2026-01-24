@@ -147,7 +147,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       await boardOperations.update(id, updates);
 
       // Get updated board and immediately update UI state
-      const updatedBoard = await boardOperations.get(id);
+      const updatedBoard = await boardOperations.getById(id);
       if (updatedBoard) {
         const currentBoards = get().boards;
         set({
@@ -242,7 +242,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
       const newBoardId = await boardOperations.duplicate(id, newName);
 
       // Get the new board and immediately update UI state
-      const newBoard = await boardOperations.get(newBoardId);
+      const newBoard = await boardOperations.getById(newBoardId);
       if (newBoard) {
         const currentBoards = get().boards;
         set({

@@ -48,7 +48,7 @@ export default function RealtimeTest() {
     // Cleanup
     return () => {
       addLog('🔌 Cleaning up test channel...');
-      supabase.removeChannel(testChannel);
+      supabase!.removeChannel(testChannel);
     };
   }, []);
 
@@ -88,7 +88,7 @@ export default function RealtimeTest() {
 
     // Cleanup after 30 seconds
     setTimeout(() => {
-      supabase.removeChannel(channel);
+      supabase!.removeChannel(channel);
       addLog('🔕 Unsubscribed from boards channel');
     }, 30000);
   };

@@ -7,13 +7,13 @@ import { useEffect, useState } from 'react';
 import { useBoardStore, useUIStore } from '../../store';
 import BoardTree from './BoardTree';
 import SearchBar from './SearchBar';
-import FilterControls, { FilterState } from './FilterControls';
+import FilterControls, { type FilterState } from './FilterControls';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 export default function Sidebar() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { boards, loadBoards, createBoard } = useBoardStore();
-  const [filters, setFilters] = useState<FilterState>({ types: [], tags: [] });
+  const [_filters, setFilters] = useState<FilterState>({ types: [], tags: [] });
 
   useEffect(() => {
     loadBoards();

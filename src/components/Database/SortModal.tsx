@@ -78,7 +78,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
               const property = properties.find((p) => p.id === sort.propertyId);
 
               return (
-                <div key={sort.id} className="flex items-center gap-2">
+                <div key={sort.id!} className="flex items-center gap-2">
                   {/* Sort number */}
                   <span className="text-sm text-gray-500 dark:text-gray-400 w-6">
                     {index + 1}.
@@ -87,7 +87,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
                   {/* Property selector */}
                   <select
                     value={sort.propertyId}
-                    onChange={(e) => handleUpdateSort(sort.id, 'propertyId', e.target.value)}
+                    onChange={(e) => handleUpdateSort(sort.id!, 'propertyId', e.target.value)}
                     className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
                   >
                     {properties.map((prop) => (
@@ -100,7 +100,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
                   {/* Direction selector */}
                   <div className="flex gap-1">
                     <button
-                      onClick={() => handleUpdateSort(sort.id, 'direction', 'asc')}
+                      onClick={() => handleUpdateSort(sort.id!, 'direction', 'asc')}
                       className={`p-2 rounded border transition-colors ${
                         sort.direction === 'asc'
                           ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-300'
@@ -111,7 +111,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
                       <ArrowUp className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleUpdateSort(sort.id, 'direction', 'desc')}
+                      onClick={() => handleUpdateSort(sort.id!, 'direction', 'desc')}
                       className={`p-2 rounded border transition-colors ${
                         sort.direction === 'desc'
                           ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-300'
@@ -125,7 +125,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
 
                   {/* Delete button */}
                   <button
-                    onClick={() => handleDeleteSort(sort.id)}
+                    onClick={() => handleDeleteSort(sort.id!)}
                     className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2"
                   >
                     <Trash2 className="w-4 h-4" />

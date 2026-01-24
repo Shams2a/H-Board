@@ -17,7 +17,8 @@ import {
   CheckSquare2,
   Download,
   Trello,
-  Database
+  Database,
+  Link2
 } from 'lucide-react';
 import type { NoteElement, ColumnElement, BoardElement, TableElement } from '../../types';
 
@@ -31,7 +32,7 @@ interface ContextMenuProps {
 
 export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  const { createElement, elements, selectedIds, copy, paste, deleteElements, selectAll, clipboard } = useElementStore();
+  const { createElement, elements, selectedIds, copy, paste, deleteElements, selectAll, clipboard, markAsReusable, createReference, pendingReusableElementId, getElementById } = useElementStore();
   const { currentBoardId, createBoard } = useBoardStore();
   const { gridEnabled, zoom } = useUIStore();
 
@@ -283,8 +284,27 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     onClose();
   };
 
+  const handleMarkAsReusable = async () => {
+    if (selectedIds.length !== 1) return; // Only works with single selection
+    await markAsReusable(selectedIds[0]);
+    onClose();
+  };
+
+  const handleReuse = async () => {
+    if (!pendingReusableElementId || !currentBoardId) return;
+    const pos = getSpawnPosition();
+    await createReference(pendingReusableElementId, pos, currentBoardId);
+    onClose();
+  };
+
   const hasSelection = selectedIds.length > 0;
+  const hasSingleSelection = selectedIds.length === 1;
   const hasClipboard = clipboard.length > 0;
+  const hasPendingReusable = pendingReusableElementId !== null;
+
+  // Get info about pending reusable element for display
+  const pendingElement = hasPendingReusable ? getElementById(pendingReusableElementId) : undefined;
+  const pendingElementLabel = pendingElement ? `Re-use ${pendingElement.type}` : 'Re-use';
 
   const menuItems = [
     { type: 'header', label: 'Create' },
@@ -294,6 +314,9 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     { type: 'item', label: 'Kanban Board', icon: <Trello className="w-4 h-4" />, action: handleCreateKanbanBoard },
     { type: 'item', label: 'Database Board', icon: <Database className="w-4 h-4" />, action: handleCreateDatabaseBoard },
     { type: 'item', label: 'Table', icon: <Table className="w-4 h-4" />, action: handleCreateTable, shortcut: 'G' },
+    { type: 'separator' },
+    { type: 'item', label: 'Make Re-useable', icon: <Link2 className="w-4 h-4" />, action: handleMarkAsReusable, disabled: !hasSingleSelection },
+    { type: 'item', label: pendingElementLabel, icon: <Link2 className="w-4 h-4" />, action: handleReuse, disabled: !hasPendingReusable },
     { type: 'separator' },
     { type: 'item', label: 'Copy', icon: <Copy className="w-4 h-4" />, action: handleCopy, shortcut: 'Ctrl+C', disabled: !hasSelection },
     { type: 'item', label: 'Paste', icon: <Clipboard className="w-4 h-4" />, action: handlePaste, shortcut: 'Ctrl+V', disabled: !hasClipboard },

@@ -248,7 +248,7 @@ export function exportToTXT(
           lines.push(`[Todo List]`);
         }
         for (const item of element.content.items || []) {
-          const checkbox = item.completed ? '[x]' : '[ ]';
+          const checkbox = item.checked ? '[x]' : '[ ]';
           lines.push(`${checkbox} ${item.text}`);
         }
         lines.push('');

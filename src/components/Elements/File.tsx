@@ -48,8 +48,8 @@ const formatFileSize = (bytes: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 };
 
-export default function File({ element, isSelected, onSelect, parentColumnId }: FileProps) {
-  const { updateElement, deleteElement } = useElementStore();
+export default function File({ element, isSelected, onSelect: _onSelect, parentColumnId }: FileProps) {
+  const { updateElement, deleteElement: _deleteElement } = useElementStore();
   const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

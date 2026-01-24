@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { generateId } from '../utils/uuid';
-import type { Element, Position, Size } from '../types';
+import type { Element, Position, Size, LineElement, LineContent } from '../types';
 import { elementOperations } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
 import { useHistoryStore } from './historyStore';
@@ -17,6 +17,8 @@ interface ElementState {
   clipboard: Element[];
   loading: boolean;
   error: string | null;
+  // Re-use system
+  pendingReusableElementId: string | null; // Element marked for re-use
 
   // Actions
   setElements: (elementsOrUpdater: Element[] | ((prev: Element[]) => Element[])) => void;
@@ -49,6 +51,11 @@ interface ElementState {
   updateConnectedLines: (elementId: string) => Promise<void>;
   updateMultipleConnectedLines: (elementIds: string[]) => Promise<void>;
 
+  // Re-use system
+  markAsReusable: (id: string) => Promise<void>;
+  createReference: (sourceElementId: string, position: Position, boardId: string) => Promise<string>;
+  resolveElement: (id: string) => Element | undefined;
+
   // Getters
   getSelectedElements: () => Element[];
   getElementById: (id: string) => Element | undefined;
@@ -65,6 +72,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
   clipboard: [],
   loading: false,
   error: null,
+  pendingReusableElementId: null,
 
   setElements: (elementsOrUpdater) => {
     set((state) => ({
@@ -81,12 +89,39 @@ export const useElementStore = create<ElementState>((set, get) => ({
       // Filter out soft-deleted elements
       const elements = allElements.filter(el => !el.deletedAt);
 
+      // Load source elements for any references (even if they're on other boards)
+      const sourceElementIds = new Set<string>();
+      elements.forEach(el => {
+        if (el.sourceElementId) {
+          sourceElementIds.add(el.sourceElementId);
+        }
+      });
+
+      // Fetch source elements and add them to the elements array
+      const sourceElements: Element[] = [];
+      for (const sourceId of sourceElementIds) {
+        // Only load if not already in the elements array
+        if (!elements.find(el => el.id === sourceId)) {
+          try {
+            const sourceEl = await elementOperations.getById(sourceId);
+            if (sourceEl && !sourceEl.deletedAt) {
+              sourceElements.push(sourceEl);
+            }
+          } catch (err) {
+            console.warn(`Failed to load source element ${sourceId}:`, err);
+          }
+        }
+      }
+
+      // Combine board elements with source elements
+      const allLoadedElements = [...elements, ...sourceElements];
+
       // Preserve selection for elements that still exist
       const currentSelectedIds = get().selectedIds;
-      const elementIds = new Set(elements.map(el => el.id));
+      const elementIds = new Set(allLoadedElements.map(el => el.id));
       const preservedSelection = currentSelectedIds.filter(id => elementIds.has(id));
 
-      set({ elements, loading: false, selectedIds: preservedSelection });
+      set({ elements: allLoadedElements, loading: false, selectedIds: preservedSelection });
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to load elements',
@@ -139,6 +174,75 @@ export const useElementStore = create<ElementState>((set, get) => ({
     console.log('🔧 updateElement called:', { id, updates });
 
     try {
+      // Get the element to check if it's a reference
+      const element = get().getElementById(id);
+
+      // Instance-specific properties that should stay on the reference
+      const instanceProps = ['position', 'size', 'zIndex', 'parentId', 'boardId', 'locked'];
+
+      // If this is a reference (has sourceElementId), split the updates
+      if (element && element.sourceElementId) {
+        console.log('📎 Element is a reference, redirecting content updates to source:', element.sourceElementId);
+
+        // Separate instance updates from content updates
+        const instanceUpdates: Partial<Element> = {};
+        const contentUpdates: Partial<Element> = {};
+
+        Object.keys(updates).forEach(key => {
+          if (instanceProps.includes(key)) {
+            instanceUpdates[key] = updates[key];
+          } else {
+            contentUpdates[key] = updates[key];
+          }
+        });
+
+        // Apply instance updates to the reference itself
+        if (Object.keys(instanceUpdates).length > 0) {
+          await elementOperations.update(id, instanceUpdates);
+          // @ts-ignore
+          set(state => ({
+            elements: state.elements.map(el =>
+              el.id === id ? { ...el, ...instanceUpdates, updatedAt: new Date() } : el
+            )
+          }));
+        }
+
+        // Apply content updates to the source element
+        if (Object.keys(contentUpdates).length > 0) {
+          const sourceId = element.sourceElementId;
+          console.log('🎯 Updating source element:', sourceId, contentUpdates);
+          await elementOperations.update(sourceId, contentUpdates);
+
+          // Update source in store (this will trigger re-render of all references)
+          // @ts-ignore
+          set(state => ({
+            elements: state.elements.map(el =>
+              el.id === sourceId ? { ...el, ...contentUpdates, updatedAt: new Date() } : el
+            )
+          }));
+
+          // Broadcast source update
+          const updatedSource = await elementOperations.getById(sourceId);
+          if (updatedSource) {
+            try {
+              const collabService = getCollaborationService();
+              collabService.broadcast({
+                type: 'element_updated',
+                payload: updatedSource,
+                userId: '',
+                timestamp: Date.now()
+              });
+              console.log('🔊 Broadcasted source element_updated:', sourceId);
+            } catch (err) {
+              console.warn('Failed to broadcast source update:', err);
+            }
+          }
+        }
+
+        return;
+      }
+
+      // Normal update for non-reference elements
       await elementOperations.update(id, updates);
 
       // Get updated element for sync and broadcast
@@ -167,6 +271,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
         console.warn('⚠️ Could not get updated element from DB for broadcasting');
       }
 
+      // @ts-ignore - Complex union type inference
       set(state => ({
         elements: state.elements.map(el =>
           el.id === id ? { ...el, ...updates, updatedAt: new Date() } : el
@@ -428,7 +533,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
 
     // Only persist to DB when drag ends (not during drag)
     if (persistToDB) {
-      const updatePromises: Promise<void>[] = [];
+      const updatePromises: Promise<any>[] = [];
       const broadcastPromises: Promise<void>[] = [];
 
       updates.forEach((position, id) => {
@@ -493,10 +598,11 @@ export const useElementStore = create<ElementState>((set, get) => ({
 
     // Find all lines connected to this element
     const connectedLines = elements.filter(
-      el => el.type === 'line' && (
-        el.content.startElementId === elementId ||
-        el.content.endElementId === elementId
-      )
+      (el): el is LineElement => {
+        if (el.type !== 'line') return false;
+        const content = el.content as LineContent;
+        return content.startElementId === elementId || content.endElementId === elementId;
+      }
     );
 
     // Update each connected line
@@ -544,10 +650,12 @@ export const useElementStore = create<ElementState>((set, get) => ({
 
     // Find all lines connected to any of these elements
     const connectedLines = elements.filter(
-      el => el.type === 'line' && (
-        (el.content.startElementId && elementIdSet.has(el.content.startElementId)) ||
-        (el.content.endElementId && elementIdSet.has(el.content.endElementId))
-      )
+      (el): el is LineElement => {
+        if (el.type !== 'line') return false;
+        const content = el.content as LineContent;
+        return !!(content.startElementId && elementIdSet.has(content.startElementId)) ||
+               !!(content.endElementId && elementIdSet.has(content.endElementId));
+      }
     );
 
     // Update each connected line
@@ -617,5 +725,100 @@ export const useElementStore = create<ElementState>((set, get) => ({
       // Update local state
       set({ elements: nextElements });
     }
+  },
+
+  // Re-use system implementation
+  markAsReusable: async (id: string) => {
+    // Mark element as reusable and store its ID for pending re-use
+    await get().updateElement(id, { isReusable: true });
+    set({ pendingReusableElementId: id });
+
+    // Broadcast to collaboration service
+    const collaborationService = getCollaborationService();
+    if (collaborationService && collaborationService.isInitialized()) {
+      collaborationService.broadcast({
+        type: 'element_marked_reusable',
+        payload: { elementId: id },
+        userId: 'current-user', // TODO: Get from auth context
+        timestamp: Date.now()
+      });
+    }
+  },
+
+  createReference: async (sourceElementId: string, position: Position, boardId: string) => {
+    // Try to get from current store first
+    let sourceElement = get().getElementById(sourceElementId);
+
+    // If not found in store, load from database (might be on a different board)
+    if (!sourceElement) {
+      try {
+        sourceElement = await elementOperations.getById(sourceElementId);
+      } catch (error) {
+        throw new Error('Source element not found in database');
+      }
+    }
+
+    if (!sourceElement) {
+      throw new Error('Source element not found');
+    }
+
+    // Create new element that references the source
+    const referenceElement: Element = {
+      ...sourceElement,
+      id: generateId(),
+      boardId,
+      position,
+      sourceElementId,
+      isReusable: false, // References themselves are not reusable
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const newId = await get().createElement(referenceElement);
+
+    // Clear pending state
+    set({ pendingReusableElementId: null });
+
+    // Broadcast creation
+    const collaborationService = getCollaborationService();
+    if (collaborationService && collaborationService.isInitialized()) {
+      collaborationService.broadcast({
+        type: 'element_reference_created',
+        payload: {
+          sourceElementId,
+          referenceElementId: newId,
+          boardId
+        },
+        userId: 'current-user', // TODO: Get from auth context
+        timestamp: Date.now()
+      });
+    }
+
+    return newId;
+  },
+
+  resolveElement: (id: string) => {
+    const element = get().getElementById(id);
+    if (!element) return undefined;
+
+    // If element is a reference, resolve it
+    if (element.sourceElementId) {
+      const sourceElement = get().getElementById(element.sourceElementId);
+      if (sourceElement) {
+        // Merge: source content + reference position/size/boardId
+        return {
+          ...sourceElement,
+          id: element.id,
+          boardId: element.boardId,
+          position: element.position,
+          size: element.size,
+          zIndex: element.zIndex,
+          parentId: element.parentId,
+          sourceElementId: element.sourceElementId
+        } as Element;
+      }
+    }
+
+    return element;
   }
 }));

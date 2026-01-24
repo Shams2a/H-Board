@@ -22,7 +22,7 @@ interface TodoListProps {
   parentColumnId?: string;
 }
 
-export default function TodoList({ element, isSelected, onSelect, parentColumnId }: TodoListProps) {
+export default function TodoList({ element, isSelected, onSelect: _onSelect, parentColumnId }: TodoListProps) {
   const { updateElement } = useElementStore();
   const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -116,10 +116,8 @@ export default function TodoList({ element, isSelected, onSelect, parentColumnId
     setEditingItemId(null);
     setEditText('');
 
-    // If continueAdding, open the add item input
-    if (continueAdding) {
-      setIsAddingItem(true);
-    }
+    // Note: continueAdding parameter exists but we don't need to do anything
+    // because the add item input is always visible
   };
 
   const handleDeleteItem = async (itemId: string) => {

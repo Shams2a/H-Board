@@ -18,11 +18,11 @@ interface FilterModalProps {
 const FILTER_OPERATORS: Record<string, { label: string; operators: FilterOperator[] }> = {
   text: {
     label: 'Text',
-    operators: ['contains', 'does_not_contain', 'is', 'is_not', 'starts_with', 'ends_with', 'is_empty', 'is_not_empty']
+    operators: ['contains', 'not_contains', 'is', 'is_not', 'starts_with', 'ends_with', 'is_empty', 'is_not_empty']
   },
   number: {
     label: 'Number',
-    operators: ['equals', 'does_not_equal', 'greater_than', 'less_than', 'greater_than_or_equal', 'less_than_or_equal', 'is_empty', 'is_not_empty']
+    operators: ['equals', 'not_equals', 'greater_than', 'less_than', 'greater_than_or_equal', 'less_than_or_equal', 'is_empty', 'is_not_empty']
   },
   date: {
     label: 'Date',
@@ -40,7 +40,7 @@ const FILTER_OPERATORS: Record<string, { label: string; operators: FilterOperato
 
 const OPERATOR_LABELS: Record<FilterOperator, string> = {
   contains: 'Contains',
-  does_not_contain: 'Does not contain',
+  not_contains: 'Does not contain',
   is: 'Is',
   is_not: 'Is not',
   starts_with: 'Starts with',
@@ -48,7 +48,7 @@ const OPERATOR_LABELS: Record<FilterOperator, string> = {
   is_empty: 'Is empty',
   is_not_empty: 'Is not empty',
   equals: 'Equals',
-  does_not_equal: 'Does not equal',
+  not_equals: 'Does not equal',
   greater_than: 'Greater than',
   less_than: 'Less than',
   greater_than_or_equal: 'Greater than or equal to',
@@ -57,6 +57,9 @@ const OPERATOR_LABELS: Record<FilterOperator, string> = {
   is_after: 'Is after',
   is_on_or_before: 'Is on or before',
   is_on_or_after: 'Is on or after',
+  is_within: 'Is within',
+  past_week: 'Past week',
+  past_month: 'Past month',
   is_any_of: 'Is any of',
   is_none_of: 'Is none of',
   is_checked: 'Is checked',
@@ -167,11 +170,11 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
               const showValue = needsValue(filter.operator);
 
               return (
-                <div key={filter.id} className="flex items-center gap-2">
+                <div key={filter.id!} className="flex items-center gap-2">
                   {/* Property selector */}
                   <select
                     value={filter.propertyId}
-                    onChange={(e) => handleUpdateFilter(filter.id, 'propertyId', e.target.value)}
+                    onChange={(e) => handleUpdateFilter(filter.id!, 'propertyId', e.target.value)}
                     className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
                   >
                     {properties.map((prop) => (
@@ -184,7 +187,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                   {/* Operator selector */}
                   <select
                     value={filter.operator}
-                    onChange={(e) => handleUpdateFilter(filter.id, 'operator', e.target.value)}
+                    onChange={(e) => handleUpdateFilter(filter.id!, 'operator', e.target.value)}
                     className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
                   >
                     {operators.map((op) => (
@@ -199,7 +202,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                     <input
                       type="text"
                       value={filter.value}
-                      onChange={(e) => handleUpdateFilter(filter.id, 'value', e.target.value)}
+                      onChange={(e) => handleUpdateFilter(filter.id!, 'value', e.target.value)}
                       placeholder="Value"
                       className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
                     />
@@ -207,7 +210,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
 
                   {/* Delete button */}
                   <button
-                    onClick={() => handleDeleteFilter(filter.id)}
+                    onClick={() => handleDeleteFilter(filter.id!)}
                     className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2"
                   >
                     <Trash2 className="w-4 h-4" />

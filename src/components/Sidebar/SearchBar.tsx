@@ -91,8 +91,8 @@ export default function SearchBar() {
 
         case 'link':
           matches =
-            element.content.url?.toLowerCase().includes(searchQuery) ||
-            element.content.title?.toLowerCase().includes(searchQuery);
+            !!(element.content.url?.toLowerCase().includes(searchQuery) ||
+            element.content.title?.toLowerCase().includes(searchQuery));
           title = element.content.title || element.content.url || 'Untitled Link';
           subtitle = `Link in ${boards.find(b => b.id === element.boardId)?.name || 'Unknown'}`;
           break;

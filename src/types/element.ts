@@ -35,6 +35,12 @@ export interface ElementStyle {
   borderStyle?: 'solid' | 'dashed' | 'dotted';
   opacity?: number;
   rotation?: number;
+  // Typography properties (for Note elements)
+  fontSize?: number | string; // Can be number or Tailwind class like 'text-lg'
+  fontFamily?: string;
+  lineHeight?: number | string; // Can be number or Tailwind class
+  letterSpacing?: number | string; // Can be number or Tailwind class
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
 }
 
 export interface BaseElement {
@@ -50,6 +56,9 @@ export interface BaseElement {
   updatedAt: Date;
   deletedAt?: Date | null;  // Soft delete timestamp
   style: ElementStyle;
+  // Re-use / Reference system
+  sourceElementId?: string; // If set, this is a reference to another element
+  isReusable?: boolean;     // Marks element as reusable template
 }
 
 // Specific element content types
@@ -156,9 +165,11 @@ export interface TodoListContent {
   showProgress: boolean;
 }
 
+export type CellType = 'text' | 'number' | 'date' | 'checkbox' | 'dropdown';
+
 export interface TableCell {
   value: any;
-  type: 'text' | 'number' | 'date' | 'checkbox' | 'dropdown';
+  type: CellType;
   formula?: string;
   style?: any;
 }
@@ -166,7 +177,9 @@ export interface TableCell {
 export interface TableContent {
   headers: string[];
   rows: TableCell[][];
-  columnWidths?: number[];
+  columnWidths?: number[]; // Width in pixels for each column
+  columnTypes?: CellType[]; // Type for each column (index-based)
+  columnDropdownOptions?: Record<number, string[]>; // Dropdown options per column index
 }
 
 export type ShapeType = 'rectangle' | 'circle' | 'triangle' | 'star';

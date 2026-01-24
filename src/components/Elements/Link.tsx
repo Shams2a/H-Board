@@ -22,7 +22,7 @@ interface LinkProps {
   parentColumnId?: string;
 }
 
-export default function Link({ element, isSelected, onSelect, parentColumnId }: LinkProps) {
+export default function Link({ element, isSelected, onSelect: _onSelect, parentColumnId }: LinkProps) {
   const { updateElement } = useElementStore();
   const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);

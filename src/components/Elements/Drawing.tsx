@@ -23,7 +23,7 @@ interface DrawingProps {
   parentColumnId?: string;
 }
 
-export default function Drawing({ element, isSelected, onSelect, parentColumnId }: DrawingProps) {
+export default function Drawing({ element, isSelected, onSelect: _onSelect, parentColumnId }: DrawingProps) {
   const { updateElement } = useElementStore();
   const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);

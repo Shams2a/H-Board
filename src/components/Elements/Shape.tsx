@@ -18,7 +18,7 @@ interface ShapeProps {
   parentColumnId?: string;
 }
 
-export default function Shape({ element, isSelected, onSelect, parentColumnId }: ShapeProps) {
+export default function Shape({ element, isSelected, onSelect: _onSelect, parentColumnId }: ShapeProps) {
   const { updateElement } = useElementStore();
   const { draggedElementId, justFinishedDrag } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);

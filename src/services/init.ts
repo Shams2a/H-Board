@@ -63,13 +63,13 @@ export async function initializeServices(): Promise<void> {
 export function configureAPI(baseUrl: string): void {
   console.log(`🔧 Configuring API: ${baseUrl}`);
 
-  syncService.configureAPI(baseUrl);
-  connectionService.configureServerEndpoint(`${baseUrl}/health`, 30000);
-
-  console.log('✅ API configured');
-
-  // Trigger initial sync
-  syncService.processQueue().catch(err => {
-    console.error('Failed to sync after API configuration:', err);
-  });
+//   syncService.configureAPI(baseUrl);
+//   connectionService.configureServerEndpoint(`${baseUrl}/health`, 30000);
+//
+//   console.log('✅ API configured');
+//
+//   // Trigger initial sync
+//   syncService.processQueue().catch(err => {
+//     console.error('Failed to sync after API configuration:', err);
+//   });
 }

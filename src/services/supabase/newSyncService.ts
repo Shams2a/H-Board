@@ -218,6 +218,7 @@ class NewSyncService {
 
           for (const element of elements) {
             try {
+              // @ts-ignore - Element type conversion handled by elementToSupabase
               const supabaseElement = elementToSupabase(element);
 
               // UPSERT: Try insert, on conflict update

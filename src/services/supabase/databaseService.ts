@@ -202,7 +202,7 @@ export const supabaseDatabasePropertyService = {
     try {
       // Update each property's position
       const updates = propertyIds.map((id, index) =>
-        supabase
+        supabase!
           .from('database_properties')
           .update({ position: positions[index] })
           .eq('id', id)
@@ -440,7 +440,7 @@ export const supabaseDatabaseRowService = {
     try {
       // Update each row's position
       const updates = rowIds.map((id, index) =>
-        supabase
+        supabase!
           .from('database_rows')
           .update({ position: positions[index] })
           .eq('id', id)

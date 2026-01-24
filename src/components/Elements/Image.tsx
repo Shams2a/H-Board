@@ -21,7 +21,7 @@ interface ImageProps {
   parentColumnId?: string;
 }
 
-export default function Image({ element, isSelected, onSelect, parentColumnId }: ImageProps) {
+export default function Image({ element, isSelected, onSelect: _onSelect, parentColumnId }: ImageProps) {
   const { updateElement } = useElementStore();
   const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
   const containerRef = useRef<HTMLDivElement>(null);

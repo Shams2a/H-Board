@@ -132,6 +132,7 @@ export type FilterOperator =
   | 'is_not_checked';
 
 export interface DatabaseFilter {
+  id?: string;              // Optional ID for UI purposes
   propertyId: string;       // Renamed from "property"
   operator: FilterOperator;
   value?: any;              // Made optional for operators like is_empty
@@ -143,6 +144,7 @@ export type Filter = DatabaseFilter;
 export type SortDirection = 'asc' | 'desc';
 
 export interface DatabaseSort {
+  id?: string;              // Optional ID for UI purposes
   propertyId: string;       // Renamed from "property"
   direction: SortDirection;
 }
