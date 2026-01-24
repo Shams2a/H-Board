@@ -6,6 +6,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeDatabase } from './utils/db';
+import { useBeforeUnload } from './hooks/useBeforeUnload';
 import Dashboard from './components/Dashboard/Dashboard';
 import CanvasPage from './pages/CanvasPage';
 import CollaborationTest from './pages/CollaborationTest';
@@ -16,6 +17,9 @@ function App() {
   useEffect(() => {
     initializeDatabase();
   }, []);
+
+  // Sync data before page unload to prevent data loss
+  useBeforeUnload({ enabled: true });
 
   return (
     <BrowserRouter>

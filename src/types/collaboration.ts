@@ -81,6 +81,7 @@ export interface BroadcastEvent {
     | 'element_created'
     | 'element_updated'
     | 'element_deleted'
+    | 'elements_deleted'  // Batched deletion
     | 'element_marked_reusable'
     | 'element_reference_created'
     | 'editing_started'

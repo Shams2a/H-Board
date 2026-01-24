@@ -1,15 +1,19 @@
 /**
  * New Supabase Sync Service
- * Simple and robust sync using UPSERT strategy
+ * Simple and robust sync using UPSERT strategy with Delta Sync optimization
  */
 
 import { supabase } from '../../lib/supabase';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { db, boardOperations, elementOperations, folderOperations } from '../../utils/db';
+import { logger } from '../../utils/logger';
 import {
   boardToSupabase, elementToSupabase, folderToSupabase,
   boardFromSupabase, elementFromSupabase, folderFromSupabase
 } from './transformers';
+
+// Storage key for persisting lastSyncTime
+const LAST_SYNC_TIME_KEY = 'h-board-last-sync-time';
 
 interface SyncStats {
   boards: { synced: number; failed: number; deleted: number; downloaded: number };
@@ -23,6 +27,7 @@ class NewSyncService {
   private isSyncing = false;
   private listeners: Set<() => void> = new Set();
   private onSyncCompleteCallbacks: Set<(hasNewData: boolean) => void> = new Set();
+  private lastSyncTime: Date | null = null;
   private stats: SyncStats = {
     boards: { synced: 0, failed: 0, deleted: 0, downloaded: 0 },
     elements: { synced: 0, failed: 0, deleted: 0, downloaded: 0 },
@@ -32,7 +37,41 @@ class NewSyncService {
   };
 
   constructor() {
+    // Load lastSyncTime from localStorage
+    this.loadLastSyncTime();
     this.startAutoSync();
+  }
+
+  /**
+   * Load lastSyncTime from localStorage
+   */
+  private loadLastSyncTime(): void {
+    try {
+      const stored = localStorage.getItem(LAST_SYNC_TIME_KEY);
+      if (stored) {
+        this.lastSyncTime = new Date(stored);
+        this.stats.lastSyncTime = this.lastSyncTime;
+        logger.debug(`📅 Loaded lastSyncTime: ${this.lastSyncTime.toISOString()}`);
+      } else {
+        logger.debug('📅 No previous sync time found - will do full sync');
+      }
+    } catch (error) {
+      logger.warn('Failed to load lastSyncTime:', error);
+      this.lastSyncTime = null;
+    }
+  }
+
+  /**
+   * Save lastSyncTime to localStorage
+   */
+  private saveLastSyncTime(): void {
+    try {
+      if (this.lastSyncTime) {
+        localStorage.setItem(LAST_SYNC_TIME_KEY, this.lastSyncTime.toISOString());
+      }
+    } catch (error) {
+      logger.warn('Failed to save lastSyncTime:', error);
+    }
   }
 
   /**
@@ -49,22 +88,23 @@ class NewSyncService {
    */
   async syncAll(): Promise<void> {
     if (!isSupabaseConfigured()) {
-      console.log('⚠️  Supabase not configured, skipping sync');
+      logger.debug('⚠️  Supabase not configured, skipping sync');
       return;
     }
 
     if (!supabase) {
-      console.log('⚠️  Supabase client not available');
+      logger.debug('⚠️  Supabase client not available');
       return;
     }
 
     if (this.isSyncing) {
-      console.log('🔄 Sync already in progress');
+      logger.debug('🔄 Sync already in progress');
       return;
     }
 
     this.isSyncing = true;
-    console.log('🔄 Starting full sync...');
+    const syncType = this.lastSyncTime ? 'delta' : 'full';
+    logger.debug(`🔄 Starting ${syncType} sync...${this.lastSyncTime ? ` (since ${this.lastSyncTime.toISOString()})` : ''}`);
 
     try {
       // Reset stats but keep lastSyncTime
@@ -106,16 +146,20 @@ class NewSyncService {
 
       // Update connection status and last sync time
       this.stats.isConnected = failed === 0 || uploaded > 0 || downloaded > 0;
-      this.stats.lastSyncTime = new Date();
+      this.lastSyncTime = new Date();
+      this.stats.lastSyncTime = this.lastSyncTime;
 
-      console.log(`✅ Sync complete: ${downloaded} downloaded, ${uploaded} uploaded, ${failed} failed`);
+      // Persist lastSyncTime for delta sync
+      this.saveLastSyncTime();
+
+      logger.debug(`✅ Sync complete: ${downloaded} downloaded, ${uploaded} uploaded, ${failed} failed`);
       this.notifyListeners();
 
       // Notify callbacks that sync is complete
       const hasNewData = downloaded > 0 || this.stats.boards.deleted > 0 || this.stats.elements.deleted > 0 || this.stats.folders.deleted > 0;
       this.onSyncCompleteCallbacks.forEach(callback => callback(hasNewData));
     } catch (error) {
-      console.error('❌ Sync error:', error);
+      logger.error('❌ Sync error:', error);
       this.stats.isConnected = false;
     } finally {
       this.isSyncing = false;
@@ -130,7 +174,7 @@ class NewSyncService {
 
     try {
       const folders = await folderOperations.getAll();
-      console.log(`📁 Syncing ${folders.length} folders...`);
+      logger.debug(`📁 Syncing ${folders.length} folders...`);
 
       for (const folder of folders) {
         try {
@@ -144,20 +188,20 @@ class NewSyncService {
             });
 
           if (error) {
-            console.error(`❌ Failed to sync folder ${folder.id}:`, error.message);
+            logger.error(`❌ Failed to sync folder ${folder.id}:`, error.message);
             this.stats.folders.failed++;
           } else {
             this.stats.folders.synced++;
           }
         } catch (error) {
-          console.error(`❌ Error syncing folder ${folder.id}:`, error);
+          logger.error(`❌ Error syncing folder ${folder.id}:`, error);
           this.stats.folders.failed++;
         }
       }
 
-      console.log(`✅ Folders: ${this.stats.folders.synced} synced, ${this.stats.folders.failed} failed`);
+      logger.debug(`✅ Folders: ${this.stats.folders.synced} synced, ${this.stats.folders.failed} failed`);
     } catch (error) {
-      console.error('❌ Error loading folders:', error);
+      logger.error('❌ Error loading folders:', error);
     }
   }
 
@@ -169,7 +213,7 @@ class NewSyncService {
 
     try {
       const boards = await boardOperations.getAll();
-      console.log(`📋 Syncing ${boards.length} boards...`);
+      logger.debug(`📋 Syncing ${boards.length} boards...`);
 
       for (const board of boards) {
         try {
@@ -183,20 +227,20 @@ class NewSyncService {
             });
 
           if (error) {
-            console.error(`❌ Failed to sync board ${board.id}:`, error.message);
+            logger.error(`❌ Failed to sync board ${board.id}:`, error.message);
             this.stats.boards.failed++;
           } else {
             this.stats.boards.synced++;
           }
         } catch (error) {
-          console.error(`❌ Error syncing board ${board.id}:`, error);
+          logger.error(`❌ Error syncing board ${board.id}:`, error);
           this.stats.boards.failed++;
         }
       }
 
-      console.log(`✅ Boards: ${this.stats.boards.synced} synced, ${this.stats.boards.failed} failed`);
+      logger.debug(`✅ Boards: ${this.stats.boards.synced} synced, ${this.stats.boards.failed} failed`);
     } catch (error) {
-      console.error('❌ Error loading boards:', error);
+      logger.error('❌ Error loading boards:', error);
     }
   }
 
@@ -229,49 +273,58 @@ class NewSyncService {
                 });
 
               if (error) {
-                console.error(`❌ Failed to sync element ${element.id}:`, error.message);
+                logger.error(`❌ Failed to sync element ${element.id}:`, error.message);
                 this.stats.elements.failed++;
               } else {
                 this.stats.elements.synced++;
               }
             } catch (error) {
-              console.error(`❌ Error syncing element ${element.id}:`, error);
+              logger.error(`❌ Error syncing element ${element.id}:`, error);
               this.stats.elements.failed++;
             }
           }
         } catch (error) {
-          console.error(`❌ Error loading elements for board ${board.id}:`, error);
+          logger.error(`❌ Error loading elements for board ${board.id}:`, error);
         }
       }
 
-      console.log(`✅ Elements: ${this.stats.elements.synced} synced, ${this.stats.elements.failed} failed`);
+      logger.debug(`✅ Elements: ${this.stats.elements.synced} synced, ${this.stats.elements.failed} failed`);
     } catch (error) {
-      console.error('❌ Error syncing elements:', error);
+      logger.error('❌ Error syncing elements:', error);
     }
   }
 
   /**
-   * Download folders from Supabase to local
+   * Download folders from Supabase to local (with delta sync)
    */
   private async downloadFolders(): Promise<void> {
     if (!supabase) return;
 
     try {
-      const { data: remoteFolders, error } = await supabase
-        .from('folders')
-        .select('*');
+      // Build query - use delta sync if we have a lastSyncTime
+      let query = supabase.from('folders').select('*');
+
+      if (this.lastSyncTime) {
+        // Delta sync: only fetch folders updated since last sync
+        query = query.gte('updated_at', this.lastSyncTime.toISOString());
+        logger.debug(`📁 Delta sync folders (since ${this.lastSyncTime.toISOString()})...`);
+      } else {
+        logger.debug('📁 Full sync folders (first time)...');
+      }
+
+      const { data: remoteFolders, error } = await query;
 
       if (error) {
-        console.error('❌ Failed to fetch remote folders:', error.message);
+        logger.error('❌ Failed to fetch remote folders:', error.message);
         return;
       }
 
       if (!remoteFolders || remoteFolders.length === 0) {
-        console.log('📁 No remote folders to download');
+        logger.debug('📁 No remote folders to download');
         return;
       }
 
-      console.log(`📁 Downloading ${remoteFolders.length} folders from Supabase...`);
+      logger.debug(`📁 Downloading ${remoteFolders.length} folders from Supabase...`);
 
       // Get local folders for comparison
       const localFolders = await folderOperations.getAll();
@@ -306,38 +359,47 @@ class NewSyncService {
             }
           }
         } catch (error) {
-          console.error(`❌ Error downloading folder ${remoteFolder.id}:`, error);
+          logger.error(`❌ Error downloading folder ${remoteFolder.id}:`, error);
         }
       }
 
-      console.log(`✅ Folders downloaded: ${this.stats.folders.downloaded}`);
+      logger.debug(`✅ Folders downloaded: ${this.stats.folders.downloaded}`);
     } catch (error) {
-      console.error('❌ Error downloading folders:', error);
+      logger.error('❌ Error downloading folders:', error);
     }
   }
 
   /**
-   * Download boards from Supabase to local
+   * Download boards from Supabase to local (with delta sync)
    */
   private async downloadBoards(): Promise<void> {
     if (!supabase) return;
 
     try {
-      const { data: remoteBoards, error } = await supabase
-        .from('boards')
-        .select('*');
+      // Build query - use delta sync if we have a lastSyncTime
+      let query = supabase.from('boards').select('*');
+
+      if (this.lastSyncTime) {
+        // Delta sync: only fetch boards updated since last sync
+        query = query.gte('updated_at', this.lastSyncTime.toISOString());
+        logger.debug(`📋 Delta sync boards (since ${this.lastSyncTime.toISOString()})...`);
+      } else {
+        logger.debug('📋 Full sync boards (first time)...');
+      }
+
+      const { data: remoteBoards, error } = await query;
 
       if (error) {
-        console.error('❌ Failed to fetch remote boards:', error.message);
+        logger.error('❌ Failed to fetch remote boards:', error.message);
         return;
       }
 
       if (!remoteBoards || remoteBoards.length === 0) {
-        console.log('📋 No remote boards to download');
+        logger.debug('📋 No remote boards to download');
         return;
       }
 
-      console.log(`📋 Downloading ${remoteBoards.length} boards from Supabase...`);
+      logger.debug(`📋 Downloading ${remoteBoards.length} boards from Supabase...`);
 
       // Get local boards for comparison
       const localBoards = await boardOperations.getAll();
@@ -372,38 +434,47 @@ class NewSyncService {
             }
           }
         } catch (error) {
-          console.error(`❌ Error downloading board ${remoteBoard.id}:`, error);
+          logger.error(`❌ Error downloading board ${remoteBoard.id}:`, error);
         }
       }
 
-      console.log(`✅ Boards downloaded: ${this.stats.boards.downloaded}`);
+      logger.debug(`✅ Boards downloaded: ${this.stats.boards.downloaded}`);
     } catch (error) {
-      console.error('❌ Error downloading boards:', error);
+      logger.error('❌ Error downloading boards:', error);
     }
   }
 
   /**
-   * Download elements from Supabase to local
+   * Download elements from Supabase to local (with delta sync)
    */
   private async downloadElements(): Promise<void> {
     if (!supabase) return;
 
     try {
-      const { data: remoteElements, error } = await supabase
-        .from('elements')
-        .select('*');
+      // Build query - use delta sync if we have a lastSyncTime
+      let query = supabase.from('elements').select('*');
+
+      if (this.lastSyncTime) {
+        // Delta sync: only fetch elements updated since last sync
+        query = query.gte('updated_at', this.lastSyncTime.toISOString());
+        logger.debug(`🧩 Delta sync elements (since ${this.lastSyncTime.toISOString()})...`);
+      } else {
+        logger.debug('🧩 Full sync elements (first time)...');
+      }
+
+      const { data: remoteElements, error } = await query;
 
       if (error) {
-        console.error('❌ Failed to fetch remote elements:', error.message);
+        logger.error('❌ Failed to fetch remote elements:', error.message);
         return;
       }
 
       if (!remoteElements || remoteElements.length === 0) {
-        console.log('🧩 No remote elements to download');
+        logger.debug('🧩 No remote elements to download');
         return;
       }
 
-      console.log(`🧩 Downloading ${remoteElements.length} elements from Supabase...`);
+      logger.debug(`🧩 Downloading ${remoteElements.length} elements from Supabase...`);
 
       // Get all local elements for comparison
       const localBoards = await boardOperations.getAll();
@@ -443,13 +514,69 @@ class NewSyncService {
             }
           }
         } catch (error) {
-          console.error(`❌ Error downloading element ${remoteElement.id}:`, error);
+          logger.error(`❌ Error downloading element ${remoteElement.id}:`, error);
         }
       }
 
-      console.log(`✅ Elements downloaded: ${this.stats.elements.downloaded}`);
+      logger.debug(`✅ Elements downloaded: ${this.stats.elements.downloaded}`);
     } catch (error) {
-      console.error('❌ Error downloading elements:', error);
+      logger.error('❌ Error downloading elements:', error);
+    }
+  }
+
+  /**
+   * Download only - used for catch-up after reconnection
+   * Does not upload local changes, only downloads remote changes
+   */
+  async downloadOnly(): Promise<boolean> {
+    if (!isSupabaseConfigured()) {
+      logger.debug('⚠️  Supabase not configured, skipping download');
+      return false;
+    }
+
+    if (!supabase) {
+      logger.debug('⚠️  Supabase client not available');
+      return false;
+    }
+
+    if (this.isSyncing) {
+      logger.debug('🔄 Sync already in progress, skipping catch-up');
+      return false;
+    }
+
+    this.isSyncing = true;
+    logger.debug('🔄 Starting catch-up download (reconnection)...');
+
+    try {
+      // Reset download stats
+      this.stats.boards.downloaded = 0;
+      this.stats.elements.downloaded = 0;
+      this.stats.folders.downloaded = 0;
+
+      // Download only - no upload
+      await this.downloadFolders();
+      await this.downloadBoards();
+      await this.downloadElements();
+
+      const downloaded =
+        this.stats.boards.downloaded +
+        this.stats.elements.downloaded +
+        this.stats.folders.downloaded;
+
+      logger.debug(`✅ Catch-up complete: ${downloaded} items downloaded`);
+
+      // Notify callbacks if we got new data
+      if (downloaded > 0) {
+        this.onSyncCompleteCallbacks.forEach(callback => callback(true));
+      }
+
+      this.notifyListeners();
+      return downloaded > 0;
+    } catch (error) {
+      logger.error('❌ Catch-up download error:', error);
+      return false;
+    } finally {
+      this.isSyncing = false;
     }
   }
 
@@ -465,6 +592,29 @@ class NewSyncService {
    */
   isSyncInProgress(): boolean {
     return this.isSyncing;
+  }
+
+  /**
+   * Force a full sync by resetting lastSyncTime
+   * Use this when you suspect data might be out of sync
+   */
+  async forceFullSync(): Promise<void> {
+    logger.debug('🔄 Forcing full sync (resetting lastSyncTime)...');
+    this.lastSyncTime = null;
+    this.stats.lastSyncTime = null;
+    try {
+      localStorage.removeItem(LAST_SYNC_TIME_KEY);
+    } catch (error) {
+      logger.warn('Failed to remove lastSyncTime from localStorage:', error);
+    }
+    await this.syncAll();
+  }
+
+  /**
+   * Get the last sync time
+   */
+  getLastSyncTime(): Date | null {
+    return this.lastSyncTime;
   }
 
   /**

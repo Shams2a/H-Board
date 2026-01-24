@@ -1,52 +1,20 @@
 /**
  * Cache Manager
  * Gère le chargement des boards et la stratégie de cache
+ * Note: Uses local IndexedDB cache. Supabase sync is handled by newSyncService.
  */
 
 import { db } from '../utils/db';
 import { storageManager } from './StorageManager';
-import { connectionService } from './ConnectionService';
+import { logger } from '../utils/logger';
 import type { Board, Element } from '../types';
 
 export class CacheManager {
-  private apiBaseUrl: string | null = null;
-
   /**
-   * Configure API base URL
-   * Call this when the backend is ready
-   */
-  configureAPI(baseUrl: string): void {
-    this.apiBaseUrl = baseUrl;
-    console.log(`✅ Cache API configured: ${baseUrl}`);
-  }
-
-  /**
-   * Load a board with its elements
-   * Strategy: Try cache first, fetch from server if needed
+   * Load a board with its elements from local cache
    */
   async loadBoard(boardId: string): Promise<{ board: Board; elements: Element[] }> {
-    // Check if board is in cache
-    const isCached = await storageManager.isBoardCached(boardId);
-
-    if (isCached) {
-      console.log(`📦 Loading board ${boardId} from cache`);
-      return await this.loadFromCache(boardId);
-    }
-
-    // Not in cache - try to fetch from server if online
-    if (connectionService.isOnline() && connectionService.isServerReachable() && this.apiBaseUrl) {
-      console.log(`🌐 Fetching board ${boardId} from server`);
-      try {
-        return await this.fetchFromServer(boardId);
-      } catch (error) {
-        console.error(`❌ Failed to fetch board from server:`, error);
-        // Fall back to cache/local if available
-        return await this.loadFromCache(boardId);
-      }
-    }
-
-    // Offline or no API configured - load from local database
-    console.log(`💾 Loading board ${boardId} from local database`);
+    logger.debug(`💾 Loading board ${boardId} from local database`);
     return await this.loadFromCache(boardId);
   }
 
@@ -68,35 +36,6 @@ export class CacheManager {
   }
 
   /**
-   * Fetch board and elements from server
-   * This is a placeholder - implement when backend is ready
-   */
-  private async fetchFromServer(boardId: string): Promise<{ board: Board; elements: Element[] }> {
-    if (!this.apiBaseUrl) {
-      throw new Error('API base URL not configured');
-    }
-
-    // Fetch board metadata
-    const boardResponse = await fetch(`${this.apiBaseUrl}/boards/${boardId}`);
-    if (!boardResponse.ok) {
-      throw new Error(`Failed to fetch board: ${boardResponse.status}`);
-    }
-    const board: Board = await boardResponse.json();
-
-    // Fetch board elements
-    const elementsResponse = await fetch(`${this.apiBaseUrl}/boards/${boardId}/elements`);
-    if (!elementsResponse.ok) {
-      throw new Error(`Failed to fetch elements: ${elementsResponse.status}`);
-    }
-    const elements: Element[] = await elementsResponse.json();
-
-    // Store in local cache
-    await this.cacheBoard(board, elements);
-
-    return { board, elements };
-  }
-
-  /**
    * Cache a board and its elements locally
    */
   async cacheBoard(board: Board, elements: Element[]): Promise<void> {
@@ -111,18 +50,14 @@ export class CacheManager {
     // Update cache metadata
     await storageManager.updateBoardAccess(board.id);
 
-    console.log(`💾 Cached board ${board.id} with ${elements.length} elements`);
+    logger.debug(`💾 Cached board ${board.id} with ${elements.length} elements`);
   }
 
   /**
    * Prefetch related boards (e.g., child boards, boards in same folder)
-   * Useful for improving perceived performance
+   * Useful for improving perceived performance by preloading from local cache
    */
   async prefetchRelatedBoards(boardId: string): Promise<void> {
-    if (!connectionService.isOnline() || !connectionService.isServerReachable()) {
-      return; // Only prefetch when online
-    }
-
     const board = await db.boards.get(boardId);
     if (!board) return;
 
@@ -144,9 +79,9 @@ export class CacheManager {
       if (!isCached) {
         try {
           await this.loadBoard(id);
-          console.log(`🔮 Prefetched board ${id}`);
+          logger.debug(`🔮 Prefetched board ${id}`);
         } catch (error) {
-          console.error(`Failed to prefetch board ${id}:`, error);
+          logger.error(`Failed to prefetch board ${id}:`, error);
         }
       }
     }
@@ -163,53 +98,24 @@ export class CacheManager {
     // Remove cache metadata
     await db.cacheMetadata.delete(boardId);
 
-    console.log(`🔄 Invalidated cache for board ${boardId}`);
+    logger.debug(`🔄 Invalidated cache for board ${boardId}`);
   }
 
   /**
-   * Sync a board with the server
-   * Fetch latest version and update local cache
+   * Refresh board from local cache
+   * Use newSyncService.syncAll() for server synchronization
    */
-  async syncBoard(boardId: string): Promise<void> {
-    if (!connectionService.isOnline() || !connectionService.isServerReachable()) {
-      throw new Error('Cannot sync: offline or server unreachable');
-    }
-
-    console.log(`🔄 Syncing board ${boardId} with server...`);
-
-    // Invalidate current cache
-    await this.invalidateBoard(boardId);
-
-    // Fetch fresh data
-    await this.loadBoard(boardId);
-
-    console.log(`✅ Board ${boardId} synced successfully`);
+  async refreshBoard(boardId: string): Promise<{ board: Board; elements: Element[] }> {
+    logger.debug(`🔄 Refreshing board ${boardId} from local cache...`);
+    return await this.loadFromCache(boardId);
   }
 
   /**
-   * Preload boards list (metadata only, no elements)
-   * Useful for showing boards in sidebar/list view
+   * Get boards list from local database
+   * Use newSyncService.syncAll() to sync with server first if needed
    */
-  async preloadBoardsList(): Promise<Board[]> {
-    if (connectionService.isOnline() && connectionService.isServerReachable() && this.apiBaseUrl) {
-      try {
-        console.log('🌐 Fetching boards list from server');
-        const response = await fetch(`${this.apiBaseUrl}/boards`);
-        if (response.ok) {
-          const boards: Board[] = await response.json();
-
-          // Update local board metadata (but don't load elements)
-          await db.boards.bulkPut(boards);
-
-          return boards;
-        }
-      } catch (error) {
-        console.error('Failed to fetch boards list from server:', error);
-      }
-    }
-
-    // Fall back to local database
-    console.log('💾 Loading boards list from local database');
+  async getBoardsList(): Promise<Board[]> {
+    logger.debug('💾 Loading boards list from local database');
     return await db.boards.toArray();
   }
 

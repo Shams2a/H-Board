@@ -4,6 +4,7 @@
 
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase';
+import { logger } from '../../utils/logger';
 import type { CollaborationService } from './collaborationService';
 import type {
   UserPresence,
@@ -28,6 +29,7 @@ export class SupabaseCollaborationService implements CollaborationService {
   private elementActivityCallback: ((activities: ElementActivity[]) => void) | null = null;
   private broadcastCallback: ((event: BroadcastEvent) => void) | null = null;
   private cursorCallback: ((cursors: CursorPosition[]) => void) | null = null;
+  private reconnectCallback: (() => void) | null = null;
 
   // Intervals
   private presenceHeartbeat: NodeJS.Timeout | null = null;
@@ -39,6 +41,7 @@ export class SupabaseCollaborationService implements CollaborationService {
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private maxReconnectAttempts: number = 5;
   private isReconnecting: boolean = false;
+  private wasConnectedBefore: boolean = false;
 
   // Cache
   private activeUsers: UserPresence[] = [];
@@ -54,13 +57,13 @@ export class SupabaseCollaborationService implements CollaborationService {
     config?: Partial<CollaborationConfig>
   ): Promise<void> {
     if (!supabase) {
-      console.warn('Supabase not configured, collaboration disabled');
+      logger.warn('Supabase not configured, collaboration disabled');
       return;
     }
 
     // Cleanup any existing connection first
     if (this.channel) {
-      console.log('🔄 Cleaning up existing channel before re-initializing...');
+      logger.debug('🔄 Cleaning up existing channel before re-initializing...');
       this.cleanup();
     }
 
@@ -75,7 +78,7 @@ export class SupabaseCollaborationService implements CollaborationService {
 
     // Create channel - use boardId but without special characters
     const channelName = `board_${boardId}`;
-    console.log(`📝 Creating channel: ${channelName}`);
+    logger.debug(`📝 Creating channel: ${channelName}`);
     this.channel = supabase.channel(channelName);
 
     // postgres_changes DISABLED (causes CHANNEL_ERROR on free plan)
@@ -88,30 +91,41 @@ export class SupabaseCollaborationService implements CollaborationService {
     }*/
 
     // Subscribe to broadcasts (ENABLED for collaboration)
-    console.log('🔊 Setting up broadcast listeners...');
+    logger.debug('🔊 Setting up broadcast listeners...');
     this.setupBroadcasts();
 
     // Subscribe to channel - NO AWAIT, NO ASYNC (like RealtimeTest)
-    console.log(`🔌 Subscribing to collaboration channel (simple test)...`);
+    logger.debug(`🔌 Subscribing to collaboration channel (simple test)...`);
     this.channel.subscribe((status) => {
-      console.log(`📡 Channel status: ${status}`);
+      logger.debug(`📡 Channel status: ${status}`);
 
       if (status === 'SUBSCRIBED') {
-        console.log('✅ Collaboration channel subscribed - SUCCESS!');
+        logger.debug('✅ Collaboration channel subscribed - SUCCESS!');
+
+        // Trigger reconnect callback if this is a reconnection (not first connection)
+        if (this.wasConnectedBefore && this.reconnectAttempts > 0) {
+          logger.debug('🔄 Reconnected after disconnect - triggering catch-up...');
+          if (this.reconnectCallback) {
+            this.reconnectCallback();
+          }
+        }
+
+        // Mark that we've been connected at least once
+        this.wasConnectedBefore = true;
         // Reset reconnect attempts on successful connection
         this.reconnectAttempts = 0;
         this.isReconnecting = false;
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('❌ Collaboration channel error - attempting reconnection...');
+        logger.error('❌ Collaboration channel error - attempting reconnection...');
         this.attemptReconnect();
       } else if (status === 'TIMED_OUT') {
-        console.error('⏱️ Collaboration channel timed out - attempting reconnection...');
+        logger.error('⏱️ Collaboration channel timed out - attempting reconnection...');
         this.attemptReconnect();
       } else if (status === 'CLOSED') {
-        console.log('🔌 Collaboration channel closed');
+        logger.debug('🔌 Collaboration channel closed');
         // Don't reconnect if closed intentionally
         if (!this.isReconnecting) {
-          console.log('Channel was closed intentionally, not reconnecting');
+          logger.debug('Channel was closed intentionally, not reconnecting');
         }
       }
     });
@@ -130,7 +144,7 @@ export class SupabaseCollaborationService implements CollaborationService {
   private attemptReconnect(): void {
     if (this.isReconnecting || this.reconnectAttempts >= this.maxReconnectAttempts) {
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('❌ Max reconnection attempts reached. Please refresh the page.');
+        logger.error('❌ Max reconnection attempts reached. Please refresh the page.');
       }
       return;
     }
@@ -141,7 +155,7 @@ export class SupabaseCollaborationService implements CollaborationService {
     // Exponential backoff: 1s, 2s, 4s, 8s, 16s
     const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts - 1), 16000);
 
-    console.log(`🔄 Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`);
+    logger.debug(`🔄 Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`);
 
     this.reconnectTimeout = setTimeout(async () => {
       try {
@@ -153,11 +167,11 @@ export class SupabaseCollaborationService implements CollaborationService {
 
         // Re-initialize with the same parameters
         if (this.boardId && this.userId) {
-          console.log('🔄 Re-initializing collaboration channel...');
+          logger.debug('🔄 Re-initializing collaboration channel...');
           await this.initialize(this.boardId, this.userId, this.config);
         }
       } catch (error) {
-        console.error('❌ Reconnection failed:', error);
+        logger.error('❌ Reconnection failed:', error);
         this.isReconnecting = false;
         // Try again if we haven't hit max attempts
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
@@ -239,7 +253,7 @@ export class SupabaseCollaborationService implements CollaborationService {
           .join(',')
       : undefined;
 
-    console.log(`🔧 Subscribing to table '${table}' with filter:`, filterString || 'NO FILTER');
+    logger.debug(`🔧 Subscribing to table '${table}' with filter:`, filterString || 'NO FILTER');
 
     // Subscribe to INSERT
     if (callbacks.onInsert) {
@@ -319,7 +333,7 @@ export class SupabaseCollaborationService implements CollaborationService {
   unsubscribeFromTable(table: string): void {
     // Supabase doesn't support selective unsubscribe
     // Would need to recreate channel without this subscription
-    console.warn('Selective unsubscribe not supported in Supabase');
+    logger.warn('Selective unsubscribe not supported in Supabase');
   }
 
   private setupTableSubscriptions(): void {
@@ -329,7 +343,7 @@ export class SupabaseCollaborationService implements CollaborationService {
     // editing of specific elements. We don't subscribe at the board level here.
     // This avoids filtering by element_id with a boardId which doesn't make sense.
 
-    console.log('📋 Table subscriptions setup (element_activity will be per-element)');
+    logger.debug('📋 Table subscriptions setup (element_activity will be per-element)');
   }
 
   // ============================================
@@ -364,11 +378,11 @@ export class SupabaseCollaborationService implements CollaborationService {
     });
 
     this.channel.on('presence', { event: 'join' }, ({ newPresences }) => {
-      console.log('User joined:', newPresences);
+      logger.debug('User joined:', newPresences);
     });
 
     this.channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      console.log('User left:', leftPresences);
+      logger.debug('User left:', leftPresences);
     });
   }
 
@@ -444,16 +458,16 @@ export class SupabaseCollaborationService implements CollaborationService {
 
   async startEditingElement(elementId: string): Promise<boolean> {
     if (!this.boardId || !this.userId) {
-      console.error('❌ Cannot start editing: Service not initialized!', {
+      logger.error('❌ Cannot start editing: Service not initialized!', {
         hasBoardId: !!this.boardId,
         hasUserId: !!this.userId,
         hasChannel: !!this.channel,
       });
-      console.error('💡 Make sure useRealtimeSync hook is mounted and enabled');
+      logger.error('💡 Make sure useRealtimeSync hook is mounted and enabled');
       return false;
     }
 
-    console.log('🖊️ [startEditingElement] Starting to edit:', {
+    logger.debug('🖊️ [startEditingElement] Starting to edit:', {
       elementId,
       userId: this.userId,
       userName: this.userName,
@@ -473,14 +487,14 @@ export class SupabaseCollaborationService implements CollaborationService {
       timestamp: Date.now(),
     });
 
-    console.log('✅ [startEditingElement] Broadcast sent');
+    logger.debug('✅ [startEditingElement] Broadcast sent');
     return true;
   }
 
   async stopEditingElement(elementId: string): Promise<void> {
     if (!this.userId) return;
 
-    console.log('✅ Stopped editing element:', elementId);
+    logger.debug('✅ Stopped editing element:', elementId);
 
     // Broadcast that we stopped editing
     this.broadcast({
@@ -518,7 +532,7 @@ export class SupabaseCollaborationService implements CollaborationService {
     if (!this.channel) return;
 
     this.channel.on('broadcast', { event: 'collab_event' }, ({ payload }) => {
-      console.log('🔔 Broadcast received:', {
+      logger.debug('🔔 Broadcast received:', {
         type: payload.type,
         userId: payload.userId,
         myUserId: this.userId,
@@ -527,12 +541,12 @@ export class SupabaseCollaborationService implements CollaborationService {
       });
 
       if (this.broadcastCallback && payload.userId !== this.userId) {
-        console.log('✅ Processing broadcast (different user)');
+        logger.debug('✅ Processing broadcast (different user)');
         this.broadcastCallback(payload as BroadcastEvent);
       } else if (payload.userId === this.userId) {
-        console.log('⏭️ Ignoring own broadcast');
+        logger.debug('⏭️ Ignoring own broadcast');
       } else if (!this.broadcastCallback) {
-        console.warn('⚠️ No broadcast callback registered');
+        logger.warn('⚠️ No broadcast callback registered');
       }
 
       // Handle cursor events separately
@@ -568,7 +582,7 @@ export class SupabaseCollaborationService implements CollaborationService {
       timestamp: Date.now(),
     };
 
-    console.log('📤 Sending broadcast:', {
+    logger.debug('📤 Sending broadcast:', {
       type: event.type,
       userId: this.userId,
       hasChannel: !!this.channel,
@@ -585,6 +599,14 @@ export class SupabaseCollaborationService implements CollaborationService {
 
   subscribeToBroadcast(callback: (event: BroadcastEvent) => void): void {
     this.broadcastCallback = callback;
+  }
+
+  /**
+   * Register callback for when channel reconnects after a disconnect
+   * Used for catch-up sync to recover missed broadcasts
+   */
+  onReconnect(callback: () => void): void {
+    this.reconnectCallback = callback;
   }
 
   // ============================================

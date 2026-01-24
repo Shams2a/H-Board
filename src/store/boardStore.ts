@@ -47,7 +47,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
       // If no boards in IndexedDB, fetch from server
       if (allBoards.length === 0) {
-        allBoards = await cacheManager.preloadBoardsList();
+        allBoards = await cacheManager.getBoardsList();
       }
 
       // Filter out soft-deleted boards

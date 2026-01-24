@@ -189,10 +189,11 @@ export const useElementStore = create<ElementState>((set, get) => ({
         const contentUpdates: Partial<Element> = {};
 
         Object.keys(updates).forEach(key => {
+          const k = key as keyof Element;
           if (instanceProps.includes(key)) {
-            instanceUpdates[key] = updates[key];
+            (instanceUpdates as Record<string, unknown>)[key] = updates[k];
           } else {
-            contentUpdates[key] = updates[key];
+            (contentUpdates as Record<string, unknown>)[key] = updates[k];
           }
         });
 
@@ -352,18 +353,17 @@ export const useElementStore = create<ElementState>((set, get) => ({
       // The periodic sync will handle Supabase sync later
       // newSyncService.syncAll().catch(() => {});
 
-      // Broadcast element deletions for real-time collaboration
+      // Broadcast element deletions for real-time collaboration (batched)
       try {
         const collabService = getCollaborationService();
-        for (const id of ids) {
-          collabService.broadcast({
-            type: 'element_deleted',
-            payload: { id },
-            userId: '',
-            timestamp: Date.now()
-          });
-          console.log('🔊 Broadcasted element_deleted:', id);
-        }
+        // Send a single broadcast with all deleted IDs instead of one per element
+        collabService.broadcast({
+          type: 'elements_deleted',  // plural for batch operation
+          payload: { ids },
+          userId: '',
+          timestamp: Date.now()
+        });
+        console.log('🔊 Broadcasted elements_deleted (batch):', ids.length, 'elements');
       } catch (err) {
         console.warn('Failed to broadcast element deletions:', err);
       }
