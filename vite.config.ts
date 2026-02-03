@@ -4,6 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: true,
+    allowedHosts: ['board.horus.local', '.horus.local'],
+  },
   plugins: [
     react(),
     VitePWA({
