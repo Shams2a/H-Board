@@ -16,6 +16,7 @@ import RootBoardsZone from './RootBoardsZone';
 import { handleDragEnd, groupBoardsByFolder, type DragEndEvent } from '../../utils/dragAndDrop';
 import { ThemeToggle } from '../ThemeToggle/ThemeToggle';
 import { NewSyncStatus } from '../SyncStatus/NewSyncStatus';
+import { UserMenu } from '../Auth';
 import { newSyncService } from '../../services/supabase/newSyncService';
 import type { Board, Folder, BoardType } from '../../types';
 
@@ -143,6 +144,7 @@ export default function Dashboard() {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
+              <UserMenu />
               <NewSyncStatus />
               <button
                 onClick={() => setShowNewFolderDialog(true)}

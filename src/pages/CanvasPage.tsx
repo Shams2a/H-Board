@@ -11,6 +11,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useRealtimeSync } from '../hooks/useRealtimeSync';
 import { usePresence } from '../hooks/usePresence';
 import { useCursorTracking } from '../hooks/useCursorTracking';
+import { useAuth } from '../hooks/useAuth';
 import Breadcrumb from '../components/Canvas/Breadcrumb';
 import RemoteCursors from '../components/Collaboration/RemoteCursors';
 import Canvas from '../components/Canvas/Canvas';
@@ -22,6 +23,7 @@ import ExportModal from '../components/Modals/ExportModal';
 import { NewSyncStatus } from '../components/SyncStatus/NewSyncStatus';
 import { ThemeToggle } from '../components/ThemeToggle/ThemeToggle';
 import ActiveUsers from '../components/Collaboration/ActiveUsers';
+import { UserMenu } from '../components/Auth';
 
 export default function CanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();
@@ -30,29 +32,24 @@ export default function CanvasPage() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
-  // Generate a consistent user ID (in production, use real auth)
-  const [userId] = useState(() => {
-    let id = localStorage.getItem('h-board-user-id');
-    if (!id) {
-      id = `user-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      localStorage.setItem('h-board-user-id', id);
-    }
-    return id;
-  });
+  // Get authenticated user
+  const { userId, userName, userEmail } = useAuth();
 
   // Enable real-time collaboration
   useRealtimeSync({
     boardId: boardId || '',
-    userId,
-    enabled: !!boardId,
+    userId: userId || '',
+    userName: userName,
+    enabled: !!boardId && !!userId,
   });
 
   // Track active users
   const { activeUsers } = usePresence({
     boardId: boardId || '',
-    userId,
-    userName: `User ${userId.slice(0, 8)}`,
-    enabled: !!boardId,
+    userId: userId || '',
+    userName: userName,
+    userEmail: userEmail || undefined,
+    enabled: !!boardId && !!userId,
   });
 
   // Enable keyboard shortcuts
@@ -133,6 +130,9 @@ export default function CanvasPage() {
 
             {/* Theme Toggle */}
             <ThemeToggle />
+
+            {/* User Menu */}
+            <UserMenu />
 
             {/* Sync Status Indicator */}
             <NewSyncStatus />

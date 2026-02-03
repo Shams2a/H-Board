@@ -17,7 +17,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = supabaseUrl && supabaseAnonKey
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
-        persistSession: false, // We're not using auth yet
+        persistSession: true,
+        storageKey: 'h-board-auth',
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
       },
       db: {
         schema: 'public'

@@ -6,7 +6,8 @@
       "Bash(npm install:*)",
       "WebSearch",
       "Bash(rm:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
