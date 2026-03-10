@@ -85,3 +85,8 @@ if (typeof window !== 'undefined') {
     }
   });
 }
+
+// Selectors
+type ThemeStoreState = ReturnType<typeof useThemeStore.getState>;
+export const selectTheme = (state: ThemeStoreState) => state.theme;
+export const selectActualTheme = (state: ThemeStoreState) => state.actualTheme;

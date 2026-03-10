@@ -16,9 +16,10 @@ interface SectionProps {
   onSelect?: () => void;
 }
 
-export default function Section({ element, isSelected, onSelect }: SectionProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag } = useDragStore();
+export default function Section({ element, isSelected, onSelect: _onSelect }: SectionProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(element.content.title || '');

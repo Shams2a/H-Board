@@ -6,7 +6,7 @@
 import Dexie from 'dexie';
 import type { Table } from 'dexie';
 import { generateId } from './uuid';
-import type { Board, Element, Folder, SyncOperation, CacheMetadata, StorageSettings } from '../types';
+import type { Board, Element, Folder, SyncOperation, CacheMetadata } from '../types';
 
 export class HBoardDatabase extends Dexie {
   boards!: Table<Board, string>;
@@ -238,16 +238,17 @@ export const elementOperations = {
     if (!element) return;
 
     const elements = await this.getByBoard(element.boardId);
+    const now = new Date();
 
-    // Increment all z-indexes
-    for (const el of elements) {
-      if (el.id !== id) {
-        await this.update(el.id, { zIndex: el.zIndex + 1 });
-      }
-    }
-
-    // Set this element to 0
-    await this.update(id, { zIndex: 0 });
+    // Batch all z-index updates in a single transaction
+    await db.transaction('rw', db.elements, async () => {
+      const updatedElements = elements.map(el => ({
+        ...el,
+        zIndex: el.id === id ? 0 : el.zIndex + 1,
+        updatedAt: now,
+      }));
+      await db.elements.bulkPut(updatedElements);
+    });
   }
 };
 

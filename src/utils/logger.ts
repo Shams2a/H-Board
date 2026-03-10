@@ -3,8 +3,6 @@
  * Only logs debug messages in development mode
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
 interface LoggerConfig {
   enableDebug: boolean;
   enableInfo: boolean;
@@ -73,7 +71,7 @@ class Logger {
    */
   enableDebugMode(): void {
     this.config.enableDebug = true;
-    console.log('🔧 Debug mode enabled');
+    console.log('Debug mode enabled');
   }
 
   /**
@@ -81,7 +79,7 @@ class Logger {
    */
   disableDebugMode(): void {
     this.config.enableDebug = false;
-    console.log('🔧 Debug mode disabled');
+    console.log('Debug mode disabled');
   }
 }
 

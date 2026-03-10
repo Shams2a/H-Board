@@ -4,15 +4,18 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useBoardStore, useUIStore } from '../../store';
+import { useBoardStore, selectBoards, useUIStore, selectSidebarOpen } from '../../store';
 import BoardTree from './BoardTree';
 import SearchBar from './SearchBar';
 import FilterControls, { type FilterState } from './FilterControls';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 export default function Sidebar() {
-  const { sidebarOpen, toggleSidebar } = useUIStore();
-  const { boards, loadBoards, createBoard } = useBoardStore();
+  const sidebarOpen = useUIStore(selectSidebarOpen);
+  const toggleSidebar = useUIStore(state => state.toggleSidebar);
+  const boards = useBoardStore(selectBoards);
+  const loadBoards = useBoardStore(state => state.loadBoards);
+  const createBoard = useBoardStore(state => state.createBoard);
   const [_filters, setFilters] = useState<FilterState>({ types: [], tags: [] });
 
   useEffect(() => {

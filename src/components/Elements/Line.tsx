@@ -5,7 +5,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import type { LineElement } from '../../types';
-import { useElementStore, useUIStore, useDragStore } from '../../store';
+import { useElementStore, selectElements, useUIStore, selectZoom, selectPanX, selectPanY, useDragStore } from '../../store';
 
 interface LineProps {
   element: LineElement;
@@ -13,16 +13,19 @@ interface LineProps {
   onSelect?: () => void;
 }
 
-export default function Line({ element, isSelected, onSelect }: LineProps) {
-  const { updateElement, elements } = useElementStore();
-  const { zoom, panX, panY } = useUIStore();
-  const { draggedElementId, justFinishedDrag } = useDragStore();
-  const { setDraggedElement, clearDrag, setJustFinishedDrag } = useDragStore();
+export default function Line({ element, isSelected, onSelect: _onSelect }: LineProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const elements = useElementStore(selectElements);
+  const zoom = useUIStore(selectZoom);
+  const panX = useUIStore(selectPanX);
+  const panY = useUIStore(selectPanY);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingStart, setIsDraggingStart] = useState(false);
   const [isDraggingEnd, setIsDraggingEnd] = useState(false);
-  const [isDraggingLine, setIsDraggingLine] = useState(false);
+  const [, setIsDraggingLine] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState(element.content.label || '');
 
@@ -165,7 +168,7 @@ export default function Line({ element, isSelected, onSelect }: LineProps) {
       if (!hasMoved && (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3)) {
         hasMoved = true;
         setIsDraggingLine(true);
-        setDraggedElement(element.id, null);
+        useDragStore.getState().setDraggedElement(element.id, null);
         document.body.style.cursor = 'grabbing';
         document.body.style.userSelect = 'none';
       }
@@ -192,12 +195,12 @@ export default function Line({ element, isSelected, onSelect }: LineProps) {
       document.removeEventListener('mouseup', handleMouseUp);
 
       if (hasMoved) {
-        setJustFinishedDrag(true);
-        setTimeout(() => setJustFinishedDrag(false), 100);
+        useDragStore.getState().setJustFinishedDrag(true);
+        setTimeout(() => useDragStore.getState().setJustFinishedDrag(false), 100);
       }
 
       setIsDraggingLine(false);
-      clearDrag();
+      useDragStore.getState().clearDrag();
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };

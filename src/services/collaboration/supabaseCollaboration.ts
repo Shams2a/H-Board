@@ -26,7 +26,6 @@ export class SupabaseCollaborationService implements CollaborationService {
 
   // Callbacks
   private presenceCallback: ((users: UserPresence[]) => void) | null = null;
-  private elementActivityCallback: ((activities: ElementActivity[]) => void) | null = null;
   private broadcastCallback: ((event: BroadcastEvent) => void) | null = null;
   private cursorCallback: ((cursors: CursorPosition[]) => void) | null = null;
   private reconnectCallback: (() => void) | null = null;
@@ -221,7 +220,6 @@ export class SupabaseCollaborationService implements CollaborationService {
 
     // Clear callbacks
     this.presenceCallback = null;
-    this.elementActivityCallback = null;
     this.broadcastCallback = null;
     this.cursorCallback = null;
 
@@ -330,61 +328,15 @@ export class SupabaseCollaborationService implements CollaborationService {
     }
   }
 
-  unsubscribeFromTable(table: string): void {
+  unsubscribeFromTable(_table: string): void {
     // Supabase doesn't support selective unsubscribe
     // Would need to recreate channel without this subscription
     logger.warn('Selective unsubscribe not supported in Supabase');
   }
 
-  private setupTableSubscriptions(): void {
-    if (!this.boardId) return;
-
-    // Note: element_activity subscriptions are created on-demand when starting/stopping
-    // editing of specific elements. We don't subscribe at the board level here.
-    // This avoids filtering by element_id with a boardId which doesn't make sense.
-
-    logger.debug('📋 Table subscriptions setup (element_activity will be per-element)');
-  }
-
   // ============================================
   // Presence
   // ============================================
-
-  private setupPresence(): void {
-    if (!this.channel) return;
-
-    this.channel.on('presence', { event: 'sync' }, () => {
-      const state = this.channel!.presenceState();
-      const users: UserPresence[] = [];
-
-      Object.values(state).forEach((presences: any) => {
-        presences.forEach((presence: any) => {
-          users.push({
-            boardId: this.boardId!,
-            userId: presence.userId,
-            userName: presence.userName,
-            userEmail: presence.userEmail,
-            userColor: presence.userColor,
-            cursorX: presence.cursorX,
-            cursorY: presence.cursorY,
-            lastSeen: new Date(presence.lastSeen),
-            createdAt: new Date(presence.createdAt),
-          });
-        });
-      });
-
-      this.activeUsers = users;
-      this.notifyPresence();
-    });
-
-    this.channel.on('presence', { event: 'join' }, ({ newPresences }) => {
-      logger.debug('User joined:', newPresences);
-    });
-
-    this.channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      logger.debug('User left:', leftPresences);
-    });
-  }
 
   async updatePresence(data: Partial<UserPresence>): Promise<void> {
     if (!this.channel || !this.userId) return;
@@ -440,17 +392,6 @@ export class SupabaseCollaborationService implements CollaborationService {
     }
   }
 
-  private startPresenceHeartbeat(): void {
-    this.presenceHeartbeat = setInterval(() => {
-      this.updatePresence({});
-    }, this.config.presenceHeartbeatInterval);
-  }
-
-  private notifyPresence(): void {
-    if (this.presenceCallback) {
-      this.presenceCallback(this.getActiveUsers());
-    }
-  }
 
   // ============================================
   // Element Activity
@@ -514,14 +455,8 @@ export class SupabaseCollaborationService implements CollaborationService {
     return this.elementActivities.get(elementId) || null;
   }
 
-  subscribeToElementActivity(callback: (activities: ElementActivity[]) => void): void {
-    this.elementActivityCallback = callback;
-  }
-
-  private notifyElementActivity(): void {
-    if (this.elementActivityCallback) {
-      this.elementActivityCallback(Array.from(this.elementActivities.values()));
-    }
+  subscribeToElementActivity(_callback: (activities: ElementActivity[]) => void): void {
+    // TODO: Re-implement when element activity tracking is needed
   }
 
   // ============================================

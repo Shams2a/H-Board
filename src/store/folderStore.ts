@@ -128,3 +128,9 @@ export const useFolderStore = create<FolderState>((set, get) => ({
     return folders.filter(f => f.parentFolderId === parentId);
   }
 }));
+
+// Selectors
+type FolderStoreState = ReturnType<typeof useFolderStore.getState>;
+export const selectFolders = (state: FolderStoreState) => state.folders;
+export const selectFolderById = (id: string) => (state: FolderStoreState) =>
+  state.folders.find(f => f.id === id);

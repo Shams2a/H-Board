@@ -4,6 +4,7 @@
  */
 
 import type { ConnectionState } from '../types';
+import { logger } from '../utils/logger';
 
 type ConnectionListener = (state: ConnectionState) => void;
 
@@ -55,7 +56,7 @@ export class ConnectionService {
    * Handle browser online event
    */
   private handleOnline = (): void => {
-    console.log('🌐 Browser is online');
+    logger.info('Browser is online');
     this.state.isOnline = true;
     this.state.lastOnline = new Date();
 
@@ -69,7 +70,7 @@ export class ConnectionService {
    * Handle browser offline event
    */
   private handleOffline = (): void => {
-    console.log('📴 Browser is offline');
+    logger.info('Browser is offline');
     this.state.isOnline = false;
     this.state.serverReachable = false;
     this.notifyListeners();
@@ -107,9 +108,9 @@ export class ConnectionService {
       // Notify if status changed
       if (wasReachable !== this.state.serverReachable) {
         if (this.state.serverReachable) {
-          console.log('✅ Server is reachable');
+          logger.debug('Server is reachable');
         } else {
-          console.log('❌ Server is not reachable');
+          logger.debug('Server is not reachable');
         }
         this.notifyListeners();
       }
@@ -118,7 +119,7 @@ export class ConnectionService {
       this.state.serverReachable = false;
 
       if (wasReachable) {
-        console.log('❌ Server is not reachable:', error);
+        logger.debug('Server is not reachable:', error);
         this.notifyListeners();
       }
     }

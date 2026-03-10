@@ -57,7 +57,7 @@ export default function CollaborationTest() {
     // Test Supabase connection
     const testConnection = async () => {
       try {
-        const { data, error } = await supabase!.from('boards').select('count').limit(1);
+        const { error } = await supabase!.from('boards').select('count').limit(1);
         if (error) {
           addLog(`❌ Supabase connection error: ${error.message}`);
         } else {
@@ -213,7 +213,7 @@ export default function CollaborationTest() {
     }
 
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('presence')
         .upsert({
           board_id: testBoardId,

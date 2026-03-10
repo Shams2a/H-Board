@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { X, Download, Image, FileJson, FileText } from 'lucide-react';
-import { useElementStore, useBoardStore } from '../../store';
+import { useElementStore, selectElements, selectSelectedIds, useBoardStore } from '../../store';
 import { exportToPNG, exportToJSON, exportToTXT } from '../../utils/exportUtils';
 
 interface ExportModalProps {
@@ -18,8 +18,9 @@ type ExportFormat = 'png' | 'json' | 'txt';
 type TextStyle = 'styled' | 'plain';
 
 export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
-  const { elements, selectedIds } = useElementStore();
-  const { getCurrentBoard } = useBoardStore();
+  const elements = useElementStore(selectElements);
+  const selectedIds = useElementStore(selectSelectedIds);
+  const getCurrentBoard = useBoardStore(state => state.getCurrentBoard);
   const currentBoard = getCurrentBoard();
 
   const [scope, setScope] = useState<ExportScope>('canvas');

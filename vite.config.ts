@@ -8,6 +8,38 @@ export default defineConfig({
     host: true,
     allowedHosts: ['board.horus.local', '.horus.local'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'vendor';
+          }
+          if (id.includes('node_modules/@tiptap/')) {
+            return 'editor';
+          }
+          if (id.includes('node_modules/@radix-ui/') || id.includes('node_modules/lucide-react')) {
+            return 'ui';
+          }
+          if (id.includes('node_modules/@dnd-kit/')) {
+            return 'dnd';
+          }
+          if (id.includes('node_modules/@supabase/')) {
+            return 'supabase';
+          }
+          if (id.includes('node_modules/@tanstack/')) {
+            return 'table';
+          }
+          if (id.includes('node_modules/mathjs/')) {
+            return 'mathjs';
+          }
+          if (id.includes('node_modules/dexie/') || id.includes('node_modules/dexie-observable/') || id.includes('node_modules/dexie-syncable/')) {
+            return 'storage';
+          }
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

@@ -110,3 +110,22 @@ export const useUIStore = create<UIState>((set) => ({
   setClipboard: (elements: Element[]) => set({ clipboard: elements }),
   clearClipboard: () => set({ clipboard: [] })
 }));
+
+// Selectors
+type UIStoreState = ReturnType<typeof useUIStore.getState>;
+export const selectSidebarOpen = (state: UIStoreState) => state.sidebarOpen;
+export const selectZoom = (state: UIStoreState) => state.zoom;
+export const selectPanX = (state: UIStoreState) => state.panX;
+export const selectPanY = (state: UIStoreState) => state.panY;
+export const selectPan = (state: UIStoreState) => ({ x: state.panX, y: state.panY });
+export const selectActiveTool = (state: UIStoreState) => state.activeTool;
+export const selectGridEnabled = (state: UIStoreState) => state.gridEnabled;
+export const selectGridVisible = (state: UIStoreState) => state.gridEnabled;
+export const selectSelectedElements = (state: UIStoreState) => state.selectedElements;
+export const selectShowGrid = (state: UIStoreState) => state.gridEnabled;
+export const selectExportModalOpen = (state: UIStoreState) => state.exportModalOpen;
+export const selectSettingsModalOpen = (state: UIStoreState) => state.settingsModalOpen;
+export const selectTemplateModalOpen = (state: UIStoreState) => state.templateModalOpen;
+export const selectPresentationMode = (state: UIStoreState) => state.presentationMode;
+export const selectSaving = (state: UIStoreState) => state.saving;
+export const selectClipboard = (state: UIStoreState) => state.clipboard;

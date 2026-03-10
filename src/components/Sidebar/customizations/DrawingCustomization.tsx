@@ -20,7 +20,7 @@ const COLORS = [
 ];
 
 export default function DrawingCustomization({ element }: DrawingCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
 
   const handleColorChange = (color: string) => {
     updateElement(element.id, {

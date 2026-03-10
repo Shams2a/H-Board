@@ -23,8 +23,9 @@ interface LinkProps {
 }
 
 export default function Link({ element, isSelected, onSelect: _onSelect, parentColumnId }: LinkProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag } = useDragStore();
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isEditingUrl, setIsEditingUrl] = useState(!element.content.url);
   const [url, setUrl] = useState(element.content.url || '');

@@ -7,6 +7,7 @@ import { generateId } from '../../utils/uuid';
 import { supabaseAdapter } from './supabaseAdapter';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import type { Board, BoardElement, Folder } from '../../types';
+import { logger } from '../../utils/logger';
 
 interface SyncOperation {
   id: string;
@@ -29,7 +30,6 @@ interface SyncStats {
 
 const STORAGE_KEY = 'h-board-supabase-sync-queue';
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000; // 2 seconds
 
 class SupabaseSyncService {
   private queue: SyncOperation[] = [];
@@ -49,7 +49,7 @@ class SupabaseSyncService {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         this.queue = JSON.parse(stored);
-        console.log(`📋 Loaded ${this.queue.length} sync operations from storage`);
+        logger.debug(`Loaded ${this.queue.length} sync operations from storage`);
       }
     } catch (error) {
       console.error('Failed to load sync queue:', error);
@@ -92,7 +92,7 @@ class SupabaseSyncService {
     this.queue.push(syncOp);
     this.saveQueue();
 
-    console.log(`➕ Queued ${entityType}:${operation} ${entityId}`);
+    logger.debug(`Queued ${entityType}:${operation} ${entityId}`);
 
     // Try to sync immediately if Supabase is configured
     if (isSupabaseConfigured()) {
@@ -106,12 +106,12 @@ class SupabaseSyncService {
    */
   async processQueue(): Promise<void> {
     if (!isSupabaseConfigured()) {
-      console.log('⚠️  Supabase not configured, skipping sync');
+      logger.debug('Supabase not configured, skipping sync');
       return;
     }
 
     if (this.isProcessing) {
-      console.log('🔄 Sync already in progress');
+      logger.debug('Sync already in progress');
       return;
     }
 
@@ -121,12 +121,12 @@ class SupabaseSyncService {
     }
 
     this.isProcessing = true;
-    console.log(`🔄 Syncing ${pendingOps.length} operations...`);
+    logger.debug(`Syncing ${pendingOps.length} operations...`);
 
     // Check if Supabase is reachable
     const isReachable = await supabaseAdapter.healthCheck();
     if (!isReachable) {
-      console.log('⚠️  Supabase not reachable, will retry later');
+      logger.debug('Supabase not reachable, will retry later');
       this.isProcessing = false;
       return;
     }
@@ -146,7 +146,7 @@ class SupabaseSyncService {
 
         op.status = 'synced';
         synced++;
-        console.log(`✅ Synced ${op.entityType}:${op.operation} ${op.entityId}`);
+        logger.debug(`Synced ${op.entityType}:${op.operation} ${op.entityId}`);
       } catch (error) {
         op.retries++;
         op.error = error instanceof Error ? error.message : 'Unknown error';
@@ -154,10 +154,10 @@ class SupabaseSyncService {
         if (op.retries >= MAX_RETRIES) {
           op.status = 'failed';
           failed++;
-          console.error(`❌ Failed to sync ${op.entityType}:${op.operation} ${op.entityId} after ${MAX_RETRIES} retries`);
+          console.error(`Failed to sync ${op.entityType}:${op.operation} ${op.entityId} after ${MAX_RETRIES} retries`);
         } else {
           op.status = 'pending';
-          console.warn(`⚠️  Retry ${op.retries}/${MAX_RETRIES} for ${op.entityType}:${op.operation} ${op.entityId}`);
+          console.warn(`Retry ${op.retries}/${MAX_RETRIES} for ${op.entityType}:${op.operation} ${op.entityId}`);
         }
       }
 
@@ -165,7 +165,7 @@ class SupabaseSyncService {
     }
 
     this.isProcessing = false;
-    console.log(`✅ Sync complete. ${synced} synced, ${failed} failed`);
+    logger.debug(`Sync complete. ${synced} synced, ${failed} failed`);
 
     // Clean up synced operations (keep only last 100)
     this.cleanupSyncedOperations();
@@ -235,7 +235,7 @@ class SupabaseSyncService {
         if (!createResult.success) {
           // If board already exists (duplicate key), treat as success
           if (createResult.error?.includes('duplicate key') || createResult.error?.includes('23505')) {
-            console.log(`⚠️  Board ${id} already exists in Supabase, skipping create`);
+            logger.debug(`Board ${id} already exists in Supabase, skipping create`);
             return;
           }
           throw new Error(createResult.error || 'Failed to create board');
@@ -246,7 +246,7 @@ class SupabaseSyncService {
         if (!updateResult.success) {
           // If board doesn't exist (PGRST116), try to create it instead
           if (updateResult.error?.includes('PGRST116') || updateResult.error?.includes('0 rows')) {
-            console.log(`⚠️  Board ${id} not found in Supabase, creating it instead`);
+            logger.debug(`Board ${id} not found in Supabase, creating it instead`);
             const createFallbackResult = await supabaseAdapter.board.create(data!);
             if (!createFallbackResult.success) {
               throw new Error(createFallbackResult.error || 'Failed to create board as fallback');
@@ -261,7 +261,7 @@ class SupabaseSyncService {
         if (!deleteResult.success) {
           // If board doesn't exist, treat as success
           if (deleteResult.error?.includes('PGRST116') || deleteResult.error?.includes('0 rows')) {
-            console.log(`⚠️  Board ${id} already deleted from Supabase`);
+            logger.debug(`Board ${id} already deleted from Supabase`);
             return;
           }
           throw new Error(deleteResult.error || 'Failed to delete board');
@@ -280,7 +280,7 @@ class SupabaseSyncService {
         if (!createResult.success) {
           // If element already exists (duplicate key), treat as success
           if (createResult.error?.includes('duplicate key') || createResult.error?.includes('23505')) {
-            console.log(`⚠️  Element ${id} already exists in Supabase, skipping create`);
+            logger.debug(`Element ${id} already exists in Supabase, skipping create`);
             return;
           }
           // If parent board doesn't exist, this is a real error
@@ -295,7 +295,7 @@ class SupabaseSyncService {
         if (!updateResult.success) {
           // If element doesn't exist (PGRST116), try to create it instead
           if (updateResult.error?.includes('PGRST116') || updateResult.error?.includes('0 rows')) {
-            console.log(`⚠️  Element ${id} not found in Supabase, creating it instead`);
+            logger.debug(`Element ${id} not found in Supabase, creating it instead`);
             const createFallbackResult = await supabaseAdapter.element.create(data!);
             if (!createFallbackResult.success) {
               // If parent board doesn't exist, this is expected - board needs to sync first
@@ -314,7 +314,7 @@ class SupabaseSyncService {
         if (!deleteResult.success) {
           // If element doesn't exist, treat as success
           if (deleteResult.error?.includes('PGRST116') || deleteResult.error?.includes('0 rows')) {
-            console.log(`⚠️  Element ${id} already deleted from Supabase`);
+            logger.debug(`Element ${id} already deleted from Supabase`);
             return;
           }
           throw new Error(deleteResult.error || 'Failed to delete element');
@@ -333,7 +333,7 @@ class SupabaseSyncService {
         if (!createResult.success) {
           // If folder already exists (duplicate key), treat as success
           if (createResult.error?.includes('duplicate key') || createResult.error?.includes('23505')) {
-            console.log(`⚠️  Folder ${id} already exists in Supabase, skipping create`);
+            logger.debug(`Folder ${id} already exists in Supabase, skipping create`);
             return;
           }
           throw new Error(createResult.error || 'Failed to create folder');
@@ -344,7 +344,7 @@ class SupabaseSyncService {
         if (!updateResult.success) {
           // If folder doesn't exist (PGRST116), try to create it instead
           if (updateResult.error?.includes('PGRST116') || updateResult.error?.includes('0 rows')) {
-            console.log(`⚠️  Folder ${id} not found in Supabase, creating it instead`);
+            logger.debug(`Folder ${id} not found in Supabase, creating it instead`);
             const createFallbackResult = await supabaseAdapter.folder.create(data!);
             if (!createFallbackResult.success) {
               throw new Error(createFallbackResult.error || 'Failed to create folder as fallback');
@@ -359,7 +359,7 @@ class SupabaseSyncService {
         if (!deleteResult.success) {
           // If folder doesn't exist, treat as success
           if (deleteResult.error?.includes('PGRST116') || deleteResult.error?.includes('0 rows')) {
-            console.log(`⚠️  Folder ${id} already deleted from Supabase`);
+            logger.debug(`Folder ${id} already deleted from Supabase`);
             return;
           }
           throw new Error(deleteResult.error || 'Failed to delete folder');
@@ -413,7 +413,7 @@ class SupabaseSyncService {
   clearSynced(): void {
     this.queue = this.queue.filter(op => op.status !== 'synced');
     this.saveQueue();
-    console.log('🧹 Cleared synced operations');
+    logger.debug('Cleared synced operations');
   }
 
   /**
@@ -429,7 +429,7 @@ class SupabaseSyncService {
         ...toKeep
       ];
       this.saveQueue();
-      console.log('🧹 Cleaned up old synced operations');
+      logger.debug('Cleaned up old synced operations');
     }
   }
 

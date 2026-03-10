@@ -165,7 +165,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
             </p>
           ) : (
             localFilters.map((filter) => {
-              const property = properties.find((p) => p.id === filter.propertyId);
+              properties.find((p) => p.id === filter.propertyId);
               const operators = getOperatorsForProperty(filter.propertyId);
               const showValue = needsValue(filter.operator);
 
@@ -201,7 +201,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                   {showValue && (
                     <input
                       type="text"
-                      value={filter.value}
+                      value={filter.value != null ? String(filter.value) : ''}
                       onChange={(e) => handleUpdateFilter(filter.id!, 'value', e.target.value)}
                       placeholder="Value"
                       className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"

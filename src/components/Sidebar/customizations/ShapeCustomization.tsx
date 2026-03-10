@@ -31,7 +31,7 @@ const SHAPES: Array<{ type: ShapeType; icon: React.ReactNode; label: string }> =
 ];
 
 export default function ShapeCustomization({ element }: ShapeCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
 
   const handleShapeChange = (shapeType: ShapeType) => {
     updateElement(element.id, {

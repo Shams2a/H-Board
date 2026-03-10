@@ -5,13 +5,16 @@
 
 import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useBoardStore, useDragStore } from '../../store';
+import { useBoardStore, selectCurrentBoardId, useDragStore } from '../../store';
 import { ChevronRight, Home } from 'lucide-react';
 
 export default function Breadcrumb() {
   const navigate = useNavigate();
-  const { currentBoardId, getBoardPath } = useBoardStore();
-  const { draggedElementId, dropTargetBoardId, isDropReady, setDropTargetBoard, setDropReady } = useDragStore();
+  const currentBoardId = useBoardStore(selectCurrentBoardId);
+  const getBoardPath = useBoardStore(state => state.getBoardPath);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const dropTargetBoardId = useDragStore(state => state.dropTargetBoardId);
+  const isDropReady = useDragStore(state => state.isDropReady);
   const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Clear timer on unmount
@@ -25,9 +28,9 @@ export default function Breadcrumb() {
 
   const handleDragEnter = (boardId: string) => {
     if (draggedElementId && boardId !== currentBoardId) {
-      setDropTargetBoard(boardId);
+      useDragStore.getState().setDropTargetBoard(boardId);
       hoverTimerRef.current = setTimeout(() => {
-        setDropReady(true);
+        useDragStore.getState().setDropReady(true);
       }, 1000);
     }
   };
@@ -38,7 +41,7 @@ export default function Breadcrumb() {
       hoverTimerRef.current = null;
     }
     if (dropTargetBoardId === boardId) {
-      setDropTargetBoard(null);
+      useDragStore.getState().setDropTargetBoard(null);
     }
   };
 

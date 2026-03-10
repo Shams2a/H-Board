@@ -3,10 +3,10 @@
  * Displays a Kanban column with header, cards, and add button
  */
 
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useKanbanStore } from '../../store/kanbanStore';
+import { useKanbanColumnStore, useKanbanCardStore } from '../../store/kanbanStore';
 import KanbanCard from './KanbanCard';
 import { Plus, GripVertical, MoreVertical, Trash2, Edit2 } from 'lucide-react';
 import type { KanbanColumn as KanbanColumnType, KanbanCard as KanbanCardType } from '../../types';
@@ -17,8 +17,8 @@ interface KanbanColumnProps {
   boardId: string;
 }
 
-export default function KanbanColumn({ column, cards, boardId }: KanbanColumnProps) {
-  const { createCard, updateColumn, deleteColumn } = useKanbanStore();
+const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _boardId }: KanbanColumnProps) {
+  // Actions accessed via getState() since they're only used in event handlers
 
   const [isAddingCard, setIsAddingCard] = useState(false);
   const [newCardTitle, setNewCardTitle] = useState('');
@@ -49,7 +49,7 @@ export default function KanbanColumn({ column, cards, boardId }: KanbanColumnPro
   const handleAddCard = async () => {
     if (!newCardTitle.trim()) return;
 
-    await createCard(column.id, newCardTitle);
+    await useKanbanCardStore.getState().createCard(column.id, newCardTitle);
     setNewCardTitle('');
     setIsAddingCard(false);
   };
@@ -62,7 +62,7 @@ export default function KanbanColumn({ column, cards, boardId }: KanbanColumnPro
       return;
     }
 
-    await updateColumn(column.id, { name: editedName });
+    await useKanbanColumnStore.getState().updateColumn(column.id, { name: editedName });
     setIsEditingName(false);
   };
 
@@ -75,7 +75,7 @@ export default function KanbanColumn({ column, cards, boardId }: KanbanColumnPro
       if (!confirmed) return;
     }
 
-    await deleteColumn(column.id);
+    await useKanbanColumnStore.getState().deleteColumn(column.id);
     setShowMenu(false);
   };
 
@@ -245,4 +245,6 @@ export default function KanbanColumn({ column, cards, boardId }: KanbanColumnPro
       </div>
     </div>
   );
-}
+});
+
+export default KanbanColumn;

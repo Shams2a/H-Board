@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useRef } from 'react';
-import { useElementStore, useUIStore } from '../store';
+import { useElementStore, useUIStore, selectGridEnabled } from '../store';
 
 type ResizeDirection = 'se' | 'nw' | 'ne' | 'sw';
 
@@ -25,8 +25,10 @@ export function useResizable({
   maxHeight = 800,
   direction = 'se'
 }: UseResizableProps) {
-  const { updateSize, updatePosition, getElementById } = useElementStore();
-  const { gridEnabled } = useUIStore();
+  const updateSize = useElementStore(state => state.updateSize);
+  const updatePosition = useElementStore(state => state.updatePosition);
+  const getElementById = useElementStore(state => state.getElementById);
+  const gridEnabled = useUIStore(selectGridEnabled);
   const startPosRef = useRef({ x: 0, y: 0 });
   const startSizeRef = useRef({ width: 0, height: 0 });
   const startElementPosRef = useRef({ x: 0, y: 0 });

@@ -15,3 +15,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   activeEditor: null,
   setActiveEditor: (editor) => set({ activeEditor: editor }),
 }));
+
+// Selectors
+type EditorStoreState = ReturnType<typeof useEditorStore.getState>;
+export const selectActiveEditor = (state: EditorStoreState) => state.activeEditor;

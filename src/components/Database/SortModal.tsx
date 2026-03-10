@@ -75,7 +75,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
             </p>
           ) : (
             localSorts.map((sort, index) => {
-              const property = properties.find((p) => p.id === sort.propertyId);
+              properties.find((p) => p.id === sort.propertyId);
 
               return (
                 <div key={sort.id!} className="flex items-center gap-2">

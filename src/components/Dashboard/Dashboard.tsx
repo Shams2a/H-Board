@@ -4,9 +4,9 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, SlidersHorizontal, X, Grid3x3, List, FolderPlus } from 'lucide-react';
+import { Plus, Search, SlidersHorizontal, Grid3x3, List, FolderPlus } from 'lucide-react';
 import { DndContext } from '@dnd-kit/core';
-import { useBoardStore, useFolderStore } from '../../store';
+import { useBoardStore, selectBoards, useFolderStore, selectFolders } from '../../store';
 import BoardCard from './BoardCard';
 import BoardEditModal from './BoardEditModal';
 import BoardTypeSelector from './BoardTypeSelector';
@@ -24,8 +24,13 @@ type SortBy = 'name' | 'created' | 'updated';
 type ViewMode = 'grid' | 'list';
 
 export default function Dashboard() {
-  const { boards, loadBoards, createBoard, updateBoard, getAllTags } = useBoardStore();
-  const { folders, loadFolders } = useFolderStore();
+  const boards = useBoardStore(selectBoards);
+  const loadBoards = useBoardStore(state => state.loadBoards);
+  const createBoard = useBoardStore(state => state.createBoard);
+  const updateBoard = useBoardStore(state => state.updateBoard);
+  const getAllTags = useBoardStore(state => state.getAllTags);
+  const folders = useFolderStore(selectFolders);
+  const loadFolders = useFolderStore(state => state.loadFolders);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<SortBy>('updated');

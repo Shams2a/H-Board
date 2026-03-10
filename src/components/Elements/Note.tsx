@@ -4,9 +4,9 @@
  */
 
 import { useEditor, EditorContent } from '@tiptap/react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import type { NoteElement } from '../../types';
-import { useElementStore, useDragStore, useEditorStore, useEditingStore } from '../../store';
+import { useElementStore, useDragStore, useEditorStore, useEditingStore, selectEditingUsers } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
 import { useDarkModeColor } from '../../hooks/useDarkModeColor';
@@ -26,13 +26,15 @@ interface NoteProps {
   parentColumnId?: string;
 }
 
-export default function Note({ element, isSelected, onSelect, parentColumnId }: NoteProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
-  const { setActiveEditor } = useEditorStore();
+const Note = memo(function Note({ element, isSelected, onSelect: _onSelect, parentColumnId }: NoteProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
+  const dropTargetBoardId = useDragStore(state => state.dropTargetBoardId);
+  const isDropReady = useDragStore(state => state.isDropReady);
 
   // Subscribe to editingStore - listen to the whole map to trigger re-renders
-  const editingUsers = useEditingStore((state) => state.editingUsers);
+  const editingUsers = useEditingStore(selectEditingUsers);
 
   // Find if someone is editing this element
   const editingUser = React.useMemo(() => {
@@ -66,7 +68,7 @@ export default function Note({ element, isSelected, onSelect, parentColumnId }: 
   // Get dark mode adapted background color
   const backgroundColor = useDarkModeColor(element.style.backgroundColor || '#FFFFFF');
 
-  const { handleMouseDown, hasMoved } = useDraggable({
+  const { handleMouseDown } = useDraggable({
     elementId: element.id,
     parentColumnId
   });
@@ -184,15 +186,15 @@ export default function Note({ element, isSelected, onSelect, parentColumnId }: 
   // Set active editor for customization panel
   useEffect(() => {
     if (isSelected && editor) {
-      setActiveEditor(editor);
+      useEditorStore.getState().setActiveEditor(editor);
     }
     return () => {
       // Clear if this was the active editor
       if (isSelected) {
-        setActiveEditor(null);
+        useEditorStore.getState().setActiveEditor(null);
       }
     };
-  }, [isSelected, editor, setActiveEditor]);
+  }, [isSelected, editor]);
 
   useEffect(() => {
     return () => {
@@ -478,4 +480,6 @@ export default function Note({ element, isSelected, onSelect, parentColumnId }: 
       )}
     </div>
   );
-}
+});
+
+export default Note;

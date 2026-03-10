@@ -51,7 +51,7 @@ export type RealtimeEventType =
   | 'UPDATE'
   | 'DELETE';
 
-export interface RealtimePayload<T = any> {
+export interface RealtimePayload<T = Record<string, unknown>> {
   eventType: RealtimeEventType;
   new?: T;
   old?: T;
@@ -105,7 +105,8 @@ export interface BroadcastEvent {
     | 'database_view_created'
     | 'database_view_updated'
     | 'database_view_deleted';
-  payload: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: Record<string, any>;
   userId: string;
   timestamp: number;
 }

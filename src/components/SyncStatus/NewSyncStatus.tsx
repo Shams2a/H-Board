@@ -3,8 +3,8 @@
  * Displays connection status, sync progress, and storage info
  */
 
-import React, { useEffect, useState } from 'react';
-import { Wifi, WifiOff, Cloud, CloudOff, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Wifi, Cloud, CloudOff, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 import { isSupabaseConfigured } from '../../lib/supabase';
 import { newSyncService } from '../../services/supabase/newSyncService';
 import { storageManager } from '../../services/StorageManager';
@@ -43,7 +43,6 @@ export function NewSyncStatus() {
 
   const totalSynced = stats.boards.synced + stats.elements.synced + stats.folders.synced;
   const totalFailed = stats.boards.failed + stats.elements.failed + stats.folders.failed;
-  const totalDeleted = stats.boards.deleted + stats.elements.deleted + stats.folders.deleted;
   const totalDownloaded = (stats.boards.downloaded || 0) + (stats.elements.downloaded || 0) + (stats.folders.downloaded || 0);
 
   // Get status icon and color

@@ -3,11 +3,11 @@
  * Displays a compact Kanban card with drag & drop
  */
 
-import { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Calendar, Paperclip, CheckSquare, AlertCircle, Trash2, GripVertical } from 'lucide-react';
-import { useKanbanStore } from '../../store/kanbanStore';
+import { useKanbanCardStore } from '../../store/kanbanStore';
 import KanbanCardModal from './KanbanCardModal';
 import type { KanbanCard as KanbanCardType } from '../../types';
 
@@ -30,8 +30,8 @@ const PRIORITY_ICONS = {
   urgent: '‼'
 };
 
-export default function KanbanCard({ card, isDragging = false }: KanbanCardProps) {
-  const { updateCard, deleteCard } = useKanbanStore();
+const KanbanCard = memo(function KanbanCard({ card, isDragging = false }: KanbanCardProps) {
+  // Actions accessed via getState() since they're only used in event handlers
   const {
     attributes,
     listeners,
@@ -67,7 +67,7 @@ export default function KanbanCard({ card, isDragging = false }: KanbanCardProps
       setEditedTitle(card.title);
       return;
     }
-    await updateCard(card.id, { title: editedTitle });
+    await useKanbanCardStore.getState().updateCard(card.id, { title: editedTitle });
     setIsEditingTitle(false);
   };
 
@@ -75,12 +75,12 @@ export default function KanbanCard({ card, isDragging = false }: KanbanCardProps
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) {
-      await deleteCard(card.id);
+      await useKanbanCardStore.getState().deleteCard(card.id);
     }
   };
 
   // Handle click to open modal (with delay to detect double-click)
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (_e: React.MouseEvent) => {
     // Don't open modal if editing title
     if (isEditingTitle) return;
 
@@ -268,4 +268,6 @@ export default function KanbanCard({ card, isDragging = false }: KanbanCardProps
       />
     </>
   );
-}
+});
+
+export default KanbanCard;

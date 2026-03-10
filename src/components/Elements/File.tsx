@@ -49,8 +49,9 @@ const formatFileSize = (bytes: number): string => {
 };
 
 export default function File({ element, isSelected, onSelect: _onSelect, parentColumnId }: FileProps) {
-  const { updateElement, deleteElement: _deleteElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag } = useDragStore();
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);

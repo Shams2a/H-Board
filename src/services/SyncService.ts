@@ -9,8 +9,9 @@ import { connectionService } from './ConnectionService';
 import { supabaseBoardService } from './supabase/boardService';
 import { supabaseElementService } from './supabase/elementService';
 import { supabaseFolderService } from './supabase/folderService';
-import { isSupabaseConfigured, testSupabaseConnection } from '../lib/supabase';
-import type { SyncOperation, SyncOperationType, SyncEntityType, Board, Element, Folder } from '../types';
+import { isSupabaseConfigured } from '../lib/supabase';
+import type { SyncOperation, SyncOperationType, SyncEntityType } from '../types';
+import { logger } from '../utils/logger';
 
 const MAX_RETRY_COUNT = 3;
 const RETRY_DELAY_MS = 2000; // Initial retry delay
@@ -20,13 +21,12 @@ type SyncListener = (operation: SyncOperation) => void;
 export class SyncService {
   private listeners: SyncListener[] = [];
   private isProcessing = false;
-  private apiBaseUrl: string | null = null;
 
   constructor() {
     // Subscribe to connection changes to trigger sync
     connectionService.subscribe((state) => {
       if (state.isOnline && state.serverReachable) {
-        console.log('🔄 Connection restored, processing sync queue...');
+        logger.info('Connection restored, processing sync queue...');
         this.processQueue();
       }
     });
@@ -37,9 +37,8 @@ export class SyncService {
    * Call this when the backend is ready
    * @deprecated Use Supabase configuration instead
    */
-  configureAPI(baseUrl: string): void {
-    this.apiBaseUrl = baseUrl;
-    console.log(`✅ Sync API configured: ${baseUrl}`);
+  configureAPI(_baseUrl: string): void {
+    logger.info(`Sync API configured: ${_baseUrl}`);
   }
 
   /**
@@ -70,7 +69,7 @@ export class SyncService {
     };
 
     await db.syncQueue.add(operation);
-    console.log(`📝 Queued ${type} operation for ${entityType} ${entityId}`);
+    logger.debug(`Queued ${type} operation for ${entityType} ${entityId}`);
 
     // Try to process immediately if online
     if (connectionService.isOnline() && connectionService.isServerReachable()) {
@@ -84,19 +83,19 @@ export class SyncService {
   async processQueue(): Promise<void> {
     // Prevent concurrent processing
     if (this.isProcessing) {
-      console.log('⏳ Sync already in progress...');
+      logger.debug('Sync already in progress...');
       return;
     }
 
     // Check if we're online and server is reachable
     if (!connectionService.isOnline() || !connectionService.isServerReachable()) {
-      console.log('📴 Cannot sync: offline or server unreachable');
+      logger.debug('Cannot sync: offline or server unreachable');
       return;
     }
 
     // Check if Supabase is configured
     if (!isSupabaseConfigured()) {
-      console.log('⚠️  Supabase not configured, sync postponed');
+      logger.debug('Supabase not configured, sync postponed');
       return;
     }
 
@@ -109,15 +108,15 @@ export class SyncService {
         .equals('pending')
         .sortBy('timestamp');
 
-      console.log(`🔄 Processing ${pendingOps.length} pending operations...`);
+      logger.debug(`Processing ${pendingOps.length} pending operations...`);
 
       for (const operation of pendingOps) {
         await this.processOperation(operation);
       }
 
-      console.log('✅ Sync queue processed successfully');
+      logger.debug('Sync queue processed successfully');
     } catch (error) {
-      console.error('❌ Error processing sync queue:', error);
+      console.error('Error processing sync queue:', error);
     } finally {
       this.isProcessing = false;
     }
@@ -136,12 +135,12 @@ export class SyncService {
         syncStatus: 'synced'
       });
 
-      console.log(`✅ Synced ${operation.type} ${operation.entityType} ${operation.entityId}`);
+      logger.debug(`Synced ${operation.type} ${operation.entityType} ${operation.entityId}`);
 
       // Notify listeners
       this.notifyListeners(operation);
     } catch (error) {
-      console.error(`❌ Failed to sync operation ${operation.id}:`, error);
+      console.error(`Failed to sync operation ${operation.id}:`, error);
 
       // Increment retry count
       const newRetryCount = operation.retryCount + 1;
@@ -153,7 +152,7 @@ export class SyncService {
           retryCount: newRetryCount,
           error: error instanceof Error ? error.message : String(error)
         });
-        console.log(`🚫 Max retries exceeded for operation ${operation.id}`);
+        logger.warn(`Max retries exceeded for operation ${operation.id}`);
       } else {
         // Schedule retry with exponential backoff
         await db.syncQueue.update(operation.id, {
@@ -162,7 +161,7 @@ export class SyncService {
         });
 
         const delay = RETRY_DELAY_MS * Math.pow(2, newRetryCount - 1);
-        console.log(`🔄 Retrying operation ${operation.id} in ${delay}ms (attempt ${newRetryCount}/${MAX_RETRY_COUNT})`);
+        logger.debug(`Retrying operation ${operation.id} in ${delay}ms (attempt ${newRetryCount}/${MAX_RETRY_COUNT})`);
 
         setTimeout(() => {
           this.processQueue();
@@ -304,7 +303,7 @@ export class SyncService {
       });
     }
 
-    console.log(`🔄 Retrying ${failedOps.length} failed operations...`);
+    logger.debug(`Retrying ${failedOps.length} failed operations...`);
     await this.processQueue();
   }
 
@@ -317,7 +316,7 @@ export class SyncService {
       .equals('synced')
       .delete();
 
-    console.log(`🧹 Cleared ${syncedCount} synced operations from queue`);
+    logger.debug(`Cleared ${syncedCount} synced operations from queue`);
   }
 
   /**

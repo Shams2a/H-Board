@@ -19,8 +19,9 @@ interface ShapeProps {
 }
 
 export default function Shape({ element, isSelected, onSelect: _onSelect, parentColumnId }: ShapeProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag } = useDragStore();
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showShapeMenu, setShowShapeMenu] = useState(false);
 

@@ -3,16 +3,30 @@
  * Router setup with authentication
  */
 
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { initializeDatabase } from './utils/db';
 import { useBeforeUnload } from './hooks/useBeforeUnload';
 import { useAuth } from './hooks/useAuth';
 import { ProtectedRoute, LoginPage, AuthCallback } from './components/Auth';
-import Dashboard from './components/Dashboard/Dashboard';
-import CanvasPage from './pages/CanvasPage';
-import CollaborationTest from './pages/CollaborationTest';
-import RealtimeTest from './pages/RealtimeTest';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy-loaded route-level components for code splitting
+const Dashboard = lazy(() => import('./components/Dashboard/Dashboard'));
+const CanvasPage = lazy(() => import('./pages/CanvasPage'));
+const CollaborationTest = lazy(() => import('./pages/CollaborationTest'));
+const RealtimeTest = lazy(() => import('./pages/RealtimeTest'));
+
+function LoadingSpinner() {
+  return (
+    <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="text-center">
+        <div className="w-12 h-12 mx-auto mb-4 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-gray-600 dark:text-gray-400">Chargement...</p>
+      </div>
+    </div>
+  );
+}
 
 function AppContent() {
   const { isLoading } = useAuth();
@@ -39,6 +53,7 @@ function AppContent() {
 
   return (
     <div className="h-screen w-screen overflow-hidden">
+      <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
@@ -63,27 +78,32 @@ function AppContent() {
           }
         />
 
-        <Route
-          path="/test/collaboration/:boardId?"
-          element={
-            <ProtectedRoute>
-              <CollaborationTest />
-            </ProtectedRoute>
-          }
-        />
+        {import.meta.env.DEV && (
+          <>
+            <Route
+              path="/test/collaboration/:boardId?"
+              element={
+                <ProtectedRoute>
+                  <CollaborationTest />
+                </ProtectedRoute>
+              }
+            />
 
-        <Route
-          path="/test/realtime"
-          element={
-            <ProtectedRoute>
-              <RealtimeTest />
-            </ProtectedRoute>
-          }
-        />
+            <Route
+              path="/test/realtime"
+              element={
+                <ProtectedRoute>
+                  <RealtimeTest />
+                </ProtectedRoute>
+              }
+            />
+          </>
+        )}
 
         {/* Redirect unknown routes to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </div>
   );
 }
@@ -91,7 +111,9 @@ function AppContent() {
 function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

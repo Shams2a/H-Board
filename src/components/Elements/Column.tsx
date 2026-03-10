@@ -3,9 +3,9 @@
  * Container for organizing elements vertically with a title
  */
 
-import { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useMemo, memo } from 'react';
 import type { ColumnElement } from '../../types';
-import { useElementStore, useDragStore } from '../../store';
+import { useElementStore, selectElements, selectSelectedIds, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { useResizable } from '../../hooks/useResizable';
 import { useDarkModeColor } from '../../hooks/useDarkModeColor';
@@ -18,9 +18,15 @@ interface ColumnProps {
   onSelect?: () => void;
 }
 
-export default function Column({ element, isSelected, onSelect }: ColumnProps) {
-  const { updateElement, getElementById, elements, selectElement, selectedIds } = useElementStore();
-  const { draggedElementId, draggedFromColumnId, justFinishedDrag } = useDragStore();
+const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }: ColumnProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const getElementById = useElementStore(state => state.getElementById);
+  const elements = useElementStore(selectElements);
+  const selectElement = useElementStore(state => state.selectElement);
+  const selectedIds = useElementStore(selectSelectedIds);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const draggedFromColumnId = useDragStore(state => state.draggedFromColumnId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -263,9 +269,9 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
   }, [draggedElementId, draggedFromColumnId, isHovering, dropIndex, element.content.childrenIds, element.id, getElementById, updateElement]);
 
   // Get child elements
-  const childElements = elements.filter(el =>
+  const childElements = useMemo(() => elements.filter(el =>
     element.content.childrenIds.includes(el.id)
-  );
+  ), [elements, element.content.childrenIds]);
 
   // Determine layout mode based on column width
   const isHorizontalLayout = element.size.width >= 500;
@@ -471,4 +477,6 @@ export default function Column({ element, isSelected, onSelect }: ColumnProps) {
       )}
     </div>
   );
-}
+});
+
+export default Column;

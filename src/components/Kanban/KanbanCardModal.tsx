@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Calendar, Tag, Flag, CheckSquare, Paperclip, Image as ImageIcon, Trash2, Plus, Download, Upload } from 'lucide-react';
 import { generateId } from '../../utils/uuid';
-import { useKanbanStore } from '../../store/kanbanStore';
+import { useKanbanCardStore } from '../../store/kanbanStore';
 import type { KanbanCard, KanbanPriority, ChecklistItem, Attachment } from '../../types';
 
 interface KanbanCardModalProps {
@@ -91,7 +91,7 @@ function ChecklistItemRow({
 }
 
 export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardModalProps) {
-  const { updateCard, deleteCard } = useKanbanStore();
+  // Actions accessed via getState() since they're only used in event handlers
 
   // Local state for editing
   const [title, setTitle] = useState(card.title);
@@ -127,7 +127,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
   if (!isOpen) return null;
 
   const handleSave = async () => {
-    await updateCard(card.id, {
+    await useKanbanCardStore.getState().updateCard(card.id, {
       title,
       description,
       priority,
@@ -143,7 +143,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
 
   const handleDelete = async () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette carte ?')) {
-      await deleteCard(card.id);
+      await useKanbanCardStore.getState().deleteCard(card.id);
       onClose();
     }
   };
@@ -405,7 +405,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
 
             {/* Checklist items */}
             <div className="space-y-2 mb-2">
-              {checklist.map((item, index) => (
+              {checklist.map((item, _index) => (
                 <ChecklistItemRow
                   key={item.id}
                   item={item}

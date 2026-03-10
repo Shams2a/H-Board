@@ -3,9 +3,9 @@
  * Smart connector with anchor points, curved/elbow paths, and advanced styling
  */
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
 import type { ArrowElement, Position, AnchorPosition, Element } from '../../types';
-import { useElementStore, useDragStore } from '../../store';
+import { useElementStore, selectElements, useDragStore } from '../../store';
 
 interface ArrowProps {
   element: ArrowElement;
@@ -72,7 +72,7 @@ function generateCurvedPath(start: Position, end: Position, startAnchor: AnchorP
 }
 
 // Generate elbow/orthogonal path (right angles)
-function generateElbowPath(start: Position, end: Position, startAnchor: AnchorPosition, endAnchor: AnchorPosition): string {
+function generateElbowPath(start: Position, end: Position, startAnchor: AnchorPosition, _endAnchor: AnchorPosition): string {
   const path: string[] = [`M ${start.x} ${start.y}`];
 
   // Determine primary direction from start anchor
@@ -107,9 +107,11 @@ function generateStraightPath(start: Position, end: Position): string {
   return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
 }
 
-export default function Arrow({ element, isSelected }: ArrowProps) {
-  const { updateElement, elements, selectElement } = useElementStore();
-  const { justFinishedDrag } = useDragStore();
+const Arrow = memo(function Arrow({ element, isSelected }: ArrowProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const elements = useElementStore(selectElements);
+  const selectElement = useElementStore(state => state.selectElement);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const [isEditingLabel, setIsEditingLabel] = useState(false);
   const [labelValue, setLabelValue] = useState(element.content.label || '');
   const labelInputRef = useRef<HTMLInputElement>(null);
@@ -157,14 +159,15 @@ export default function Arrow({ element, isSelected }: ArrowProps) {
   const localEndY = endPoint.y - minY + padding;
 
   // Translate path to local coordinates
-  const localPath = path
+  const localPath = useMemo(() => path
     .replace(/M ([\d.-]+) ([\d.-]+)/g, (_, x, y) =>
       `M ${parseFloat(x) - minX + padding} ${parseFloat(y) - minY + padding}`)
     .replace(/L ([\d.-]+) ([\d.-]+)/g, (_, x, y) =>
       `L ${parseFloat(x) - minX + padding} ${parseFloat(y) - minY + padding}`)
     .replace(/C ([\d.-]+) ([\d.-]+), ([\d.-]+) ([\d.-]+), ([\d.-]+) ([\d.-]+)/g,
       (_, x1, y1, x2, y2, x3, y3) =>
-        `C ${parseFloat(x1) - minX + padding} ${parseFloat(y1) - minY + padding}, ${parseFloat(x2) - minX + padding} ${parseFloat(y2) - minY + padding}, ${parseFloat(x3) - minX + padding} ${parseFloat(y3) - minY + padding}`);
+        `C ${parseFloat(x1) - minX + padding} ${parseFloat(y1) - minY + padding}, ${parseFloat(x2) - minX + padding} ${parseFloat(y2) - minY + padding}, ${parseFloat(x3) - minX + padding} ${parseFloat(y3) - minY + padding}`),
+  [path, minX, minY, padding]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -411,4 +414,6 @@ export default function Arrow({ element, isSelected }: ArrowProps) {
       )}
     </div>
   );
-}
+});
+
+export default Arrow;

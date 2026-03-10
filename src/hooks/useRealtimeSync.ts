@@ -1,19 +1,22 @@
 /**
- * Hook for real-time synchronization of elements
- * Automatically syncs canvas elements, kanban cards, database rows, etc.
+ * Hook for real-time synchronization of elements.
+ * Manages channel subscription lifecycle and delegates broadcast events to handlers.
  */
 
 import { useEffect, useRef } from 'react';
 import { useElementStore } from '../store/elementStore';
-import { useKanbanStore } from '../store/kanbanStore';
-import { useDatabaseStore } from '../store/databaseStore';
 import { useEditingStore } from '../store/editingStore';
-import { useBoardStore } from '../store/boardStore';
 import { getCollaborationService } from '../services/collaboration/collaborationService';
 import { newSyncService } from '../services/supabase/newSyncService';
-import { db, elementOperations, boardOperations } from '../utils/db';
+import { useBoardStore } from '../store/boardStore';
 import { logger } from '../utils/logger';
-import type { Element, Board } from '../types';
+import {
+  handleElementEvent,
+  handleBoardEvent,
+  handleKanbanEvent,
+  handleDatabaseEvent,
+  handleEditingEvent,
+} from './realtimeSyncHandlers';
 
 interface UseRealtimeSyncOptions {
   boardId: string;
@@ -25,7 +28,7 @@ interface UseRealtimeSyncOptions {
 export function useRealtimeSync({
   boardId,
   userId,
-  userName = 'Anonymous',
+  userName: _userName = 'Anonymous',
   enabled = true,
 }: UseRealtimeSyncOptions) {
   const collaborationService = useRef(getCollaborationService());
@@ -33,518 +36,79 @@ export function useRealtimeSync({
   const isInitializing = useRef(false);
   const cleanupInterval = useRef<NodeJS.Timeout | null>(null);
 
-  // Element store methods (for Canvas boards)
   const setElements = useElementStore((state) => state.setElements);
-
-  // Board store methods
-  const { loadBoards } = useBoardStore();
-
-  // Kanban store methods
-  const {
-    addColumnFromRemote,
-    updateColumnFromRemote,
-    deleteColumnFromRemote,
-    addCardFromRemote,
-    updateCardFromRemote,
-    deleteCardFromRemote
-  } = useKanbanStore();
-
-  // Database store methods - used for real-time collaboration
-  // Note: We use getState() in the broadcast listeners instead of destructuring here
+  const loadBoards = useBoardStore(state => state.loadBoards);
 
   useEffect(() => {
-    logger.debug('🔍 [useRealtimeSync] Hook called with:', {
-      enabled,
-      boardId,
-      userId,
-      willInitialize: !!(enabled && boardId && userId)
-    });
-
     if (!enabled || !boardId || !userId) {
-      logger.debug('⚠️ [useRealtimeSync] Skipping - missing requirements');
       return;
     }
 
-    logger.debug('✅ [useRealtimeSync] Requirements met, proceeding...');
-
     const service = collaborationService.current;
 
-    // Initialize collaboration service
     const initializeCollaboration = async () => {
-      // Prevent concurrent initializations
       if (isInitialized.current || isInitializing.current) {
-        logger.debug('⏭️ Skipping initialization (already initialized or in progress)');
         return;
       }
-
-      logger.debug('🚀 [useRealtimeSync] Starting collaboration initialization...');
 
       isInitializing.current = true;
 
       try {
-        logger.debug('📝 About to initialize service with:', { boardId, userId });
-
         await service.initialize(boardId, userId, {
           enablePresence: true,
-          enableCursors: true, // ENABLED for real-time cursors
-          enableEditingIndicators: false, // Disabled for now to simplify
-        });
-
-        // Verify initialization succeeded by checking service directly
-        logger.debug('🔍 [useRealtimeSync] Verifying service state after initialize()');
-        const serviceInstance = getCollaborationService() as any;
-        logger.debug('🔍 Service state:', {
-          hasBoardId: !!serviceInstance.boardId,
-          hasUserId: !!serviceInstance.userId,
-          hasChannel: !!serviceInstance.channel,
-          boardIdValue: serviceInstance.boardId,
-          userIdValue: serviceInstance.userId,
+          enableCursors: true,
+          enableEditingIndicators: false,
         });
 
         isInitialized.current = true;
 
-      // Register reconnection callback for catch-up sync
-      // This triggers when the channel reconnects after a disconnect
-      const serviceAny = service as any;
-      if (serviceAny.onReconnect) {
-        serviceAny.onReconnect(() => {
-          logger.debug('🔄 [useRealtimeSync] Channel reconnected - triggering catch-up download...');
-          newSyncService.downloadOnly().then((hasNewData) => {
-            if (hasNewData) {
-              logger.debug('✅ [useRealtimeSync] Catch-up complete - reloading data...');
-              // Reload current board elements
-              useElementStore.getState().loadElements(boardId);
-              loadBoards();
-            }
-          }).catch((err) => {
-            logger.error('❌ [useRealtimeSync] Catch-up failed:', err);
-          });
-        });
-      }
-
-      logger.debug('🔊 Setting up BROADCAST listeners (postgres_changes disabled)...');
-
-      // BROADCAST APPROACH: Listen to manual broadcasts instead of postgres_changes
-      service.subscribeToBroadcast((event) => {
-        logger.debug('📡 [useRealtimeSync] Received broadcast event:', {
-          type: event.type,
-          userId: event.userId,
-          timestamp: event.timestamp,
-          boardId,
-          event
-        });
-
-        // Debug: Log payload details for kanban events
-        if (event.type.startsWith('kanban_')) {
-          logger.debug('🔍 [useRealtimeSync] Kanban event payload:', event.payload);
-        }
-
-        switch (event.type) {
-          case 'element_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote element created:', event.payload);
-
-              // Add to IndexedDB to prevent sync from deleting it
-              db.elements.put(event.payload as Element).catch((err: any) => {
-                logger.warn('Failed to add element to IndexedDB:', err);
-              });
-
-              setElements((prevElements) => {
-                const exists = prevElements.some((el: any) => el.id === event.payload.id);
-                if (exists) {
-                  logger.debug('⚠️ Element already exists, skipping');
-                  return prevElements;
-                }
-                logger.debug('✅ Adding element to state');
-                return [...prevElements, event.payload as Element];
-              });
-            }
-            break;
-
-          case 'element_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote element updated:', event.payload);
-
-              // Update IndexedDB to prevent sync from overwriting with old data
-              db.elements.put(event.payload as Element).catch((err: any) => {
-                logger.warn('Failed to update element in IndexedDB:', err);
-              });
-
-              setElements((prevElements) => {
-                const oldElement = prevElements.find((el: any) => el.id === event.payload.id);
-                if (!oldElement) {
-                  logger.warn('⚠️ Element not found locally, adding it:', event.payload.id);
-                  // If element doesn't exist locally, add it (happens when element was created before we joined)
-                  return [...prevElements, event.payload as Element];
-                }
-                logger.debug('✅ Updating element in state');
-                return prevElements.map((el: any) =>
-                  el.id === event.payload.id ? (event.payload as Element) : el
-                );
-              });
-            }
-            break;
-
-          case 'element_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote element deleted:', event.payload.id);
-
-              // Soft delete in IndexedDB to prevent sync from restoring it
-              const deletedAt = new Date();
-              elementOperations.update(event.payload.id, {
-                deletedAt,
-                updatedAt: deletedAt
-              }).catch((err: any) => {
-                logger.warn('Failed to delete element in IndexedDB:', err);
-              });
-
-              setElements((prevElements) => {
-                const exists = prevElements.some((el: any) => el.id === event.payload.id);
-                if (!exists) {
-                  logger.warn('⚠️ Element not found for deletion:', event.payload.id);
-                }
-                logger.debug('✅ Removing element from state');
-                return prevElements.filter((el: any) => el.id !== event.payload.id);
-              });
-            }
-            break;
-
-          case 'elements_deleted':
-            // Batched deletion - multiple elements at once
-            if (event.payload && event.payload.ids && Array.isArray(event.payload.ids)) {
-              const ids = event.payload.ids as string[];
-              logger.debug('🔴 Remote elements deleted (batch):', ids.length, 'elements');
-
-              // Soft delete all in IndexedDB
-              const deletedAt = new Date();
-              for (const id of ids) {
-                elementOperations.update(id, {
-                  deletedAt,
-                  updatedAt: deletedAt
-                }).catch((err: any) => {
-                  logger.warn('Failed to delete element in IndexedDB:', id, err);
-                });
+        // Register reconnection callback for catch-up sync
+        const serviceAny = service as any;
+        if (serviceAny.onReconnect) {
+          serviceAny.onReconnect(() => {
+            logger.info('[useRealtimeSync] Channel reconnected - triggering catch-up download');
+            newSyncService.downloadOnly().then((hasNewData) => {
+              if (hasNewData) {
+                useElementStore.getState().loadElements(boardId);
+                loadBoards();
               }
+            }).catch((err) => {
+              logger.error('[useRealtimeSync] Catch-up failed:', err);
+            });
+          });
+        }
 
-              // Remove all from state in one update
-              setElements((prevElements) => {
-                const idsSet = new Set(ids);
-                logger.debug('✅ Removing', ids.length, 'elements from state');
-                return prevElements.filter((el: any) => !idsSet.has(el.id));
-              });
-            }
-            break;
+        // Subscribe to broadcast events and dispatch to handlers
+        service.subscribeToBroadcast((event) => {
+          const { type } = event;
 
-          case 'editing_started':
-            if (event.payload && event.payload.elementId) {
-              logger.debug('🖊️ Remote user started editing:', event.payload);
-              const { startEditing } = useEditingStore.getState();
-              startEditing(
-                event.payload.elementId,
-                event.payload.userId,
-                event.payload.userName,
-                event.payload.userColor
-              );
-            }
-            break;
-
-          case 'editing_stopped':
-            if (event.payload && event.payload.elementId) {
-              logger.debug('✅ Remote user stopped editing:', event.payload);
-              const { stopEditing } = useEditingStore.getState();
-              stopEditing(event.payload.elementId, event.payload.userId);
-            }
-            break;
-
-          case 'editing_heartbeat':
-            if (event.payload && event.payload.elementId) {
-              logger.debug('💓 Remote user editing heartbeat:', event.payload);
-              const { updateHeartbeat } = useEditingStore.getState();
-              updateHeartbeat(event.payload.elementId, event.payload.userId);
-            }
-            break;
-
-          case 'board_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote board created:', event.payload);
-
-              // Add to IndexedDB first, then reload boards list
-              db.boards.put(event.payload as Board)
-                .then(() => {
-                  logger.debug('✅ Board added to IndexedDB, reloading list...');
-                  loadBoards();
-                })
-                .catch((err: any) => {
-                  logger.warn('Failed to add board to IndexedDB:', err);
-                  // Still try to reload even if IndexedDB fails
-                  loadBoards();
-                });
-            }
-            break;
-
-          case 'board_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote board updated:', event.payload);
-
-              // Update in IndexedDB first, then reload
-              db.boards.put(event.payload as Board)
-                .then(() => {
-                  logger.debug('✅ Board updated in IndexedDB, reloading list...');
-                  loadBoards();
-                })
-                .catch((err: any) => {
-                  logger.warn('Failed to update board in IndexedDB:', err);
-                  loadBoards();
-                });
-            }
-            break;
-
-          case 'board_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote board deleted:', event.payload.id);
-
-              // Soft delete in IndexedDB first, then reload
-              const deletedAt = new Date();
-              boardOperations.update(event.payload.id, {
-                deletedAt,
-                updatedAt: deletedAt
-              })
-                .then(() => {
-                  logger.debug('✅ Board deleted in IndexedDB, reloading list...');
-                  loadBoards();
-                })
-                .catch((err: any) => {
-                  logger.warn('Failed to delete board in IndexedDB:', err);
-                  loadBoards();
-                });
-            }
-            break;
-
-          case 'kanban_column_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote kanban column created:', event.payload);
-              addColumnFromRemote(event.payload);
-            }
-            break;
-
-          case 'kanban_column_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote kanban column updated:', event.payload);
-              updateColumnFromRemote(event.payload);
-            }
-            break;
-
-          case 'kanban_column_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote kanban column deleted:', event.payload.id);
-              deleteColumnFromRemote(event.payload.id);
-            }
-            break;
-
-          case 'kanban_card_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote kanban card created:', event.payload);
-              addCardFromRemote(event.payload);
-            }
-            break;
-
-          case 'kanban_card_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote kanban card updated:', event.payload);
-              updateCardFromRemote(event.payload);
-            }
-            break;
-
-          case 'kanban_card_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote kanban card deleted:', event.payload.id);
-              deleteCardFromRemote(event.payload.id);
-            }
-            break;
-
-          case 'database_property_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote database property created:', event.payload);
-              const { addPropertyFromRemote } = useDatabaseStore.getState();
-              addPropertyFromRemote(event.payload);
-            }
-            break;
-
-          case 'database_property_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote database property updated:', event.payload);
-              const { updatePropertyFromRemote } = useDatabaseStore.getState();
-              updatePropertyFromRemote(event.payload);
-            }
-            break;
-
-          case 'database_property_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote database property deleted:', event.payload.id);
-              const { deletePropertyFromRemote } = useDatabaseStore.getState();
-              deletePropertyFromRemote(event.payload.id);
-            }
-            break;
-
-          case 'database_row_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote database row created:', event.payload);
-              const { addRowFromRemote } = useDatabaseStore.getState();
-              addRowFromRemote(event.payload);
-            }
-            break;
-
-          case 'database_row_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote database row updated:', event.payload);
-              const { updateRowFromRemote } = useDatabaseStore.getState();
-              updateRowFromRemote(event.payload);
-            }
-            break;
-
-          case 'database_row_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote database row deleted:', event.payload.id);
-              const { deleteRowFromRemote } = useDatabaseStore.getState();
-              deleteRowFromRemote(event.payload.id);
-            }
-            break;
-
-          case 'database_view_created':
-            if (event.payload) {
-              logger.debug('🔵 Remote database view created:', event.payload);
-              const { addViewFromRemote } = useDatabaseStore.getState();
-              addViewFromRemote(event.payload);
-            }
-            break;
-
-          case 'database_view_updated':
-            if (event.payload) {
-              logger.debug('🟡 Remote database view updated:', event.payload);
-              const { updateViewFromRemote } = useDatabaseStore.getState();
-              updateViewFromRemote(event.payload);
-            }
-            break;
-
-          case 'database_view_deleted':
-            if (event.payload && event.payload.id) {
-              logger.debug('🔴 Remote database view deleted:', event.payload.id);
-              const { deleteViewFromRemote } = useDatabaseStore.getState();
-              deleteViewFromRemote(event.payload.id);
-            }
-            break;
-
-          case 'cursor_move':
+          if (type.startsWith('element')) {
+            handleElementEvent(event, setElements);
+          } else if (type.startsWith('board_')) {
+            handleBoardEvent(event);
+          } else if (type.startsWith('kanban_')) {
+            handleKanbanEvent(event);
+          } else if (type.startsWith('database_')) {
+            handleDatabaseEvent(event);
+          } else if (type.startsWith('editing_')) {
+            handleEditingEvent(event);
+          } else if (type === 'cursor_move') {
             // Cursor events are handled separately in setupBroadcasts()
-            // Don't log warning for these
-            break;
+          } else {
+            logger.warn('[useRealtimeSync] Unknown broadcast event type:', type);
+          }
+        });
 
-          default:
-            logger.warn('⚠️ Unknown broadcast event type:', event.type);
-        }
-      });
+        logger.info('[useRealtimeSync] Initialized for board:', boardId);
 
-      // postgres_changes DISABLED (causes CHANNEL_ERROR on free plan)
-      /*
-      // Subscribe to kanban_columns table (Kanban boards)
-      service.subscribeToTable(
-        'kanban_columns',
-        { board_id: boardId },
-        {
-          onInsert: (payload) => {
-            if (payload.new) {
-              logger.debug('🔵 Remote kanban column created:', payload.new);
-              addColumnFromRemote(payload.new);
-            }
-          },
-          onUpdate: (payload) => {
-            if (payload.new) {
-              logger.debug('🟡 Remote kanban column updated:', payload.new);
-              updateColumnFromRemote(payload.new);
-            }
-          },
-          onDelete: (payload) => {
-            if (payload.old) {
-              logger.debug('🔴 Remote kanban column deleted:', payload.old.id);
-              deleteColumnFromRemote(payload.old.id);
-            }
-          },
-        }
-      );
-
-      // Subscribe to kanban_cards table (Kanban boards)
-      service.subscribeToTable(
-        'kanban_cards',
-        { board_id: boardId },
-        {
-          onInsert: (payload) => {
-            if (payload.new) {
-              logger.debug('🔵 Remote kanban card created:', payload.new);
-              addCardFromRemote(payload.new);
-            }
-          },
-          onUpdate: (payload) => {
-            if (payload.new) {
-              logger.debug('🟡 Remote kanban card updated:', payload.new);
-              updateCardFromRemote(payload.new);
-            }
-          },
-          onDelete: (payload) => {
-            if (payload.old) {
-              logger.debug('🔴 Remote kanban card deleted:', payload.old.id);
-              deleteCardFromRemote(payload.old.id);
-            }
-          },
-        }
-      );
-
-      // Subscribe to database_properties table (Database boards)
-      service.subscribeToTable(
-        'database_properties',
-        { board_id: boardId },
-        {
-          onInsert: (payload) => {
-            logger.debug('🔵 Remote database property created:', payload.new);
-          },
-          onUpdate: (payload) => {
-            logger.debug('🟡 Remote database property updated:', payload.new);
-          },
-          onDelete: (payload) => {
-            logger.debug('🔴 Remote database property deleted:', payload.old);
-          },
-        }
-      );
-
-      // Subscribe to database_rows table (Database boards)
-      service.subscribeToTable(
-        'database_rows',
-        { board_id: boardId },
-        {
-          onInsert: (payload) => {
-            logger.debug('🔵 Remote database row created:', payload.new);
-          },
-          onUpdate: (payload) => {
-            logger.debug('🟡 Remote database row updated:', payload.new);
-          },
-          onDelete: (payload) => {
-            logger.debug('🔴 Remote database row deleted:', payload.old);
-          },
-        }
-      );
-      */
-
-      logger.debug('✅ Real-time sync initialized for board:', boardId);
-
-      // Start cleanup interval for stale edits (every 10 seconds)
-      cleanupInterval.current = setInterval(() => {
-        const { cleanupStaleEdits } = useEditingStore.getState();
-        cleanupStaleEdits();
-      }, 10000);
-
-      logger.debug('🧹 Started cleanup interval for stale edits');
+        // Start cleanup interval for stale edits (every 10 seconds)
+        cleanupInterval.current = setInterval(() => {
+          const { cleanupStaleEdits } = useEditingStore.getState();
+          cleanupStaleEdits();
+        }, 10000);
 
       } catch (error) {
-        logger.error('❌ Failed to initialize collaboration:', error);
+        logger.error('[useRealtimeSync] Failed to initialize collaboration:', error);
         isInitialized.current = false;
       } finally {
         isInitializing.current = false;
@@ -553,21 +117,16 @@ export function useRealtimeSync({
 
     initializeCollaboration();
 
-    // Cleanup
     return () => {
       if (isInitialized.current) {
-        logger.debug('🧹 Cleaning up real-time sync for board:', boardId);
         service.cleanup();
         isInitialized.current = false;
         isInitializing.current = false;
-        logger.debug('🔌 Real-time sync disconnected');
       }
 
-      // Clear cleanup interval
       if (cleanupInterval.current) {
         clearInterval(cleanupInterval.current);
         cleanupInterval.current = null;
-        logger.debug('🧹 Stopped cleanup interval');
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -4,8 +4,8 @@
  */
 
 import { useState } from 'react';
-import { useElementStore } from '../../store';
-import { X, Palette, Type, Upload, Link as LinkIcon, ArrowLeft } from 'lucide-react';
+import { useElementStore, selectSelectedIds } from '../../store';
+import { Palette, Type, Upload, Link as LinkIcon, ArrowLeft } from 'lucide-react';
 import NoteCustomization from './customizations/NoteCustomization';
 import NoteTextCustomization from './customizations/NoteTextCustomization';
 import ImageCustomization from './customizations/ImageCustomization';
@@ -24,7 +24,8 @@ import ArrowCustomization from './customizations/ArrowCustomization';
 type CustomizationPage = 'color' | 'text' | 'image' | 'link' | null;
 
 export default function CustomizationSidebar() {
-  const { selectedIds, getElementById } = useElementStore();
+  const selectedIds = useElementStore(selectSelectedIds);
+  const getElementById = useElementStore(state => state.getElementById);
   const [activePage, setActivePage] = useState<CustomizationPage>(null);
 
   // Only show sidebar if exactly one element is selected

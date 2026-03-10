@@ -69,3 +69,10 @@ export const useArrowConnectionStore = create<ArrowConnectionState>((set, get) =
     return startElementId !== null && startAnchor !== null;
   }
 }));
+
+// Selectors
+type ArrowConnectionStoreState = ReturnType<typeof useArrowConnectionStore.getState>;
+export const selectConnectionMode = (state: ArrowConnectionStoreState) => state.isConnecting;
+export const selectSourceElementId = (state: ArrowConnectionStoreState) => state.startElementId;
+export const selectIsFirstClickDone = (state: ArrowConnectionStoreState) =>
+  state.startElementId !== null && state.startAnchor !== null;

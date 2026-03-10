@@ -30,7 +30,7 @@ const CELL_TYPES: Array<{ type: CellType; label: string; icon: React.ReactNode }
 ];
 
 export default function TableCustomization({ element }: TableCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
   const [selectedColumnIndex, setSelectedColumnIndex] = useState<number>(0);
   const [newDropdownOption, setNewDropdownOption] = useState('');
 

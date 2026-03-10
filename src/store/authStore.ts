@@ -7,6 +7,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabase } from '../lib/supabase';
 import type { User, Session } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 // User profile with OIDC claims
 export interface AuthUser {
@@ -84,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Listen for auth state changes
           supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log('Auth state change:', event);
+            logger.debug('Auth state change:', event);
 
             if (event === 'SIGNED_IN' && session?.user) {
               set({
@@ -198,3 +199,10 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Selectors
+type AuthStoreState = ReturnType<typeof useAuthStore.getState>;
+export const selectUser = (state: AuthStoreState) => state.user;
+export const selectIsAuthenticated = (state: AuthStoreState) => state.isAuthenticated;
+export const selectSession = (state: AuthStoreState) => state.session;
+export const selectIsLoading = (state: AuthStoreState) => state.isLoading;

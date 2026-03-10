@@ -6,7 +6,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, FileText, StickyNote, Image as ImageIcon, FolderOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useBoardStore, useElementStore } from '../../store';
+import { useBoardStore, selectBoards, useElementStore, selectElements } from '../../store';
 import type { Board, Element } from '../../types';
 
 interface SearchResult {
@@ -27,8 +27,9 @@ export default function SearchBar() {
   const resultsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const { boards, loadBoards } = useBoardStore();
-  const { elements } = useElementStore();
+  const boards = useBoardStore(selectBoards);
+  const loadBoards = useBoardStore(state => state.loadBoards);
+  const elements = useElementStore(selectElements);
 
   useEffect(() => {
     loadBoards();
@@ -107,7 +108,7 @@ export default function SearchBar() {
           matches =
             element.content.headers?.some(h => h.toLowerCase().includes(searchQuery)) ||
             element.content.rows?.some(row =>
-              row.some(cell => cell.value.toLowerCase().includes(searchQuery))
+              row.some(cell => cell.value != null && String(cell.value).toLowerCase().includes(searchQuery))
             );
           title = 'Table';
           subtitle = `Table in ${boards.find(b => b.id === element.boardId)?.name || 'Unknown'}`;

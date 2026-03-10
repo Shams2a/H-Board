@@ -3,7 +3,7 @@
  * Bottom toolbar with creation tools and controls
  */
 
-import { useUIStore, useBoardStore, useElementStore } from '../../store';
+import { useUIStore, selectActiveTool, selectGridEnabled, selectPanX, selectPanY, selectZoom, useBoardStore, selectCurrentBoardId, useElementStore, selectElements } from '../../store';
 import {
   StickyNote,
   Image,
@@ -28,9 +28,16 @@ import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement
 type ToolType = ElementType | 'kanban-board' | 'database-board';
 
 export default function Toolbar() {
-  const { activeTool, setActiveTool, gridEnabled, panX, panY, zoom } = useUIStore();
-  const { currentBoardId, createBoard } = useBoardStore();
-  const { createElement, elements } = useElementStore();
+  const activeTool = useUIStore(selectActiveTool);
+  const gridEnabled = useUIStore(selectGridEnabled);
+  const panX = useUIStore(selectPanX);
+  const panY = useUIStore(selectPanY);
+  const zoom = useUIStore(selectZoom);
+  const setActiveTool = useUIStore(state => state.setActiveTool);
+  const currentBoardId = useBoardStore(selectCurrentBoardId);
+  const createBoard = useBoardStore(state => state.createBoard);
+  const createElement = useElementStore(state => state.createElement);
+  const elements = useElementStore(selectElements);
 
   const tools: Array<{ type: ToolType; icon: React.ReactNode; label: string; shortcut: string }> = [
     { type: 'note', icon: <StickyNote className="w-6 h-6" />, label: 'Note', shortcut: 'N' },

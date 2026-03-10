@@ -10,7 +10,7 @@ interface RootBoardsZoneProps {
   viewMode: 'grid' | 'list';
 }
 
-export default function RootBoardsZone({ children, viewMode }: RootBoardsZoneProps) {
+export default function RootBoardsZone({ children, viewMode: _viewMode }: RootBoardsZoneProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: 'root-boards',
     data: {

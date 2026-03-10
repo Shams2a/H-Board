@@ -22,7 +22,7 @@ interface DatabaseCellProps {
   onUpdate: (value: any) => void;
 }
 
-export default function DatabaseCell({ row, property, value, onUpdate }: DatabaseCellProps) {
+export default function DatabaseCell({ row: _row, property, value, onUpdate }: DatabaseCellProps) {
   switch (property.type) {
     case 'title':
       return <TextCell value={value} onChange={onUpdate} isTitle />;

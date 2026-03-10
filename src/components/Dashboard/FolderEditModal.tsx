@@ -26,7 +26,6 @@ const FOLDER_COLORS = [
 ];
 
 export default function FolderEditModal({ folder, isOpen, onClose }: FolderEditModalProps) {
-  const { createFolder, updateFolder } = useFolderStore();
   const [name, setName] = useState('');
   const [color, setColor] = useState(FOLDER_COLORS[0].value);
 
@@ -42,10 +41,10 @@ export default function FolderEditModal({ folder, isOpen, onClose }: FolderEditM
 
     if (folder) {
       // Update existing folder
-      await updateFolder(folder.id, { name: name.trim(), color });
+      await useFolderStore.getState().updateFolder(folder.id, { name: name.trim(), color });
     } else {
       // Create new folder
-      await createFolder(name.trim(), undefined, color);
+      await useFolderStore.getState().createFolder(name.trim(), undefined, color);
     }
 
     onClose();

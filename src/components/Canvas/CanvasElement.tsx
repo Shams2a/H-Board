@@ -27,7 +27,7 @@ interface CanvasElementProps {
 }
 
 export default function CanvasElement({ element, isSelected, onSelect, parentColumnId }: CanvasElementProps) {
-  const { resolveElement } = useElementStore();
+  const resolveElement = useElementStore(state => state.resolveElement);
 
   // Resolve the element - if it's a reference, this will merge source content with instance position/size
   const resolvedElement = resolveElement(element.id) || element;

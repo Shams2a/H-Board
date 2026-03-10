@@ -20,7 +20,7 @@ const COLORS = [
 ];
 
 export default function LinkCustomization({ element }: LinkCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
   const [url, setUrl] = useState(element.content.url || '');
   const [title, setTitle] = useState(element.content.title || '');
 

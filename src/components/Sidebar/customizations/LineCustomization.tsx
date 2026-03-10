@@ -37,7 +37,7 @@ const THICKNESSES = [
 ];
 
 export default function LineCustomization({ element }: LineCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
 
   const arrowStart = element.content.arrowStart ?? false;
   const arrowEnd = element.content.arrowEnd ?? true;

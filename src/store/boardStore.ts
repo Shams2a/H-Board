@@ -11,6 +11,7 @@ import { newSyncService } from '../services/supabase/newSyncService';
 import { cacheManager } from '../services/CacheManager';
 import { storageManager } from '../services/StorageManager';
 import { getCollaborationService } from '../services/collaboration/collaborationService';
+import { logger } from '../utils/logger';
 
 interface BoardState {
   boards: Board[];
@@ -120,7 +121,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           userId: (collabService as any).userId,
           timestamp: Date.now(),
         });
-        console.log('📢 Broadcast board_created:', newBoard.id);
+        logger.debug('Broadcast board_created:', newBoard.id);
       } catch (err) {
         console.warn('Failed to broadcast board creation:', err);
       }
@@ -164,7 +165,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
             userId: (collabService as any).userId,
             timestamp: Date.now(),
           });
-          console.log('📢 Broadcast board_updated:', id);
+          logger.debug('Broadcast board_updated:', id);
         } catch (err) {
           console.warn('Failed to broadcast board update:', err);
         }
@@ -217,7 +218,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
           userId: (collabService as any).userId,
           timestamp: Date.now(),
         });
-        console.log('📢 Broadcast board_deleted:', id);
+        logger.debug('Broadcast board_deleted:', id);
       } catch (err) {
         console.warn('Failed to broadcast board deletion:', err);
       }
@@ -259,7 +260,7 @@ export const useBoardStore = create<BoardState>((set, get) => ({
             userId: (collabService as any).userId,
             timestamp: Date.now(),
           });
-          console.log('📢 Broadcast board_created (duplicate):', newBoardId);
+          logger.debug('Broadcast board_created (duplicate):', newBoardId);
         } catch (err) {
           console.warn('Failed to broadcast board duplication:', err);
         }
@@ -330,3 +331,23 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     return [...new Set(allTags)].sort();
   }
 }));
+
+// Selectors
+type BoardStoreState = ReturnType<typeof useBoardStore.getState>;
+export const selectBoards = (state: BoardStoreState) => state.boards;
+export const selectBoardById = (id: string) => (state: BoardStoreState) =>
+  state.boards.find(b => b.id === id);
+export const selectCurrentBoardId = (state: BoardStoreState) => state.currentBoardId;
+export const selectChildBoards = (parentId: string | null) => (state: BoardStoreState) =>
+  state.boards.filter(b => b.parentId === parentId);
+export const selectBoardPath = (boardId: string) => (state: BoardStoreState) => {
+  const path: Board[] = [];
+  let currentId: string | null = boardId;
+  while (currentId) {
+    const board = state.boards.find(b => b.id === currentId);
+    if (!board) break;
+    path.unshift(board);
+    currentId = board.parentId;
+  }
+  return path;
+};

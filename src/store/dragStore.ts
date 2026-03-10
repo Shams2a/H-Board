@@ -40,3 +40,11 @@ export const useDragStore = create<DragState>((set) => ({
   setDropReady: (ready) =>
     set({ isDropReady: ready })
 }));
+
+// Selectors
+type DragStoreState = ReturnType<typeof useDragStore.getState>;
+export const selectDraggedItem = (state: DragStoreState) => ({
+  elementId: state.draggedElementId,
+  fromColumnId: state.draggedFromColumnId,
+});
+export const selectIsDragging = (state: DragStoreState) => state.draggedElementId !== null;

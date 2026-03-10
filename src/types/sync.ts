@@ -27,7 +27,8 @@ export interface SyncOperation {
   type: SyncOperationType;
   entityType: SyncEntityType;
   entityId: string;
-  data: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>;
   timestamp: Date;
   syncStatus: SyncStatus;
   retryCount: number;

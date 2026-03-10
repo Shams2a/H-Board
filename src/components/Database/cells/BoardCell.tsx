@@ -5,8 +5,7 @@
 
 import { useState } from 'react';
 import { ChevronDown, Square, Trello, Database, ExternalLink, X } from 'lucide-react';
-import { useBoardStore } from '../../../store';
-import { useNavigate } from 'react-router-dom';
+import { useBoardStore, selectBoards } from '../../../store';
 import type { Board } from '../../../types';
 
 interface BoardCellProps {
@@ -16,8 +15,7 @@ interface BoardCellProps {
 
 export default function BoardCell({ value, onChange }: BoardCellProps) {
   const [showMenu, setShowMenu] = useState(false);
-  const { boards } = useBoardStore();
-  const _navigate = useNavigate();
+  const boards = useBoardStore(selectBoards);
 
   const selectedBoard = boards.find(b => b.id === value);
 

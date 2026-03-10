@@ -172,33 +172,36 @@ export const supabaseElementService = {
     }
 
     try {
-      // Supabase doesn't have native bulk update, so we do it sequentially
-      const results: BoardElement[] = [];
+      // Run all updates in parallel instead of sequentially
+      const results = await Promise.all(
+        updates.map(update => {
+          const supabaseUpdates = elementToSupabase({
+            ...update.updates,
+            updatedAt: new Date(),
+          });
 
-      for (const update of updates) {
-        const supabaseUpdates = elementToSupabase({
-          ...update.updates,
-          updatedAt: new Date(),
-        });
+          return supabase!
+            .from('elements')
+            .update(supabaseUpdates)
+            .eq('id', update.id)
+            .select()
+            .single();
+        })
+      );
 
-        const { data, error } = await supabase
-          .from('elements')
-          .update(supabaseUpdates)
-          .eq('id', update.id)
-          .select()
-          .single();
-
-        if (error) {
-          console.error('Bulk update error for element:', update.id, error);
-          return { success: false, error: error.message };
-        }
-
-        if (data) {
-          results.push(elementFromSupabase(data));
+      // Check for errors in any of the results
+      for (const result of results) {
+        if (result.error) {
+          console.error('Bulk update error:', result.error);
+          return { success: false, error: result.error.message };
         }
       }
 
-      return { success: true, data: results };
+      const data = results
+        .filter(r => r.data)
+        .map(r => elementFromSupabase(r.data));
+
+      return { success: true, data };
     } catch (error) {
       return {
         success: false,

@@ -62,7 +62,7 @@ const THICKNESSES = [
 ];
 
 export default function ArrowCustomization({ element }: ArrowCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
 
   const pathType = element.content.pathType || 'curved';
   const arrowHeadStart = element.content.arrowHeadStart || 'none';

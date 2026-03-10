@@ -5,6 +5,7 @@
 
 import { db } from '../utils/db';
 import type { StorageSettings, StorageStats, CacheMetadata } from '../types';
+import { logger } from '../utils/logger';
 
 /**
  * Default storage settings
@@ -155,7 +156,7 @@ export class StorageManager {
     // Remove from cache metadata
     await db.cacheMetadata.delete(boardId);
 
-    console.log(`📦 Evicted board ${boardId} from cache`);
+    logger.debug(`Evicted board ${boardId} from cache`);
   }
 
   /**
@@ -207,7 +208,7 @@ export class StorageManager {
       await this.evictBoard(cached.boardId);
     }
 
-    console.log('🧹 All cache cleared');
+    logger.debug('All cache cleared');
   }
 
   /**

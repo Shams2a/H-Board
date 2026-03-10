@@ -5,8 +5,8 @@
 
 import { useMemo } from 'react';
 import type { Element, AnchorPosition, Position } from '../../types';
-import { useUIStore } from '../../store';
-import { useArrowConnectionStore } from '../../store/arrowConnectionStore';
+import { useUIStore, selectActiveTool } from '../../store';
+import { useArrowConnectionStore, selectConnectionMode, selectSourceElementId } from '../../store/arrowConnectionStore';
 
 interface AnchorPointsProps {
   element: Element;
@@ -32,8 +32,9 @@ function getAnchorPositions(element: Element): Array<{ anchor: AnchorPosition; p
 }
 
 export default function AnchorPoints({ element, onAnchorClick }: AnchorPointsProps) {
-  const { activeTool } = useUIStore();
-  const { isConnecting, startElementId } = useArrowConnectionStore();
+  const activeTool = useUIStore(selectActiveTool);
+  const isConnecting = useArrowConnectionStore(selectConnectionMode);
+  const startElementId = useArrowConnectionStore(selectSourceElementId);
 
   // Calculate anchor positions BEFORE any conditional returns (Rules of Hooks)
   const anchorPositions = useMemo(() => getAnchorPositions(element), [element]);

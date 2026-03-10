@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Folder, FolderOpen, ChevronRight, ChevronDown, Edit3, Trash2 } from 'lucide-react';
 import { useDroppable } from '@dnd-kit/core';
 import type { Folder as FolderType } from '../../types';
-import { useFolderStore, useBoardStore } from '../../store';
+import { useFolderStore, useBoardStore, selectBoards } from '../../store';
 
 interface FolderItemProps {
   folder: FolderType;
@@ -17,8 +17,7 @@ interface FolderItemProps {
 }
 
 export default function FolderItem({ folder, viewMode = 'grid', onEdit, children }: FolderItemProps) {
-  const { deleteFolder } = useFolderStore();
-  const { boards } = useBoardStore();
+  const boards = useBoardStore(selectBoards);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const { setNodeRef, isOver } = useDroppable({
@@ -35,7 +34,7 @@ export default function FolderItem({ folder, viewMode = 'grid', onEdit, children
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm(`Supprimer le dossier "${folder.name}" ? Les projets seront déplacés à la racine.`)) {
-      await deleteFolder(folder.id);
+      await useFolderStore.getState().deleteFolder(folder.id);
     }
   };
 

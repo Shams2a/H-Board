@@ -28,7 +28,9 @@ import { UserMenu } from '../components/Auth';
 export default function CanvasPage() {
   const { boardId } = useParams<{ boardId: string }>();
   const navigate = useNavigate();
-  const { setCurrentBoard, getCurrentBoard, loadBoards } = useBoardStore();
+  const setCurrentBoard = useBoardStore(state => state.setCurrentBoard);
+  const getCurrentBoard = useBoardStore(state => state.getCurrentBoard);
+  const loadBoards = useBoardStore(state => state.loadBoards);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 

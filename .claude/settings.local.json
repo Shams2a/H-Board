@@ -7,7 +7,17 @@
       "WebSearch",
       "Bash(rm:*)",
       "Bash(find:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(ls *.md)",
+      "Bash(wc -l /Users/aashams/Downloads/H-Board-main/src/store/*.ts)",
+      "Bash(find /Users/aashams/Downloads/H-Board-main -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" -o -name \"*.js\" \\\\\\) -path \"*/src/services/*\" -o -path \"*/src/utils/*\" 2>/dev/null | grep -E \"\\(service|util\\)\" | head -20)",
+      "Bash(grep -r \"noUnusedLocals\\\\|noUnusedParameters\" /Users/aashams/Downloads/H-Board-main/tsconfig* -A 2)",
+      "Bash(ls /Users/aashams/Downloads/H-Board-main/src/store/*.bak)",
+      "Bash(grep -r \"N+1\\\\|loop.*query\\\\|for.*select\" /Users/aashams/Downloads/H-Board-main/src/services --include=\"*.ts\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"noEmit\\\\|skipLibCheck\\\\|allowJs\" /Users/aashams/Downloads/H-Board-main/tsconfig* | head -10)",
+      "Bash(./node_modules/.bin/tsc --noEmit 2>&1 | head -100)",
+      "Bash(npx tsc:*)",
+      "Bash(npx vite:*)"
     ],
     "deny": [],
     "ask": []

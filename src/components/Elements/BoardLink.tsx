@@ -6,7 +6,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { BoardElement } from '../../types';
-import { useElementStore, useBoardStore, useDragStore } from '../../store';
+import { useElementStore, useBoardStore, selectBoards, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
 import { Square, FolderInput, Trello, Database } from 'lucide-react';
 
@@ -17,17 +17,21 @@ interface BoardLinkProps {
   parentColumnId?: string;
 }
 
-export default function BoardLink({ element, isSelected, onSelect, parentColumnId }: BoardLinkProps) {
+export default function BoardLink({ element, isSelected, onSelect: _onSelect, parentColumnId }: BoardLinkProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
-  const { updateElement, deleteElement, createElement } = useElementStore();
-  const { updateBoard, boards } = useBoardStore();
-  const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady, setDropTargetBoard, setDropReady } = useDragStore();
+  const updateElement = useElementStore(state => state.updateElement);
+  const boards = useBoardStore(selectBoards);
+  const updateBoard = useBoardStore(state => state.updateBoard);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
+  const dropTargetBoardId = useDragStore(state => state.dropTargetBoardId);
+  const isDropReady = useDragStore(state => state.isDropReady);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [title, setTitle] = useState(element.content.title || 'Untitled Board');
-  const [isHoveredWithDrag, setIsHoveredWithDrag] = useState(false);
+  const [, setIsHoveredWithDrag] = useState(false);
 
   const isBeingDragged = draggedElementId === element.id;
   const isDropTarget = dropTargetBoardId === element.content.linkedBoardId;
@@ -79,11 +83,11 @@ export default function BoardLink({ element, isSelected, onSelect, parentColumnI
   const handleDragEnter = () => {
     if (draggedElementId && draggedElementId !== element.id && element.content.linkedBoardId) {
       setIsHoveredWithDrag(true);
-      setDropTargetBoard(element.content.linkedBoardId);
+      useDragStore.getState().setDropTargetBoard(element.content.linkedBoardId);
 
       // Start 1s timer
       hoverTimerRef.current = setTimeout(() => {
-        setDropReady(true);
+        useDragStore.getState().setDropReady(true);
       }, 1000);
     }
   };
@@ -95,7 +99,7 @@ export default function BoardLink({ element, isSelected, onSelect, parentColumnI
       hoverTimerRef.current = null;
     }
     if (dropTargetBoardId === element.content.linkedBoardId) {
-      setDropTargetBoard(null);
+      useDragStore.getState().setDropTargetBoard(null);
     }
   };
 

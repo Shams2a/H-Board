@@ -16,7 +16,7 @@ export default function ProtectedRoute({
   loadingFallback
 }: ProtectedRouteProps) {
   const location = useLocation();
-  const { isReady, isAuthenticated, shouldRedirect } = useRequireAuth();
+  const { isReady, shouldRedirect } = useRequireAuth();
 
   // Show loading state
   if (!isReady) {

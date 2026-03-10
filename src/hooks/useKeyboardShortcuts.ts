@@ -6,7 +6,7 @@
 import { useEffect, useCallback } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { generateId } from '../utils/uuid';
-import { useUIStore, useBoardStore, useElementStore } from '../store';
+import { useUIStore, selectZoom, selectGridEnabled, selectPanX, selectPanY, useBoardStore, selectCurrentBoardId, useElementStore, selectElements, selectSelectedIds } from '../store';
 import type { ElementType } from '../types';
 
 interface UseKeyboardShortcutsOptions {
@@ -14,21 +14,23 @@ interface UseKeyboardShortcutsOptions {
 }
 
 export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
-  const { setActiveTool, zoom, setZoom, gridEnabled, toggleGrid, panX, panY } = useUIStore();
-  const { currentBoardId, createBoard } = useBoardStore();
-  const {
-    createElement,
-    deleteElement,
-    elements,
-    selectedIds,
-    deleteElements,
-    copy,
-    paste,
-    duplicate,
-    selectAll,
-    clearSelection,
-    clipboard
-  } = useElementStore();
+  const zoom = useUIStore(selectZoom);
+  const gridEnabled = useUIStore(selectGridEnabled);
+  const panX = useUIStore(selectPanX);
+  const panY = useUIStore(selectPanY);
+  const setActiveTool = useUIStore(state => state.setActiveTool);
+  const setZoom = useUIStore(state => state.setZoom);
+  const toggleGrid = useUIStore(state => state.toggleGrid);
+  const currentBoardId = useBoardStore(selectCurrentBoardId);
+  const createBoard = useBoardStore(state => state.createBoard);
+  const createElement = useElementStore(state => state.createElement);
+  const elements = useElementStore(selectElements);
+  const selectedIds = useElementStore(selectSelectedIds);
+  const deleteElements = useElementStore(state => state.deleteElements);
+  const copy = useElementStore(state => state.copy);
+  const duplicate = useElementStore(state => state.duplicate);
+  const selectAll = useElementStore(state => state.selectAll);
+  const clearSelection = useElementStore(state => state.clearSelection);
 
   // Helper to check if we're in an input field
   const isInputActive = () => {

@@ -5,10 +5,11 @@
 
 import React from 'react';
 import { Moon, Sun } from 'lucide-react';
-import { useThemeStore } from '../../store';
+import { useThemeStore, selectActualTheme } from '../../store';
 
 export const ThemeToggle: React.FC = () => {
-  const { actualTheme, toggleTheme } = useThemeStore();
+  const actualTheme = useThemeStore(selectActualTheme);
+  const toggleTheme = useThemeStore(state => state.toggleTheme);
 
   return (
     <button

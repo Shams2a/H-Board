@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef } from 'react';
-import { useElementStore, useBoardStore, useUIStore } from '../../store';
+import { useElementStore, selectElements, selectSelectedIds, selectElementClipboard, selectDraggedElementId, useBoardStore, selectCurrentBoardId, useUIStore, selectGridEnabled } from '../../store';
 import { generateId } from '../../utils/uuid';
 import {
   StickyNote,
@@ -32,9 +32,21 @@ interface ContextMenuProps {
 
 export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  const { createElement, elements, selectedIds, copy, paste, deleteElements, selectAll, clipboard, markAsReusable, createReference, pendingReusableElementId, getElementById } = useElementStore();
-  const { currentBoardId, createBoard } = useBoardStore();
-  const { gridEnabled, zoom } = useUIStore();
+  const createElement = useElementStore(state => state.createElement);
+  const elements = useElementStore(selectElements);
+  const selectedIds = useElementStore(selectSelectedIds);
+  const copy = useElementStore(state => state.copy);
+  const paste = useElementStore(state => state.paste);
+  const deleteElements = useElementStore(state => state.deleteElements);
+  const selectAll = useElementStore(state => state.selectAll);
+  const clipboard = useElementStore(selectElementClipboard);
+  const markAsReusable = useElementStore(state => state.markAsReusable);
+  const createReference = useElementStore(state => state.createReference);
+  const pendingReusableElementId = useElementStore(selectDraggedElementId);
+  const getElementById = useElementStore(state => state.getElementById);
+  const currentBoardId = useBoardStore(selectCurrentBoardId);
+  const createBoard = useBoardStore(state => state.createBoard);
+  const gridEnabled = useUIStore(selectGridEnabled);
 
   // Close menu when clicking outside
   useEffect(() => {

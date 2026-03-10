@@ -4,7 +4,7 @@
  */
 
 import { Plus, Filter, ArrowUpDown } from 'lucide-react';
-import { useDatabaseStore } from '../../store/databaseStore';
+import { useDatabaseStore, selectProperties, selectRows, selectViews } from '../../store/databaseStore';
 import { getMVPPropertyTypes } from '../../types/database';
 import { useState } from 'react';
 import FilterModal from './FilterModal';
@@ -16,7 +16,10 @@ interface DatabaseToolbarProps {
 }
 
 export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
-  const { createProperty, createRow, properties, rows, views, currentViewId, updateView } = useDatabaseStore();
+  const properties = useDatabaseStore(selectProperties);
+  const rows = useDatabaseStore(selectRows);
+  const views = useDatabaseStore(selectViews);
+  const currentViewId = useDatabaseStore(state => state.currentViewId);
   const [showPropertyMenu, setShowPropertyMenu] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showSortModal, setShowSortModal] = useState(false);
@@ -32,24 +35,24 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
     const typeInfo = propertyTypes.find(pt => pt.type === type);
 
     if (typeInfo) {
-      await createProperty(boardId, `New ${typeInfo.label}`, type as any);
+      await useDatabaseStore.getState().createProperty(boardId, `New ${typeInfo.label}`, type as any);
     }
     setShowPropertyMenu(false);
   };
 
   const handleAddRow = async () => {
-    await createRow(boardId);
+    await useDatabaseStore.getState().createRow(boardId);
   };
 
   const handleSaveFilters = async (filters: DatabaseFilter[]) => {
     if (activeView) {
-      await updateView(activeView.id, { filters });
+      await useDatabaseStore.getState().updateView(activeView.id, { filters });
     }
   };
 
   const handleSaveSorts = async (sorts: DatabaseSort[]) => {
     if (activeView) {
-      await updateView(activeView.id, { sorts });
+      await useDatabaseStore.getState().updateView(activeView.id, { sorts });
     }
   };
 

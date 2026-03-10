@@ -35,7 +35,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   pushState: (elements: Element[]) => {
     const state = get();
     const entry: HistoryEntry = {
-      elements: JSON.parse(JSON.stringify(elements)), // Deep clone
+      elements: structuredClone(elements), // Deep clone
       timestamp: Date.now()
     };
 
@@ -54,7 +54,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 
     // Save current state to future for redo
     const currentEntry: HistoryEntry = {
-      elements: JSON.parse(JSON.stringify(currentElements)),
+      elements: structuredClone(currentElements),
       timestamp: Date.now()
     };
 
@@ -64,7 +64,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
     });
 
     // Return the state we're restoring to
-    return JSON.parse(JSON.stringify(previous.elements));
+    return structuredClone(previous.elements);
   },
 
   redo: (currentElements: Element[]) => {
@@ -76,7 +76,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 
     // Save current state to past
     const currentEntry: HistoryEntry = {
-      elements: JSON.parse(JSON.stringify(currentElements)),
+      elements: structuredClone(currentElements),
       timestamp: Date.now()
     };
 
@@ -85,7 +85,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       future: newFuture
     });
 
-    return JSON.parse(JSON.stringify(next.elements));
+    return structuredClone(next.elements);
   },
 
   clear: () => {
@@ -95,3 +95,8 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
   canUndo: () => get().past.length > 0,
   canRedo: () => get().future.length > 0
 }));
+
+// Selectors
+type HistoryStoreState = ReturnType<typeof useHistoryStore.getState>;
+export const selectCanUndo = (state: HistoryStoreState) => state.past.length > 0;
+export const selectCanRedo = (state: HistoryStoreState) => state.future.length > 0;

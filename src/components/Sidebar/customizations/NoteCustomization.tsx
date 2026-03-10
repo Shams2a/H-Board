@@ -23,7 +23,7 @@ const COLORS = [
 ];
 
 export default function NoteCustomization({ element }: NoteCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
 
   const handleColorChange = (color: string) => {
     updateElement(element.id, {

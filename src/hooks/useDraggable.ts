@@ -4,7 +4,7 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react';
-import { useElementStore, useUIStore, useDragStore } from '../store';
+import { useElementStore, useUIStore, selectGridEnabled, selectZoom, selectPanX, selectPanY, useDragStore } from '../store';
 import type { Position } from '../types';
 
 interface UseDraggableOptions {
@@ -15,9 +15,13 @@ interface UseDraggableOptions {
 }
 
 export function useDraggable({ elementId, parentColumnId = null, onDragStart, onDragEnd }: UseDraggableOptions) {
-  const { updatePosition, getElementById, selectedIds, updateElement, batchUpdatePositions } = useElementStore();
-  const { gridEnabled, zoom, panX, panY } = useUIStore();
-  const { setDraggedElement, clearDrag, setJustFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
+  const updatePosition = useElementStore(state => state.updatePosition);
+  const getElementById = useElementStore(state => state.getElementById);
+  const gridEnabled = useUIStore(selectGridEnabled);
+  const zoom = useUIStore(selectZoom);
+  const panX = useUIStore(selectPanX);
+  const panY = useUIStore(selectPanY);
+  // Actions accessed via getState() since they're only used in event handlers
 
   const isDraggingRef = useRef(false);
   const startPosRef = useRef<Position>({ x: 0, y: 0 });
@@ -28,6 +32,7 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
   const isMultiSelectRef = useRef(false);
   const currentMousePosRef = useRef<Position>({ x: 0, y: 0 });
   const lastPositionUpdatesRef = useRef<Map<string, Position>>(new Map());
+  const lastLineUpdateRef = useRef(0);
 
   // Cleanup function to stop dragging
   const cleanup = useCallback(() => {
@@ -41,17 +46,22 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
 
     // Persist final positions to DB if we moved
     if (hasMovedRef.current && lastPositionUpdatesRef.current.size > 0) {
-      const { batchUpdatePositions } = useElementStore.getState();
+      const { batchUpdatePositions, updateMultipleConnectedLines } = useElementStore.getState();
       batchUpdatePositions(lastPositionUpdatesRef.current, true);
+
+      // Final line update to ensure correct end positions after throttling
+      const movedIds = Array.from(lastPositionUpdatesRef.current.keys());
+      updateMultipleConnectedLines(movedIds);
+
       lastPositionUpdatesRef.current = new Map();
     }
 
     // Mark that we just finished a drag if we moved
     if (hasMovedRef.current) {
-      setJustFinishedDrag(true);
+      useDragStore.getState().setJustFinishedDrag(true);
       // Reset this flag after a short delay to allow onClick to check it
       setTimeout(() => {
-        setJustFinishedDrag(false);
+        useDragStore.getState().setJustFinishedDrag(false);
       }, 100);
     }
 
@@ -63,10 +73,10 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
     document.body.style.userSelect = '';
 
     // Clear drag store
-    clearDrag();
+    useDragStore.getState().clearDrag();
 
     onDragEnd?.();
-  }, [clearDrag, onDragEnd, setJustFinishedDrag]);
+  }, [onDragEnd]);
 
   // Function to start dragging
   const startDragging = useCallback((clientX: number, clientY: number) => {
@@ -147,7 +157,7 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
     });
 
     // Notify drag store
-    setDraggedElement(elementId, parentColumnId);
+    useDragStore.getState().setDraggedElement(elementId, parentColumnId);
 
     // Call onDragStart callback
     onDragStart?.();
@@ -155,7 +165,7 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
     // Change cursor
     document.body.style.cursor = 'grabbing';
     document.body.style.userSelect = 'none';
-  }, [elementId, parentColumnId, onDragStart, setDraggedElement, getElementById, updatePosition, zoom, panX, panY]);
+  }, [elementId, parentColumnId, onDragStart, getElementById, updatePosition, zoom, panX, panY]);
 
   // Mouse move handler
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -246,8 +256,12 @@ export function useDraggable({ elementId, parentColumnId = null, onDragStart, on
     const { batchUpdatePositions, updateMultipleConnectedLines } = useElementStore.getState();
     batchUpdatePositions(positionUpdates, false);
 
-    // Update all connected lines after positions are updated
-    updateMultipleConnectedLines(movedElementIds);
+    // Throttle connected line updates to ~60fps (16ms)
+    const now = Date.now();
+    if (now - lastLineUpdateRef.current >= 16) {
+      lastLineUpdateRef.current = now;
+      updateMultipleConnectedLines(movedElementIds);
+    }
   }, [elementId, zoom, gridEnabled, getElementById, updatePosition, cleanup, startDragging]);
 
   // Mouse up handler

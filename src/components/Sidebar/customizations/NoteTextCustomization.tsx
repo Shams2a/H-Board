@@ -3,11 +3,11 @@
  * Text formatting options for Note elements
  */
 
-import { useElementStore, useEditorStore } from '../../../store';
+import { useElementStore, useEditorStore, selectActiveEditor } from '../../../store';
 import type { NoteElement } from '../../../types';
 import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
-  Bold, Italic, Underline, Code, Strikethrough,
+  Bold, Italic, Code, Strikethrough,
   List, ListOrdered
 } from 'lucide-react';
 
@@ -53,8 +53,8 @@ const LETTER_SPACINGS = [
 ];
 
 export default function NoteTextCustomization({ element }: NoteTextCustomizationProps) {
-  const { updateElement } = useElementStore();
-  const { activeEditor } = useEditorStore();
+  const updateElement = useElementStore(state => state.updateElement);
+  const activeEditor = useEditorStore(selectActiveEditor);
 
   const handleStyleChange = (key: string, value: any) => {
     updateElement(element.id, {

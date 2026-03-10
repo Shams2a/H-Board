@@ -20,7 +20,7 @@ const COLORS = [
 ];
 
 export default function ImageCustomization({ element }: ImageCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 

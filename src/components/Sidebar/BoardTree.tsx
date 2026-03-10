@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { useBoardStore } from '../../store';
+import { useBoardStore, selectCurrentBoardId } from '../../store';
 import type { Board } from '../../types';
 import { ChevronRight, ChevronDown, Folder, FolderOpen } from 'lucide-react';
 
@@ -15,7 +15,9 @@ interface BoardTreeProps {
 }
 
 export default function BoardTree({ boards, parentId = null, level = 0 }: BoardTreeProps) {
-  const { currentBoardId, setCurrentBoard, getChildBoards } = useBoardStore();
+  const currentBoardId = useBoardStore(selectCurrentBoardId);
+  const setCurrentBoard = useBoardStore(state => state.setCurrentBoard);
+  const getChildBoards = useBoardStore(state => state.getChildBoards);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const filteredBoards = boards.filter(board => board.parentId === parentId);

@@ -15,7 +15,7 @@ interface BoardEditModalProps {
 }
 
 export default function BoardEditModal({ board, isOpen, onClose }: BoardEditModalProps) {
-  const { updateBoard } = useBoardStore();
+  const updateBoard = useBoardStore(state => state.updateBoard);
   const [name, setName] = useState(board.name);
   const [description, setDescription] = useState(board.description || '');
   const [tags, setTags] = useState<string[]>(board.tags);

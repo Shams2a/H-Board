@@ -6,6 +6,7 @@
 import { useEffect } from 'react';
 import { newSyncService } from '../services/supabase/newSyncService';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { logger } from '../utils/logger';
 
 interface UseBeforeUnloadOptions {
   enabled?: boolean;
@@ -18,17 +19,17 @@ export function useBeforeUnload({ enabled = true }: UseBeforeUnloadOptions = {})
     }
 
     // Handler for beforeunload - sync data before page closes
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (_event: BeforeUnloadEvent) => {
       // Trigger sync - note: this is async but we can't await in beforeunload
       // The browser will try to complete pending requests
-      console.log('🔄 [useBeforeUnload] Page unloading - triggering final sync...');
+      logger.debug('[useBeforeUnload] Page unloading - triggering final sync...');
 
       // Use sendBeacon for reliable delivery (doesn't block page close)
       // But since we're using Supabase client, we'll just trigger the sync
       // and hope it completes. For critical data, consider using sendBeacon API
       // with a custom endpoint.
       newSyncService.syncAll().catch((err) => {
-        console.error('❌ [useBeforeUnload] Final sync failed:', err);
+        console.error('[useBeforeUnload] Final sync failed:', err);
       });
 
       // Don't show confirmation dialog - just sync silently
@@ -40,9 +41,9 @@ export function useBeforeUnload({ enabled = true }: UseBeforeUnloadOptions = {})
     // Handler for visibility change - sync when tab becomes hidden
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        console.log('🔄 [useBeforeUnload] Tab hidden - triggering sync...');
+        logger.debug('[useBeforeUnload] Tab hidden - triggering sync...');
         newSyncService.syncAll().catch((err) => {
-          console.error('❌ [useBeforeUnload] Visibility sync failed:', err);
+          console.error('[useBeforeUnload] Visibility sync failed:', err);
         });
       }
     };
@@ -53,9 +54,9 @@ export function useBeforeUnload({ enabled = true }: UseBeforeUnloadOptions = {})
         // Page is being cached (bfcache), don't sync
         return;
       }
-      console.log('🔄 [useBeforeUnload] Page hiding - triggering sync...');
+      logger.debug('[useBeforeUnload] Page hiding - triggering sync...');
       newSyncService.syncAll().catch((err) => {
-        console.error('❌ [useBeforeUnload] PageHide sync failed:', err);
+        console.error('[useBeforeUnload] PageHide sync failed:', err);
       });
     };
 
@@ -64,14 +65,14 @@ export function useBeforeUnload({ enabled = true }: UseBeforeUnloadOptions = {})
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handlePageHide);
 
-    console.log('✅ [useBeforeUnload] Event listeners registered');
+    logger.debug('[useBeforeUnload] Event listeners registered');
 
     // Cleanup
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handlePageHide);
-      console.log('🧹 [useBeforeUnload] Event listeners removed');
+      logger.debug('[useBeforeUnload] Event listeners removed');
     };
   }, [enabled]);
 }

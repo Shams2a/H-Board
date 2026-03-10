@@ -4,7 +4,7 @@
  */
 
 import { useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
+import { useAuthStore, selectUser, selectSession, selectIsLoading, selectIsAuthenticated } from '../store/authStore';
 
 interface UseAuthOptions {
   autoInitialize?: boolean;
@@ -13,25 +13,18 @@ interface UseAuthOptions {
 export function useAuth(options: UseAuthOptions = {}) {
   const { autoInitialize = true } = options;
 
-  const {
-    user,
-    session,
-    isLoading,
-    isAuthenticated,
-    error,
-    initialize,
-    signInWithOIDC,
-    signOut,
-    refreshSession,
-    clearError,
-  } = useAuthStore();
+  const user = useAuthStore(selectUser);
+  const session = useAuthStore(selectSession);
+  const isLoading = useAuthStore(selectIsLoading);
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  const error = useAuthStore(state => state.error);
 
   // Initialize auth on mount
   useEffect(() => {
     if (autoInitialize && !isAuthenticated && !user) {
-      initialize();
+      useAuthStore.getState().initialize();
     }
-  }, [autoInitialize, initialize, isAuthenticated, user]);
+  }, [autoInitialize, isAuthenticated, user]);
 
   // Auto-refresh session before expiry
   useEffect(() => {
@@ -42,16 +35,16 @@ export function useAuth(options: UseAuthOptions = {}) {
     const refreshBuffer = 5 * 60 * 1000; // 5 minutes before expiry
 
     if (expiresAt - now < refreshBuffer) {
-      refreshSession();
+      useAuthStore.getState().refreshSession();
       return;
     }
 
     const timeout = setTimeout(() => {
-      refreshSession();
+      useAuthStore.getState().refreshSession();
     }, expiresAt - now - refreshBuffer);
 
     return () => clearTimeout(timeout);
-  }, [session?.expires_at, refreshSession]);
+  }, [session?.expires_at]);
 
   return {
     // State
@@ -67,10 +60,10 @@ export function useAuth(options: UseAuthOptions = {}) {
     userEmail: user?.email || null,
 
     // Actions
-    signIn: signInWithOIDC,
-    signOut,
-    refreshSession,
-    clearError,
+    signIn: useAuthStore.getState().signInWithOIDC,
+    signOut: useAuthStore.getState().signOut,
+    refreshSession: useAuthStore.getState().refreshSession,
+    clearError: useAuthStore.getState().clearError,
   };
 }
 

@@ -4,7 +4,7 @@
  */
 
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Tag, Trash2, Copy, Edit3, FileText } from 'lucide-react';
+import { Calendar, Trash2, Copy, Edit3, FileText } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { Board } from '../../types';
@@ -18,7 +18,8 @@ interface BoardCardProps {
 
 export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCardProps) {
   const navigate = useNavigate();
-  const { deleteBoard, duplicateBoard } = useBoardStore();
+  const deleteBoard = useBoardStore(state => state.deleteBoard);
+  const duplicateBoard = useBoardStore(state => state.duplicateBoard);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `board-${board.id}`,

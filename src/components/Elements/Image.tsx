@@ -3,7 +3,7 @@
  * Displays images with upload, resize, and lightbox capabilities
  */
 
-import { useRef, useState } from 'react';
+import React, { useRef, useState, memo } from 'react';
 import type { ImageElement } from '../../types';
 import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
@@ -21,9 +21,12 @@ interface ImageProps {
   parentColumnId?: string;
 }
 
-export default function Image({ element, isSelected, onSelect: _onSelect, parentColumnId }: ImageProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
+const Image = memo(function Image({ element, isSelected, onSelect: _onSelect, parentColumnId }: ImageProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
+  const dropTargetBoardId = useDragStore(state => state.dropTargetBoardId);
+  const isDropReady = useDragStore(state => state.isDropReady);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showLightbox, setShowLightbox] = useState(false);
@@ -254,4 +257,6 @@ export default function Image({ element, isSelected, onSelect: _onSelect, parent
       )}
     </>
   );
-}
+});
+
+export default Image;

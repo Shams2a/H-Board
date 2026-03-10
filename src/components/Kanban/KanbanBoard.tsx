@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import { useKanbanStore } from '../../store/kanbanStore';
+import { useKanbanStore, useKanbanColumnStore, useKanbanCardStore, selectColumns, selectCards } from '../../store/kanbanStore';
 import KanbanColumn from './KanbanColumn';
 import KanbanCard from './KanbanCard';
 import { Plus } from 'lucide-react';
@@ -18,14 +18,9 @@ interface KanbanBoardProps {
 }
 
 export default function KanbanBoard({ boardId }: KanbanBoardProps) {
-  const {
-    columns,
-    cards,
-    createColumn,
-    reorderColumns,
-    moveCard,
-    loadKanbanBoard
-  } = useKanbanStore();
+  const columns = useKanbanColumnStore(selectColumns);
+  const cards = useKanbanCardStore(selectCards);
+  const kanbanStore = useKanbanStore();
 
   const [activeCard, setActiveCard] = useState<KanbanCardType | null>(null);
   const [isAddingColumn, setIsAddingColumn] = useState(false);
@@ -36,8 +31,8 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
 
   // Load board data on mount
   useEffect(() => {
-    loadKanbanBoard(boardId);
-  }, [boardId, loadKanbanBoard]);
+    kanbanStore.loadKanbanBoard(boardId);
+  }, [boardId, kanbanStore]);
 
   // Handle drag start
   const handleDragStart = (event: DragStartEvent) => {
@@ -72,7 +67,7 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
         const reordered = [...boardColumns];
         const [removed] = reordered.splice(oldIndex, 1);
         reordered.splice(newIndex, 0, removed);
-        reorderColumns(boardId, reordered.map((col) => col.id));
+        useKanbanColumnStore.getState().reorderColumns(boardId, reordered.map((col) => col.id));
       }
     } else {
       // Moving a card
@@ -101,7 +96,7 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
 
       // Move card
       if (activeCard.columnId !== targetColumnId || activeCard.position !== newPosition) {
-        moveCard(activeCard.id, targetColumnId, newPosition);
+        useKanbanCardStore.getState().moveCard(activeCard.id, targetColumnId, newPosition);
       }
     }
 
@@ -112,7 +107,7 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
   const handleAddColumn = async () => {
     if (!newColumnName.trim()) return;
 
-    await createColumn(boardId, newColumnName);
+    await useKanbanColumnStore.getState().createColumn(boardId, newColumnName);
     setNewColumnName('');
     setIsAddingColumn(false);
   };

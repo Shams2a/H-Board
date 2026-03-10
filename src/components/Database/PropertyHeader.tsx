@@ -15,8 +15,8 @@ interface PropertyHeaderProps {
   boardId: string;
 }
 
-export default function PropertyHeader({ property, boardId }: PropertyHeaderProps) {
-  const { updateProperty, deleteProperty } = useDatabaseStore();
+export default function PropertyHeader({ property, boardId: _boardId }: PropertyHeaderProps) {
+  // Actions accessed via getState() since they're only used in event handlers
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(property.name);
   const [showMenu, setShowMenu] = useState(false);
@@ -35,7 +35,7 @@ export default function PropertyHeader({ property, boardId }: PropertyHeaderProp
 
   const handleSaveName = async () => {
     if (editedName.trim() && editedName !== property.name) {
-      await updateProperty(property.id, { name: editedName.trim() });
+      await useDatabaseStore.getState().updateProperty(property.id, { name: editedName.trim() });
     } else {
       setEditedName(property.name);
     }
@@ -44,13 +44,13 @@ export default function PropertyHeader({ property, boardId }: PropertyHeaderProp
 
   const handleDelete = async () => {
     if (window.confirm(`Delete property "${property.name}"? This will remove all data in this column.`)) {
-      await deleteProperty(property.id);
+      await useDatabaseStore.getState().deleteProperty(property.id);
     }
     setShowMenu(false);
   };
 
   const handleSaveConfig = async (config: PropertyConfig) => {
-    await updateProperty(property.id, { config });
+    await useDatabaseStore.getState().updateProperty(property.id, { config });
   };
 
   return (

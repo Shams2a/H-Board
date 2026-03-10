@@ -5,6 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { getCollaborationService } from '../services/collaboration/collaborationService';
+import { logger } from '../utils/logger';
 
 interface UseEditingHeartbeatOptions {
   elementId: string;
@@ -25,13 +26,13 @@ export function useEditingHeartbeat({
       if (heartbeatInterval.current) {
         clearInterval(heartbeatInterval.current);
         heartbeatInterval.current = null;
-        console.log(`💓 Stopped heartbeat for ${elementId}`);
+        logger.debug(`Stopped heartbeat for ${elementId}`);
       }
       return;
     }
 
     // Start heartbeat
-    console.log(`💓 Starting heartbeat for ${elementId} (every ${interval}ms)`);
+    logger.debug(`Starting heartbeat for ${elementId} (every ${interval}ms)`);
 
     heartbeatInterval.current = setInterval(() => {
       const collabService = getCollaborationService();
@@ -45,7 +46,7 @@ export function useEditingHeartbeat({
         timestamp: Date.now(),
       });
 
-      console.log(`💓 Sent heartbeat for ${elementId}`);
+      logger.debug(`Sent heartbeat for ${elementId}`);
     }, interval);
 
     // Cleanup on unmount or when editing stops
@@ -53,7 +54,7 @@ export function useEditingHeartbeat({
       if (heartbeatInterval.current) {
         clearInterval(heartbeatInterval.current);
         heartbeatInterval.current = null;
-        console.log(`💓 Cleaned up heartbeat for ${elementId}`);
+        logger.debug(`Cleaned up heartbeat for ${elementId}`);
       }
     };
   }, [elementId, isEditing, interval]);

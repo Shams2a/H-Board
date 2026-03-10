@@ -3,7 +3,7 @@
  * Freehand drawing canvas with pen and eraser tools
  */
 
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, memo } from 'react';
 import type { DrawingElement, DrawingPath } from '../../types';
 import { useElementStore, useDragStore } from '../../store';
 import { useDraggable } from '../../hooks/useDraggable';
@@ -23,9 +23,10 @@ interface DrawingProps {
   parentColumnId?: string;
 }
 
-export default function Drawing({ element, isSelected, onSelect: _onSelect, parentColumnId }: DrawingProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag } = useDragStore();
+const Drawing = memo(function Drawing({ element, isSelected, onSelect: _onSelect, parentColumnId }: DrawingProps) {
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -373,4 +374,6 @@ export default function Drawing({ element, isSelected, onSelect: _onSelect, pare
       )}
     </div>
   );
-}
+});
+
+export default Drawing;

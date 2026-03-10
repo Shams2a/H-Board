@@ -167,11 +167,21 @@ export interface TodoListContent {
 
 export type CellType = 'text' | 'number' | 'date' | 'checkbox' | 'dropdown';
 
+export interface TableCellStyle {
+  backgroundColor?: string;
+  color?: string;
+  fontWeight?: 'normal' | 'bold';
+  fontStyle?: 'normal' | 'italic';
+  textAlign?: 'left' | 'center' | 'right';
+}
+
+export type TableCellValue = string | number | boolean | null;
+
 export interface TableCell {
-  value: any;
+  value: TableCellValue;
   type: CellType;
   formula?: string;
-  style?: any;
+  style?: TableCellStyle;
 }
 
 export interface TableContent {

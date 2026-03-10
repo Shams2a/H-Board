@@ -88,7 +88,7 @@ export interface DatabaseProperty {
 export interface DatabaseRow {
   id: string;
   boardId: string;
-  properties: Record<string, any>; // { propertyId: value } - renamed from "values"
+  properties: Record<string, CellValue>; // { propertyId: value } - renamed from "values"
   position: number;
 
   // Metadata
@@ -135,7 +135,7 @@ export interface DatabaseFilter {
   id?: string;              // Optional ID for UI purposes
   propertyId: string;       // Renamed from "property"
   operator: FilterOperator;
-  value?: any;              // Made optional for operators like is_empty
+  value?: CellValue | CellValue[];  // Made optional for operators like is_empty
 }
 
 // Legacy alias for backwards compatibility
@@ -265,7 +265,7 @@ export type CellValue =
 // VALIDATION HELPERS
 // ============================================================================
 
-export const validateCellValue = (value: any, property: DatabaseProperty): boolean => {
+export const validateCellValue = (value: CellValue, property: DatabaseProperty): boolean => {
   switch (property.type) {
     case 'title':
     case 'text':
@@ -298,7 +298,7 @@ export const validateCellValue = (value: any, property: DatabaseProperty): boole
 // DEFAULT VALUES
 // ============================================================================
 
-export const getDefaultCellValue = (type: PropertyType): any => {
+export const getDefaultCellValue = (type: PropertyType): CellValue => {
   switch (type) {
     case 'title':
     case 'text':

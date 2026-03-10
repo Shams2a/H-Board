@@ -23,8 +23,11 @@ interface TodoListProps {
 }
 
 export default function TodoList({ element, isSelected, onSelect: _onSelect, parentColumnId }: TodoListProps) {
-  const { updateElement } = useElementStore();
-  const { draggedElementId, justFinishedDrag, dropTargetBoardId, isDropReady } = useDragStore();
+  const updateElement = useElementStore(state => state.updateElement);
+  const draggedElementId = useDragStore(state => state.draggedElementId);
+  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
+  const dropTargetBoardId = useDragStore(state => state.dropTargetBoardId);
+  const isDropReady = useDragStore(state => state.isDropReady);
   const containerRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
@@ -99,7 +102,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
     setNewItemText('');
   };
 
-  const handleEditItem = async (itemId: string, continueAdding: boolean = false) => {
+  const handleEditItem = async (itemId: string, _continueAdding: boolean = false) => {
     if (!editText.trim()) return;
 
     const updatedItems = items.map(item =>
@@ -127,15 +130,6 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
       content: {
         ...element.content,
         items: updatedItems
-      }
-    });
-  };
-
-  const handleToggleProgress = async () => {
-    await updateElement(element.id, {
-      content: {
-        ...element.content,
-        showProgress: !element.content.showProgress
       }
     });
   };

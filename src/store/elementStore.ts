@@ -1,15 +1,38 @@
 /**
  * Element Store
  * Manages canvas elements state and operations
+ *
+ * Clipboard/selection logic lives in ./elementClipboardStore.ts
+ * Reference/re-use logic lives in ./elementReferenceStore.ts
+ * Both are re-exported here for backward compatibility.
  */
 
 import { create } from 'zustand';
-import { generateId } from '../utils/uuid';
 import type { Element, Position, Size, LineElement, LineContent } from '../types';
 import { elementOperations } from '../utils/db';
-import { newSyncService } from '../services/supabase/newSyncService';
 import { useHistoryStore } from './historyStore';
 import { getCollaborationService } from '../services/collaboration/collaborationService';
+import { logger } from '../utils/logger';
+
+// Extracted slices
+import {
+  clipboardInitialState,
+  createClipboardActions,
+} from './elementClipboardStore';
+import {
+  referenceInitialState,
+  createReferenceActions,
+} from './elementReferenceStore';
+
+// Re-export selectors from extracted files for backward compatibility
+export {
+  selectSelectedIds,
+  selectClipboard,
+} from './elementClipboardStore';
+export {
+  selectDraggedElementId,
+  selectDraggedFromColumnId,
+} from './elementReferenceStore';
 
 interface ElementState {
   elements: Element[];
@@ -68,11 +91,14 @@ interface ElementState {
 
 export const useElementStore = create<ElementState>((set, get) => ({
   elements: [],
-  selectedIds: [],
-  clipboard: [],
   loading: false,
   error: null,
-  pendingReusableElementId: null,
+
+  // Clipboard & selection initial state
+  ...clipboardInitialState,
+
+  // Reference initial state
+  ...referenceInitialState,
 
   setElements: (elementsOrUpdater) => {
     set((state) => ({
@@ -151,7 +177,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
           userId: '', // Will be set by service
           timestamp: Date.now()
         });
-        console.log('🔊 Broadcasted element_created:', element.id);
+        logger.debug('Broadcasted element_created:', element.id);
       } catch (err) {
         console.warn('Failed to broadcast element creation:', err);
       }
@@ -171,7 +197,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   updateElement: async (id: string, updates: Partial<Element>) => {
-    console.log('🔧 updateElement called:', { id, updates });
+    logger.debug('updateElement called:', { id, updates });
 
     try {
       // Get the element to check if it's a reference
@@ -182,7 +208,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
 
       // If this is a reference (has sourceElementId), split the updates
       if (element && element.sourceElementId) {
-        console.log('📎 Element is a reference, redirecting content updates to source:', element.sourceElementId);
+        logger.debug('Element is a reference, redirecting content updates to source:', element.sourceElementId);
 
         // Separate instance updates from content updates
         const instanceUpdates: Partial<Element> = {};
@@ -211,7 +237,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
         // Apply content updates to the source element
         if (Object.keys(contentUpdates).length > 0) {
           const sourceId = element.sourceElementId;
-          console.log('🎯 Updating source element:', sourceId, contentUpdates);
+          logger.debug('Updating source element:', sourceId, contentUpdates);
           await elementOperations.update(sourceId, contentUpdates);
 
           // Update source in store (this will trigger re-render of all references)
@@ -233,7 +259,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
                 userId: '',
                 timestamp: Date.now()
               });
-              console.log('🔊 Broadcasted source element_updated:', sourceId);
+              logger.debug('Broadcasted source element_updated:', sourceId);
             } catch (err) {
               console.warn('Failed to broadcast source update:', err);
             }
@@ -248,7 +274,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
 
       // Get updated element for sync and broadcast
       const updatedElement = await elementOperations.getById(id);
-      console.log('📖 Got updated element from DB:', updatedElement);
+      logger.debug('Got updated element from DB:', updatedElement);
 
       if (updatedElement) {
         // DON'T sync immediately - it causes conflicts with download overwriting local changes
@@ -264,12 +290,12 @@ export const useElementStore = create<ElementState>((set, get) => ({
             userId: '',
             timestamp: Date.now()
           });
-          console.log('🔊 Broadcasted element_updated:', { id, elementType: updatedElement.type });
+          logger.debug('Broadcasted element_updated:', { id, elementType: updatedElement.type });
         } catch (err) {
           console.warn('Failed to broadcast element update:', err);
         }
       } else {
-        console.warn('⚠️ Could not get updated element from DB for broadcasting');
+        console.warn('Could not get updated element from DB for broadcasting');
       }
 
       // @ts-ignore - Complex union type inference
@@ -287,7 +313,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   deleteElement: async (id: string) => {
-    console.log('🗑️ deleteElement called:', { id });
+    logger.debug('deleteElement called:', { id });
 
     // Push current state to history before deleting
     get().pushToHistory();
@@ -299,7 +325,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
         deletedAt,
         updatedAt: deletedAt
       });
-      console.log('✅ Element soft-deleted in DB:', id);
+      logger.debug('Element soft-deleted in DB:', id);
 
       // DON'T sync immediately - it causes conflicts with download overwriting local changes
       // The periodic sync will handle Supabase sync later
@@ -314,7 +340,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
           userId: '',
           timestamp: Date.now()
         });
-        console.log('🔊 Broadcasted element_deleted:', id);
+        logger.debug('Broadcasted element_deleted:', id);
       } catch (err) {
         console.warn('Failed to broadcast element deletion:', err);
       }
@@ -333,7 +359,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
   },
 
   deleteElements: async (ids: string[]) => {
-    console.log('🗑️ deleteElements called:', { ids, count: ids.length });
+    logger.debug('deleteElements called:', { ids, count: ids.length });
 
     // Push current state to history before deleting
     get().pushToHistory();
@@ -347,7 +373,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
           updatedAt: deletedAt
         });
       }
-      console.log(`✅ ${ids.length} elements soft-deleted in DB`);
+      logger.debug(`${ids.length} elements soft-deleted in DB`);
 
       // DON'T sync immediately - it causes conflicts with download overwriting local changes
       // The periodic sync will handle Supabase sync later
@@ -363,7 +389,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
           userId: '',
           timestamp: Date.now()
         });
-        console.log('🔊 Broadcasted elements_deleted (batch):', ids.length, 'elements');
+        logger.debug('Broadcasted elements_deleted (batch):', ids.length, 'elements');
       } catch (err) {
         console.warn('Failed to broadcast element deletions:', err);
       }
@@ -381,93 +407,10 @@ export const useElementStore = create<ElementState>((set, get) => ({
     }
   },
 
-  selectElement: (id: string, multi = false) => {
-    set(state => {
-      if (multi) {
-        // Toggle selection in multi-select mode
-        if (state.selectedIds.includes(id)) {
-          return { selectedIds: state.selectedIds.filter(selectedId => selectedId !== id) };
-        } else {
-          return { selectedIds: [...state.selectedIds, id] };
-        }
-      } else {
-        // Single selection
-        return { selectedIds: [id] };
-      }
-    });
-  },
+  // --- Clipboard & Selection (delegated to extracted slice) ---
+  ...createClipboardActions(set, get),
 
-  deselectElement: (id: string) => {
-    set(state => ({
-      selectedIds: state.selectedIds.filter(selectedId => selectedId !== id)
-    }));
-  },
-
-  clearSelection: () => {
-    set({ selectedIds: [] });
-  },
-
-  selectAll: () => {
-    set(state => ({
-      selectedIds: state.elements.map(el => el.id)
-    }));
-  },
-
-  copy: () => {
-    const { elements, selectedIds } = get();
-    const selectedElements = elements.filter(el => selectedIds.includes(el.id));
-    set({ clipboard: selectedElements });
-  },
-
-  cut: () => {
-    get().copy();
-    const { selectedIds } = get();
-    get().deleteElements(selectedIds);
-  },
-
-  paste: async (position?: Position) => {
-    const { clipboard, elements } = get();
-    if (clipboard.length === 0) return;
-
-    // Calculate offset for pasted elements
-    const offset = position || { x: 20, y: 20 };
-
-    for (const element of clipboard) {
-      const newElement: Element = {
-        ...element,
-        id: generateId(),
-        position: {
-          x: element.position.x + offset.x,
-          y: element.position.y + offset.y
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      await get().createElement(newElement);
-    }
-  },
-
-  duplicate: async (ids: string[]) => {
-    const { elements } = get();
-    const elementsToDuplicate = elements.filter(el => ids.includes(el.id));
-
-    for (const element of elementsToDuplicate) {
-      const newElement: Element = {
-        ...element,
-        id: generateId(),
-        position: {
-          x: element.position.x + 20,
-          y: element.position.y + 20
-        },
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-
-      await get().createElement(newElement);
-    }
-  },
-
+  // --- Z-index ---
   bringToFront: async (id: string) => {
     try {
       await elementOperations.bringToFront(id);
@@ -502,6 +445,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
     }
   },
 
+  // --- Position & Size ---
   updatePosition: async (id: string, position: Position, skipLineUpdate = false) => {
     const element = get().getElementById(id);
     if (!element) return;
@@ -518,7 +462,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
   batchUpdatePositions: async (updates: Map<string, Position>, persistToDB = false) => {
     if (updates.size === 0) return;
 
-    console.log(`📍 batchUpdatePositions: ${updates.size} elements, persistToDB: ${persistToDB}`);
+    logger.debug(`batchUpdatePositions: ${updates.size} elements, persistToDB: ${persistToDB}`);
 
     // Single state update for all elements
     set(state => ({
@@ -534,7 +478,6 @@ export const useElementStore = create<ElementState>((set, get) => ({
     // Only persist to DB when drag ends (not during drag)
     if (persistToDB) {
       const updatePromises: Promise<any>[] = [];
-      const broadcastPromises: Promise<void>[] = [];
 
       updates.forEach((position, id) => {
         // Update in IndexedDB
@@ -545,7 +488,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
       // Broadcast position updates for real-time collaboration
       try {
         const collabService = getCollaborationService();
-        for (const [id, position] of updates.entries()) {
+        for (const [id, _position] of updates.entries()) {
           const element = await elementOperations.getById(id);
           if (element) {
             collabService.broadcast({
@@ -554,7 +497,7 @@ export const useElementStore = create<ElementState>((set, get) => ({
               userId: '',
               timestamp: Date.now()
             });
-            console.log('🔊 Broadcasted position update:', id);
+            logger.debug('Broadcasted position update:', id);
           }
         }
       } catch (err) {
@@ -688,16 +631,14 @@ export const useElementStore = create<ElementState>((set, get) => ({
     await get().updateElement(id, { size });
   },
 
-  getSelectedElements: () => {
-    const { elements, selectedIds } = get();
-    return elements.filter(el => selectedIds.includes(el.id));
-  },
-
   getElementById: (id: string) => {
     return get().elements.find(el => el.id === id);
   },
 
-  // History functions
+  // --- Reference / re-use (delegated to extracted slice) ---
+  ...createReferenceActions(set, get),
+
+  // --- History ---
   pushToHistory: () => {
     const { elements } = get();
     useHistoryStore.getState().pushState(elements);
@@ -726,99 +667,12 @@ export const useElementStore = create<ElementState>((set, get) => ({
       set({ elements: nextElements });
     }
   },
-
-  // Re-use system implementation
-  markAsReusable: async (id: string) => {
-    // Mark element as reusable and store its ID for pending re-use
-    await get().updateElement(id, { isReusable: true });
-    set({ pendingReusableElementId: id });
-
-    // Broadcast to collaboration service
-    const collaborationService = getCollaborationService();
-    if (collaborationService && collaborationService.isInitialized()) {
-      collaborationService.broadcast({
-        type: 'element_marked_reusable',
-        payload: { elementId: id },
-        userId: 'current-user', // TODO: Get from auth context
-        timestamp: Date.now()
-      });
-    }
-  },
-
-  createReference: async (sourceElementId: string, position: Position, boardId: string) => {
-    // Try to get from current store first
-    let sourceElement = get().getElementById(sourceElementId);
-
-    // If not found in store, load from database (might be on a different board)
-    if (!sourceElement) {
-      try {
-        sourceElement = await elementOperations.getById(sourceElementId);
-      } catch (error) {
-        throw new Error('Source element not found in database');
-      }
-    }
-
-    if (!sourceElement) {
-      throw new Error('Source element not found');
-    }
-
-    // Create new element that references the source
-    const referenceElement: Element = {
-      ...sourceElement,
-      id: generateId(),
-      boardId,
-      position,
-      sourceElementId,
-      isReusable: false, // References themselves are not reusable
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    const newId = await get().createElement(referenceElement);
-
-    // Clear pending state
-    set({ pendingReusableElementId: null });
-
-    // Broadcast creation
-    const collaborationService = getCollaborationService();
-    if (collaborationService && collaborationService.isInitialized()) {
-      collaborationService.broadcast({
-        type: 'element_reference_created',
-        payload: {
-          sourceElementId,
-          referenceElementId: newId,
-          boardId
-        },
-        userId: 'current-user', // TODO: Get from auth context
-        timestamp: Date.now()
-      });
-    }
-
-    return newId;
-  },
-
-  resolveElement: (id: string) => {
-    const element = get().getElementById(id);
-    if (!element) return undefined;
-
-    // If element is a reference, resolve it
-    if (element.sourceElementId) {
-      const sourceElement = get().getElementById(element.sourceElementId);
-      if (sourceElement) {
-        // Merge: source content + reference position/size/boardId
-        return {
-          ...sourceElement,
-          id: element.id,
-          boardId: element.boardId,
-          position: element.position,
-          size: element.size,
-          zIndex: element.zIndex,
-          parentId: element.parentId,
-          sourceElementId: element.sourceElementId
-        } as Element;
-      }
-    }
-
-    return element;
-  }
 }));
+
+// Selectors
+type ElementStoreState = ReturnType<typeof useElementStore.getState>;
+export const selectElements = (state: ElementStoreState) => state.elements;
+export const selectElementById = (id: string) => (state: ElementStoreState) =>
+  state.elements.find(el => el.id === id);
+export const selectElementsByBoard = (boardId: string) => (state: ElementStoreState) =>
+  state.elements.filter(el => el.boardId === boardId);

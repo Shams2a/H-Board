@@ -24,7 +24,7 @@ const COLORS = [
 ];
 
 export default function ColumnCustomization({ element }: ColumnCustomizationProps) {
-  const { updateElement } = useElementStore();
+  const updateElement = useElementStore(state => state.updateElement);
   const [title, setTitle] = useState(element.content.title || 'Untitled Column');
 
   const handleColorChange = (color: string) => {

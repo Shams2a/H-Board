@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useUIStore, useElementStore, useHistoryStore } from '../../store';
+import { useUIStore, selectZoom, selectGridEnabled, useElementStore, useHistoryStore } from '../../store';
 import {
   ZoomIn,
   ZoomOut,
@@ -16,8 +16,12 @@ import {
 } from 'lucide-react';
 
 export default function ViewControls() {
-  const { zoom, setZoom, gridEnabled, toggleGrid, resetView } = useUIStore();
-  const { undo, redo } = useElementStore();
+  const zoom = useUIStore(selectZoom);
+  const gridEnabled = useUIStore(selectGridEnabled);
+  const setZoom = useUIStore(state => state.setZoom);
+  const toggleGrid = useUIStore(state => state.toggleGrid);
+  const undo = useElementStore(state => state.undo);
+  const redo = useElementStore(state => state.redo);
   const canUndo = useHistoryStore(state => state.canUndo());
   const canRedo = useHistoryStore(state => state.canRedo());
   const [isFullscreen, setIsFullscreen] = useState(false);

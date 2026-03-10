@@ -4,6 +4,7 @@
  */
 
 import { create } from 'zustand';
+import { logger } from '../utils/logger';
 
 export interface EditingUser {
   userId: string;
@@ -45,14 +46,14 @@ export const useEditingStore = create<EditingState>((set, get) => ({
     set((state) => {
       const newMap = new Map(state.editingUsers);
       newMap.set(key, editingUser);
-      console.log(`🖊️ [editingStore] Added: ${key}`, {
+      logger.debug(`[editingStore] Added: ${key}`, {
         totalEditing: newMap.size,
         allKeys: Array.from(newMap.keys()),
       });
       return { editingUsers: newMap };
     });
 
-    console.log(`🖊️ User ${userName} started editing ${elementId}`);
+    logger.debug(`User ${userName} started editing ${elementId}`);
   },
 
   stopEditing: (elementId: string, userId: string) => {
@@ -64,7 +65,7 @@ export const useEditingStore = create<EditingState>((set, get) => ({
       return { editingUsers: newMap };
     });
 
-    console.log(`✅ User ${userId} stopped editing ${elementId}`);
+    logger.debug(`User ${userId} stopped editing ${elementId}`);
   },
 
   updateHeartbeat: (elementId: string, userId: string) => {
@@ -79,7 +80,7 @@ export const useEditingStore = create<EditingState>((set, get) => ({
           ...existing,
           timestamp: Date.now(),
         });
-        console.log(`💓 Heartbeat updated for ${key}`);
+        logger.debug(`Heartbeat updated for ${key}`);
       }
 
       return { editingUsers: newMap };
@@ -97,12 +98,12 @@ export const useEditingStore = create<EditingState>((set, get) => ({
         if (now - user.timestamp > EDITING_TIMEOUT_MS) {
           newMap.delete(key);
           removedCount++;
-          console.log(`🧹 Cleaned up stale edit: ${key} (${Math.round((now - user.timestamp) / 1000)}s old)`);
+          logger.debug(`Cleaned up stale edit: ${key} (${Math.round((now - user.timestamp) / 1000)}s old)`);
         }
       }
 
       if (removedCount > 0) {
-        console.log(`🧹 Cleaned up ${removedCount} stale edit(s)`);
+        logger.debug(`Cleaned up ${removedCount} stale edit(s)`);
       }
 
       return { editingUsers: newMap };
@@ -124,3 +125,15 @@ export const useEditingStore = create<EditingState>((set, get) => ({
     set({ editingUsers: new Map() });
   },
 }));
+
+// Selectors
+type EditingStoreState = ReturnType<typeof useEditingStore.getState>;
+export const selectEditingUsers = (state: EditingStoreState) => state.editingUsers;
+export const selectEditingUserForElement = (elementId: string) => (state: EditingStoreState) => {
+  const entries = Array.from(state.editingUsers.values());
+  return entries.find(u => u.elementId === elementId) || null;
+};
+export const selectIsElementBeingEdited = (elementId: string) => (state: EditingStoreState) => {
+  const entries = Array.from(state.editingUsers.values());
+  return entries.some(u => u.elementId === elementId);
+};

@@ -23,7 +23,9 @@ export default function DatabaseBoard({ boardId }: DatabaseBoardProps) {
   const boardRows = useDatabaseStore((state) => state.rows[boardId] ?? EMPTY_ARRAY);
   const boardViews = useDatabaseStore((state) => state.views[boardId] ?? EMPTY_ARRAY);
   const activeViewId = useDatabaseStore((state) => state.currentViewId[boardId]);
-  const { loadDatabase, getFilteredRows, getSortedRows } = useDatabaseStore();
+  const loadDatabase = useDatabaseStore(state => state.loadDatabase);
+  const getFilteredRows = useDatabaseStore(state => state.getFilteredRows);
+  const getSortedRows = useDatabaseStore(state => state.getSortedRows);
   const initializedRef = useRef<Set<string>>(new Set());
   const [dataLoaded, setDataLoaded] = useState(false);
 
