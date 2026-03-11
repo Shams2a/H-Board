@@ -204,7 +204,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
   const handleDrawingMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (activeTool !== 'drawing') return;
 
-    // Only start drawing on the canvas background, not on elements
+    // Only start drawing on the canvas background, not on other elements
     const target = e.target as HTMLElement;
     if (target.closest('.element-card')) return;
 

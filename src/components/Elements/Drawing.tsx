@@ -7,7 +7,7 @@
 
 import React, { useRef, useMemo, useCallback, memo } from 'react';
 import type { DrawingElement, DrawingPath, Position } from '../../types';
-import { useElementStore, useDragStore, useUIStore, selectZoom } from '../../store';
+import { useElementStore, useDragStore, useUIStore, selectZoom, selectActiveTool } from '../../store';
 
 interface DrawingProps {
   element: DrawingElement;
@@ -90,9 +90,11 @@ const Drawing = memo(function Drawing({
   const draggedElementId = useDragStore((s) => s.draggedElementId);
   const justFinishedDrag = useDragStore((s) => s.justFinishedDrag);
   const zoom = useUIStore(selectZoom);
+  const activeTool = useUIStore(selectActiveTool);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const isBeingDragged = draggedElementId === element.id;
+  const isDrawingMode = activeTool === 'drawing';
   const paths = element.content.paths;
 
   // --- Bounding box ----------------------------------------------------------
@@ -215,7 +217,7 @@ const Drawing = memo(function Drawing({
         width: `${boxW}px`,
         height: `${boxH}px`,
         zIndex: element.zIndex,
-        pointerEvents: isBeingDragged ? 'none' : 'auto',
+        pointerEvents: isBeingDragged || isDrawingMode ? 'none' : 'auto',
         cursor: element.locked
           ? 'not-allowed'
           : isSelected
@@ -225,8 +227,8 @@ const Drawing = memo(function Drawing({
       onClick={handleClick}
       onMouseDown={handleMouseDown}
     >
-      {/* Selection outline */}
-      {isSelected && (
+      {/* Selection outline — hidden while actively drawing */}
+      {isSelected && !isDrawingMode && (
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -276,8 +278,8 @@ const Drawing = memo(function Drawing({
         })}
       </svg>
 
-      {/* Resize handles when selected */}
-      {isSelected && !element.locked && (
+      {/* Resize handles when selected — hidden while actively drawing */}
+      {isSelected && !element.locked && !isDrawingMode && (
         <>
           {/* Corner handles */}
           {[
