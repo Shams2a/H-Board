@@ -283,16 +283,6 @@ export function exportToTXT(
         break;
       }
 
-      case 'section': {
-        if (options.includeStyles) {
-          lines.push(`[Section: ${element.content.title || 'Untitled'}]`);
-        } else if (element.content.title) {
-          lines.push(element.content.title);
-        }
-        lines.push('');
-        break;
-      }
-
       // Skip visual-only elements in TXT export
       case 'image':
       case 'line':

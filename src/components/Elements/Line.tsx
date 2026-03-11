@@ -178,6 +178,9 @@ export default function Line({ element, isSelected, onSelect: _onSelect }: LineP
       updateElement(element.id, {
         content: {
           ...element.content,
+          // Disconnect from any attached elements when dragging freely
+          startElementId: undefined,
+          endElementId: undefined,
           startPoint: {
             x: initialStartPoint.x + deltaX,
             y: initialStartPoint.y + deltaY

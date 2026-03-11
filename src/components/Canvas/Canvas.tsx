@@ -16,7 +16,8 @@ import AnchorPoints from '../Elements/AnchorPoints';
 import { ContextMenu } from '../ContextMenu';
 import KanbanBoard from '../Kanban/KanbanBoard';
 import DatabaseBoard from '../Database/DatabaseBoard';
-import type { AnchorPosition, ArrowElement } from '../../types';
+import { drawingSettings } from '../Sidebar/customizations/DrawingCustomization';
+import type { AnchorPosition, ArrowElement, DrawingElement, DrawingPath, Position } from '../../types';
 
 interface CanvasProps {
   onExport?: () => void;
@@ -44,8 +45,15 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
   const setActiveTool = useUIStore(state => state.setActiveTool);
   const draggedElementId = useDragStore(state => state.draggedElementId);
   const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
+  const updateElement = useElementStore(state => state.updateElement);
   const canvasRef = useRef<HTMLDivElement>(null);
   const previousBoardIdRef = useRef<string | null>(null);
+
+  // Drawing mode refs (using refs to avoid re-renders during drawing)
+  const isDrawingRef = useRef(false);
+  const currentPathRef = useRef<Position[]>([]);
+  const activeDrawingIdRef = useRef<string | null>(null);
+  const [drawingStroke, setDrawingStroke] = useState<Position[] | null>(null);
 
   // Track if we're currently interacting (panning/scrolling) to disable transition
   const [isInteracting, setIsInteracting] = useState(false);
@@ -161,6 +169,125 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [selectedIds, deleteElements, undo, redo]);
+
+  // Drawing on existing element: if user selects an existing Drawing element
+  // and activates drawing mode, set activeDrawingIdRef to that element's ID
+  useEffect(() => {
+    if (activeTool === 'drawing' && selectedIds.length === 1) {
+      const selectedEl = elements.find(el => el.id === selectedIds[0]);
+      if (selectedEl && selectedEl.type === 'drawing') {
+        activeDrawingIdRef.current = selectedEl.id;
+      }
+    }
+    if (activeTool !== 'drawing') {
+      activeDrawingIdRef.current = null;
+      isDrawingRef.current = false;
+      setDrawingStroke(null);
+    }
+  }, [activeTool, selectedIds, elements]);
+
+  // Escape key to deactivate drawing mode
+  useEffect(() => {
+    if (activeTool !== 'drawing') return;
+    const handleDrawingEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveTool(null);
+        activeDrawingIdRef.current = null;
+      }
+    };
+    document.addEventListener('keydown', handleDrawingEscape);
+    return () => document.removeEventListener('keydown', handleDrawingEscape);
+  }, [activeTool, setActiveTool]);
+
+  // --- Drawing mode event handlers ---
+
+  const handleDrawingMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (activeTool !== 'drawing') return;
+
+    // Only start drawing on the canvas background, not on elements
+    const target = e.target as HTMLElement;
+    if (target.closest('.element-card')) return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = (e.clientX - rect.left) / zoom - panX;
+    const y = (e.clientY - rect.top) / zoom - panY;
+
+    isDrawingRef.current = true;
+    currentPathRef.current = [{ x, y }];
+    setDrawingStroke([{ x, y }]);
+
+    // If no active drawing element, create one
+    if (!activeDrawingIdRef.current && currentBoardId) {
+      const maxZ = Math.max(0, ...elements.map(el => el.zIndex));
+      const newDrawing: DrawingElement = {
+        id: generateId(),
+        boardId: currentBoardId,
+        type: 'drawing',
+        position: { x, y },
+        size: { width: 400, height: 300 },
+        zIndex: maxZ + 1,
+        locked: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        content: { paths: [] },
+        style: { backgroundColor: 'transparent' },
+      };
+      activeDrawingIdRef.current = newDrawing.id;
+      createElement(newDrawing);
+    }
+
+    e.preventDefault();
+    e.stopPropagation();
+  }, [activeTool, zoom, panX, panY, currentBoardId, elements, createElement]);
+
+  const handleDrawingMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDrawingRef.current || activeTool !== 'drawing') return;
+
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const x = (e.clientX - rect.left) / zoom - panX;
+    const y = (e.clientY - rect.top) / zoom - panY;
+
+    currentPathRef.current.push({ x, y });
+    // Update visual overlay (batched via React state)
+    setDrawingStroke([...currentPathRef.current]);
+  }, [activeTool, zoom, panX, panY]);
+
+  const handleDrawingMouseUp = useCallback(async () => {
+    if (!isDrawingRef.current || activeTool !== 'drawing') return;
+
+    isDrawingRef.current = false;
+    setDrawingStroke(null);
+
+    const drawingId = activeDrawingIdRef.current;
+    if (!drawingId || currentPathRef.current.length < 2) return;
+
+    const newPath: DrawingPath = {
+      points: [...currentPathRef.current],
+      color: drawingSettings.color,
+      thickness: drawingSettings.thickness,
+      tool: drawingSettings.tool,
+    };
+
+    // Find the current drawing element and add the path
+    const drawingEl = useElementStore.getState().elements.find(
+      el => el.id === drawingId
+    ) as DrawingElement | undefined;
+
+    if (drawingEl) {
+      await updateElement(drawingId, {
+        content: {
+          ...drawingEl.content,
+          paths: [...drawingEl.content.paths, newPath],
+        },
+      });
+    }
+
+    currentPathRef.current = [];
+  }, [activeTool, updateElement]);
 
   // --- Event handlers ---
 
@@ -280,12 +407,37 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
       `}
       style={{
         backgroundColor: canvasBackgroundColor,
+        cursor: activeTool === 'drawing' ? 'crosshair' : undefined,
       }}
       onClick={handleCanvasClick}
-      onMouseDown={handleCanvasMouseDown}
-      onMouseMove={handleCanvasMouseMove}
-      onMouseUp={handleCanvasMouseUp}
-      onMouseLeave={handleCanvasMouseUp}
+      onMouseDown={(e) => {
+        if (activeTool === 'drawing') {
+          handleDrawingMouseDown(e);
+        } else {
+          handleCanvasMouseDown(e);
+        }
+      }}
+      onMouseMove={(e) => {
+        if (activeTool === 'drawing') {
+          handleDrawingMouseMove(e);
+        } else {
+          handleCanvasMouseMove(e);
+        }
+      }}
+      onMouseUp={() => {
+        if (activeTool === 'drawing') {
+          handleDrawingMouseUp();
+        } else {
+          handleCanvasMouseUp();
+        }
+      }}
+      onMouseLeave={() => {
+        if (activeTool === 'drawing') {
+          handleDrawingMouseUp();
+        } else {
+          handleCanvasMouseUp();
+        }
+      }}
       onContextMenu={handleContextMenu}
     >
       {/* Canvas content with zoom and pan */}
@@ -363,6 +515,30 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
               zIndex: 10000,
             }}
           />
+        )}
+
+        {/* Temporary drawing overlay */}
+        {drawingStroke && drawingStroke.length > 1 && (
+          <svg
+            className="absolute pointer-events-none"
+            style={{
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              overflow: 'visible',
+              zIndex: 10001,
+            }}
+          >
+            <polyline
+              points={drawingStroke.map(p => `${p.x},${p.y}`).join(' ')}
+              fill="none"
+              stroke={drawingSettings.tool === 'eraser' ? '#FFFFFF' : drawingSettings.color}
+              strokeWidth={drawingSettings.thickness}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         )}
       </div>
 

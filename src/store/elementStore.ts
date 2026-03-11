@@ -592,9 +592,11 @@ export const useElementStore = create<ElementState>((set, get) => ({
     };
 
     // Find all lines connected to any of these elements
+    // Exclude lines that are themselves being dragged (they manage their own position)
     const connectedLines = elements.filter(
       (el): el is LineElement => {
         if (el.type !== 'line') return false;
+        if (elementIdSet.has(el.id)) return false; // Skip lines being dragged
         const content = el.content as LineContent;
         return !!(content.startElementId && elementIdSet.has(content.startElementId)) ||
                !!(content.endElementId && elementIdSet.has(content.endElementId));

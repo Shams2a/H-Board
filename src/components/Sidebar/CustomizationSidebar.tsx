@@ -16,7 +16,6 @@ import FileCustomization from './customizations/FileCustomization';
 import TableCustomization from './customizations/TableCustomization';
 import TodoListCustomization from './customizations/TodoListCustomization';
 import DrawingCustomization from './customizations/DrawingCustomization';
-import SectionCustomization from './customizations/SectionCustomization';
 import ShapeCustomization from './customizations/ShapeCustomization';
 import LineCustomization from './customizations/LineCustomization';
 import ArrowCustomization from './customizations/ArrowCustomization';
@@ -141,9 +140,6 @@ export default function CustomizationSidebar() {
             )}
             {activePage === 'color' && selectedElement.type === 'drawing' && (
               <DrawingCustomization element={selectedElement} />
-            )}
-            {activePage === 'color' && selectedElement.type === 'section' && (
-              <SectionCustomization element={selectedElement} />
             )}
             {activePage === 'color' && selectedElement.type === 'shape' && (
               <ShapeCustomization element={selectedElement} />

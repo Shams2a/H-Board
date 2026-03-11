@@ -1,20 +1,13 @@
 /**
  * Drawing Component
- * Freehand drawing canvas with pen and eraser tools
+ * SVG-based freehand drawing renderer — no frame, no toolbar.
+ * Paths are rendered as smooth SVG <path> elements positioned
+ * absolutely based on the bounding box of all points.
  */
 
-import React, { useRef, useState, useEffect, memo } from 'react';
-import type { DrawingElement, DrawingPath } from '../../types';
-import { useElementStore, useDragStore } from '../../store';
-import { useDraggable } from '../../hooks/useDraggable';
-import { useResizable } from '../../hooks/useResizable';
-import { useDarkModeColor } from '../../hooks/useDarkModeColor';
-import {
-  Pencil,
-  Eraser,
-  Trash2,
-  GripVertical
-} from 'lucide-react';
+import React, { useRef, useMemo, useCallback, memo } from 'react';
+import type { DrawingElement, DrawingPath, Position } from '../../types';
+import { useElementStore, useDragStore, useUIStore, selectZoom } from '../../store';
 
 interface DrawingProps {
   element: DrawingElement;
@@ -23,353 +16,293 @@ interface DrawingProps {
   parentColumnId?: string;
 }
 
-const Drawing = memo(function Drawing({ element, isSelected, onSelect: _onSelect, parentColumnId }: DrawingProps) {
-  const updateElement = useElementStore(state => state.updateElement);
-  const draggedElementId = useDragStore(state => state.draggedElementId);
-  const justFinishedDrag = useDragStore(state => state.justFinishedDrag);
+const PADDING = 20;
+const HANDLE_SIZE = 8;
+
+/** Compute the axis-aligned bounding box across every point in every path. */
+function computeBounds(paths: DrawingPath[]) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const path of paths) {
+    for (const pt of path.points) {
+      if (pt.x < minX) minX = pt.x;
+      if (pt.y < minY) minY = pt.y;
+      if (pt.x > maxX) maxX = pt.x;
+      if (pt.y > maxY) maxY = pt.y;
+    }
+  }
+
+  return { minX, minY, maxX, maxY };
+}
+
+/** Build an SVG path `d` string with quadratic bezier smoothing. */
+function buildPathD(points: Position[]): string {
+  if (points.length === 0) return '';
+  if (points.length === 1) {
+    // Single point — draw a tiny circle-like mark
+    const p = points[0];
+    return `M${p.x},${p.y} L${p.x},${p.y}`;
+  }
+  if (points.length === 2) {
+    return `M${points[0].x},${points[0].y} L${points[1].x},${points[1].y}`;
+  }
+
+  // Smooth curve: move to the first point, then for each pair of consecutive
+  // points use the actual point as the control point and the midpoint between
+  // it and the next point as the end point. This produces a smooth continuous
+  // curve that passes close to every recorded point.
+  let d = `M${points[0].x},${points[0].y}`;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const curr = points[i];
+    const next = points[i + 1];
+    const midX = (curr.x + next.x) / 2;
+    const midY = (curr.y + next.y) / 2;
+
+    if (i === 0) {
+      // First segment — line to first midpoint
+      d += ` L${midX},${midY}`;
+    }
+
+    if (i < points.length - 2) {
+      const nextMidX = (next.x + points[i + 2].x) / 2;
+      const nextMidY = (next.y + points[i + 2].y) / 2;
+      d += ` Q${next.x},${next.y} ${nextMidX},${nextMidY}`;
+    } else {
+      // Last segment — line to end
+      d += ` L${next.x},${next.y}`;
+    }
+  }
+
+  return d;
+}
+
+const Drawing = memo(function Drawing({
+  element,
+  isSelected,
+  onSelect: _onSelect,
+  parentColumnId: _parentColumnId,
+}: DrawingProps) {
+  const updateElement = useElementStore((s) => s.updateElement);
+  const draggedElementId = useDragStore((s) => s.draggedElementId);
+  const justFinishedDrag = useDragStore((s) => s.justFinishedDrag);
+  const zoom = useUIStore(selectZoom);
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [currentPath, setCurrentPath] = useState<DrawingPath | null>(null);
-  const [tool, setTool] = useState<'pen' | 'eraser'>('pen');
-  const [color, setColor] = useState('#000000');
-  const [thickness, setThickness] = useState(2);
 
   const isBeingDragged = draggedElementId === element.id;
+  const paths = element.content.paths;
 
-  // Get dark mode adapted background color
-  const backgroundColor = useDarkModeColor(element.style.backgroundColor || '#FFFFFF');
+  // --- Bounding box ----------------------------------------------------------
 
-  const { handleMouseDown: handleDragMouseDown } = useDraggable({
-    elementId: element.id,
-    parentColumnId
-  });
+  const hasPaths = paths.length > 0 && paths.some((p) => p.points.length > 0);
 
-  const { handleMouseDown: handleResizeMouseDownSE } = useResizable({
-    elementId: element.id,
-    minWidth: 300,
-    minHeight: 200,
-    maxWidth: 1600,
-    maxHeight: 1200,
-    direction: 'se'
-  });
+  const bounds = useMemo(() => {
+    if (!hasPaths) return null;
+    return computeBounds(paths);
+  }, [paths, hasPaths]);
 
-  const { handleMouseDown: handleResizeMouseDownNW } = useResizable({
-    elementId: element.id,
-    minWidth: 300,
-    minHeight: 200,
-    maxWidth: 1600,
-    maxHeight: 1200,
-    direction: 'nw'
-  });
+  const boxX = bounds ? bounds.minX - PADDING : element.position.x;
+  const boxY = bounds ? bounds.minY - PADDING : element.position.y;
+  const boxW = bounds
+    ? bounds.maxX - bounds.minX + PADDING * 2
+    : element.size.width;
+  const boxH = bounds
+    ? bounds.maxY - bounds.minY + PADDING * 2
+    : element.size.height;
 
-  // Redraw canvas when paths change
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+  // --- Memoised SVG `d` strings ---------------------------------------------
 
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw all paths
-    element.content.paths.forEach((path) => {
-      if (path.points.length < 2) return;
-
-      ctx.beginPath();
-      ctx.strokeStyle = path.color;
-      ctx.lineWidth = path.thickness;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (path.tool === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-      } else {
-        ctx.globalCompositeOperation = 'source-over';
-      }
-
-      ctx.moveTo(path.points[0].x, path.points[0].y);
-      for (let i = 1; i < path.points.length; i++) {
-        ctx.lineTo(path.points[i].x, path.points[i].y);
-      }
-      ctx.stroke();
+  const pathDStrings = useMemo(() => {
+    return paths.map((p) => {
+      // Translate points into local SVG coordinates
+      const translated = p.points.map((pt) => ({
+        x: pt.x - boxX,
+        y: pt.y - boxY,
+      }));
+      return buildPathD(translated);
     });
+  }, [paths, boxX, boxY]);
 
-    // Reset composite operation
-    ctx.globalCompositeOperation = 'source-over';
-  }, [element.content.paths]);
+  // --- Click to select -------------------------------------------------------
 
-  const getRelativePosition = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (justFinishedDrag) return;
+      const isMulti = e.ctrlKey || e.metaKey;
+      const { selectElement } = useElementStore.getState();
+      selectElement(element.id, isMulti);
+    },
+    [element.id, justFinishedDrag],
+  );
 
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  };
+  // --- Drag handling (Line.tsx pattern) --------------------------------------
 
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    // Only draw when selected and not locked
-    if (!isSelected || element.locked) {
-      // Don't stop propagation - allow drag to work
-      return;
-    }
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (element.locked) return;
+      if (e.button !== 0) return;
+      if (!isSelected) return; // first click selects; drag only when already selected
 
-    e.stopPropagation();
+      e.preventDefault();
 
-    const pos = getRelativePosition(e);
-    const newPath: DrawingPath = {
-      points: [pos],
-      color: tool === 'eraser' ? '#FFFFFF' : color,
-      thickness: tool === 'eraser' ? thickness * 4 : thickness,
-      tool
-    };
+      const startClientX = e.clientX;
+      const startClientY = e.clientY;
+      // Snapshot every path's points at drag start
+      const initialPaths = paths.map((p) => ({
+        ...p,
+        points: p.points.map((pt) => ({ ...pt })),
+      }));
+      let hasMoved = false;
 
-    setIsDrawing(true);
-    setCurrentPath(newPath);
-  };
+      const onMove = (me: MouseEvent) => {
+        me.preventDefault();
+        const dx = (me.clientX - startClientX) / zoom;
+        const dy = (me.clientY - startClientY) / zoom;
 
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !currentPath) return;
-    e.stopPropagation();
+        if (!hasMoved && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
 
-    const pos = getRelativePosition(e);
-    const updatedPath = {
-      ...currentPath,
-      points: [...currentPath.points, pos]
-    };
+        if (!hasMoved) {
+          hasMoved = true;
+          useDragStore.getState().setDraggedElement(element.id, null);
+          document.body.style.cursor = 'grabbing';
+          document.body.style.userSelect = 'none';
+        }
 
-    setCurrentPath(updatedPath);
+        const movedPaths: DrawingPath[] = initialPaths.map((p) => ({
+          ...p,
+          points: p.points.map((pt) => ({ x: pt.x + dx, y: pt.y + dy })),
+        }));
 
-    // Draw current path in real-time
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+        updateElement(element.id, { content: { paths: movedPaths } });
+      };
 
-    const lastPoint = currentPath.points[currentPath.points.length - 1];
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        if (hasMoved) {
+          useDragStore.getState().setJustFinishedDrag(true);
+          setTimeout(
+            () => useDragStore.getState().setJustFinishedDrag(false),
+            100,
+          );
+        }
+        useDragStore.getState().clearDrag();
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      };
 
-    ctx.strokeStyle = updatedPath.color;
-    ctx.lineWidth = updatedPath.thickness;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    },
+    [element.id, element.locked, isSelected, paths, zoom, updateElement],
+  );
 
-    if (updatedPath.tool === 'eraser') {
-      ctx.globalCompositeOperation = 'destination-out';
-    } else {
-      ctx.globalCompositeOperation = 'source-over';
-    }
-
-    ctx.beginPath();
-    ctx.moveTo(lastPoint.x, lastPoint.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-
-    ctx.globalCompositeOperation = 'source-over';
-  };
-
-  const handleCanvasMouseUp = async () => {
-    if (!isDrawing || !currentPath) return;
-
-    setIsDrawing(false);
-
-    // Save path to element
-    await updateElement(element.id, {
-      content: {
-        paths: [...element.content.paths, currentPath]
-      }
-    });
-
-    setCurrentPath(null);
-  };
-
-  const handleClearDrawing = async () => {
-    await updateElement(element.id, {
-      content: {
-        paths: []
-      }
-    });
-  };
-
-  const handleContainerMouseDown = (e: React.MouseEvent) => {
-    // Don't handle if clicking on toolbar buttons or title bar (title bar has its own handler)
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('button') ||
-      target.closest('input') ||
-      target.closest('.drawing-header') ||
-      target.closest('.drawing-toolbar')
-    ) {
-      return;
-    }
-
-    // If selected, only drag from title bar (handled separately)
-    // If not selected, clicking on canvas also drags
-    if (!isSelected) {
-      handleDragMouseDown(e);
-    }
-  };
-
-  const colors = ['#000000', '#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+  // --- Render ----------------------------------------------------------------
 
   return (
     <div
       ref={containerRef}
       data-element-id={element.id}
-      className={`
-        element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} overflow-hidden
-        ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
-        ${element.locked ? 'cursor-not-allowed' : isSelected ? '' : 'cursor-move'}
-      `}
+      className="absolute"
       style={{
-        ...((parentColumnId && !isBeingDragged) ? {} : {
-          left: `${element.position.x}px`,
-          top: `${element.position.y}px`,
-        }),
-        width: (parentColumnId && !isBeingDragged) ? '100%' : `${element.size.width}px`,
-        height: `${element.size.height}px`,
-        backgroundColor,
+        left: `${boxX}px`,
+        top: `${boxY}px`,
+        width: `${boxW}px`,
+        height: `${boxH}px`,
         zIndex: element.zIndex,
-        pointerEvents: isBeingDragged ? 'none' : 'auto'
+        pointerEvents: isBeingDragged ? 'none' : 'auto',
+        cursor: element.locked
+          ? 'not-allowed'
+          : isSelected
+            ? 'grab'
+            : 'default',
       }}
-      onClick={(e) => {
-        e.stopPropagation();
-        // Don't change selection if we just finished dragging
-        if (justFinishedDrag) {
-          return;
-        }
-        const isMultiSelect = e.ctrlKey || e.metaKey;
-        const { selectElement } = useElementStore.getState();
-        selectElement(element.id, isMultiSelect);
-      }}
-      onMouseDown={handleContainerMouseDown}
+      onClick={handleClick}
+      onMouseDown={handleMouseDown}
     >
-      {/* Title Bar for Dragging */}
-      <div
-        className="drawing-header absolute top-0 left-0 right-0 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-2 py-1 flex items-center gap-2 cursor-move z-10"
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          handleDragMouseDown(e);
-        }}
-      >
-        <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-        <span className="text-xs text-gray-600 dark:text-gray-300 flex-1">Drawing</span>
-      </div>
-
-      {/* Drawing Canvas */}
-      <canvas
-        ref={canvasRef}
-        width={element.size.width}
-        height={element.size.height - 28 - (isSelected ? 48 : 0)} // Reserve space for title bar and toolbar
-        className={`block mt-7 ${
-          element.locked
-            ? 'cursor-not-allowed'
-            : isSelected
-              ? 'cursor-crosshair'
-              : 'cursor-move'
-        }`}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        onMouseLeave={handleCanvasMouseUp}
-      />
-
-      {/* Toolbar */}
-      {isSelected && !element.locked && (
-        <div className="drawing-toolbar absolute bottom-0 left-0 right-0 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 p-2 flex items-center gap-3">
-          {/* Tool Selection */}
-          <div className="flex items-center gap-1 border-r border-gray-300 dark:border-gray-600 pr-3">
-            <button
-              onClick={() => setTool('pen')}
-              className={`p-2 rounded transition-colors ${
-                tool === 'pen'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-gray-600 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'
-              }`}
-              title="Pen"
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setTool('eraser')}
-              className={`p-2 rounded transition-colors ${
-                tool === 'eraser'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white dark:bg-gray-600 text-gray-600 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-500'
-              }`}
-              title="Eraser"
-            >
-              <Eraser className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Color Picker */}
-          {tool === 'pen' && (
-            <div className="flex items-center gap-1 border-r border-gray-300 dark:border-gray-600 pr-3">
-              {colors.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  className={`w-6 h-6 rounded-full border-2 transition-all ${
-                    color === c ? 'border-primary-600 scale-110' : 'border-gray-300'
-                  }`}
-                  style={{ backgroundColor: c }}
-                  title={c}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Thickness Slider */}
-          <div className="flex items-center gap-2 flex-1">
-            <span className="text-xs text-gray-600 dark:text-gray-300">Size:</span>
-            <input
-              type="range"
-              min="1"
-              max="20"
-              value={thickness}
-              onChange={(e) => setThickness(Number(e.target.value))}
-              className="flex-1 max-w-32"
-            />
-            <span className="text-xs text-gray-600 dark:text-gray-300 w-6">{thickness}</span>
-          </div>
-
-          {/* Clear Button */}
-          <button
-            onClick={handleClearDrawing}
-            className="p-2 rounded bg-white dark:bg-gray-600 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-500 transition-colors"
-            title="Clear drawing"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+      {/* Selection outline */}
+      {isSelected && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            border: '2px dashed #3B82F6',
+            borderRadius: 4,
+          }}
+        />
       )}
 
-      {/* Resize handles */}
+      {/* SVG paths */}
+      <svg
+        width={boxW}
+        height={boxH}
+        style={{ position: 'absolute', top: 0, left: 0, overflow: 'visible' }}
+      >
+        {paths.map((path, i) => {
+          const d = pathDStrings[i];
+          if (!d) return null;
+
+          const isEraser = path.tool === 'eraser';
+
+          return (
+            <React.Fragment key={i}>
+              {/* Visible stroke */}
+              <path
+                d={d}
+                fill="none"
+                stroke={isEraser ? 'white' : path.color}
+                strokeWidth={path.thickness}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={isEraser ? { mixBlendMode: 'normal' } : undefined}
+                pointerEvents="none"
+              />
+              {/* Invisible wider hit area for clicking near paths */}
+              <path
+                d={d}
+                fill="none"
+                stroke="transparent"
+                strokeWidth={Math.max(path.thickness, 12)}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+              />
+            </React.Fragment>
+          );
+        })}
+      </svg>
+
+      {/* Resize handles when selected */}
       {isSelected && !element.locked && (
         <>
-          {/* Top-left resize handle */}
-          <div
-            className="absolute top-0 left-0 w-4 h-4 bg-primary-500 rounded-br cursor-nw-resize hover:bg-primary-600 transition-colors z-10"
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleResizeMouseDownNW(e);
-            }}
-            title="Drag to resize"
-          />
-          {/* Bottom-right resize handle */}
-          <div
-            className="absolute bottom-0 right-0 w-4 h-4 bg-primary-500 rounded-tl cursor-se-resize hover:bg-primary-600 transition-colors z-10"
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              handleResizeMouseDownSE(e);
-            }}
-            title="Drag to resize"
-          />
+          {/* Corner handles */}
+          {[
+            { x: 0, y: 0, cursor: 'nw-resize' },
+            { x: boxW, y: 0, cursor: 'ne-resize' },
+            { x: 0, y: boxH, cursor: 'sw-resize' },
+            { x: boxW, y: boxH, cursor: 'se-resize' },
+          ].map((handle, i) => (
+            <div
+              key={i}
+              className="absolute"
+              style={{
+                left: handle.x - HANDLE_SIZE / 2,
+                top: handle.y - HANDLE_SIZE / 2,
+                width: HANDLE_SIZE,
+                height: HANDLE_SIZE,
+                backgroundColor: 'white',
+                border: '2px solid #3B82F6',
+                borderRadius: 2,
+                cursor: handle.cursor,
+                pointerEvents: 'auto',
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+            />
+          ))}
         </>
       )}
     </div>

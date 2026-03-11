@@ -9,7 +9,6 @@ import Note from '../Elements/Note';
 import Image from '../Elements/Image';
 import Column from '../Elements/Column';
 import Link from '../Elements/Link';
-import Section from '../Elements/Section';
 import TodoList from '../Elements/TodoList';
 import File from '../Elements/File';
 import Table from '../Elements/Table';
@@ -46,9 +45,6 @@ export default function CanvasElement({ element, isSelected, onSelect, parentCol
 
     case 'link':
       return <Link element={resolvedElement} isSelected={isSelected} onSelect={onSelect} parentColumnId={parentColumnId} />;
-
-    case 'section':
-      return <Section element={resolvedElement} isSelected={isSelected} onSelect={onSelect} />;
 
     case 'line':
       return <Line element={resolvedElement} isSelected={isSelected} onSelect={onSelect} />;

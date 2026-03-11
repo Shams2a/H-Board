@@ -9,7 +9,6 @@ import {
   Image,
   Columns as ColumnsIcon,
   FolderPlus,
-  Square,
   ArrowRight,
   MoveRight,
   Pencil,
@@ -22,7 +21,7 @@ import {
   Database
 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, DrawingElement, BoardElement, ShapeElement } from '../../types';
+import type { ElementType, NoteElement, ImageElement, ColumnElement, LinkElement, TodoElement, FileElement, TableElement, LineElement, BoardElement, ShapeElement } from '../../types';
 
 // Extended tool type to support board creation variants
 type ToolType = ElementType | 'kanban-board' | 'database-board';
@@ -46,11 +45,10 @@ export default function Toolbar() {
     { type: 'board', icon: <FolderPlus className="w-6 h-6" />, label: 'Canvas Board', shortcut: 'B' },
     { type: 'kanban-board', icon: <Trello className="w-6 h-6" />, label: 'Kanban Board', shortcut: 'K' },
     { type: 'database-board', icon: <Database className="w-6 h-6" />, label: 'Database Board', shortcut: 'D' },
-    { type: 'section', icon: <Square className="w-6 h-6" />, label: 'Section', shortcut: 'S' },
     { type: 'shape', icon: <Shapes className="w-6 h-6" />, label: 'Shape', shortcut: 'H' },
     { type: 'line', icon: <ArrowRight className="w-6 h-6" />, label: 'Line', shortcut: 'L' },
     { type: 'arrow', icon: <MoveRight className="w-6 h-6" />, label: 'Arrow', shortcut: 'A' },
-    { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'P' },
+    { type: 'drawing', icon: <Pencil className="w-6 h-6" />, label: 'Drawing', shortcut: 'D' },
     { type: 'link', icon: <Link2 className="w-6 h-6" />, label: 'Link', shortcut: 'U' },
     { type: 'file', icon: <FileText className="w-6 h-6" />, label: 'File', shortcut: 'F' },
     { type: 'todo', icon: <CheckSquare className="w-6 h-6" />, label: 'Todo', shortcut: 'T' },
@@ -60,9 +58,9 @@ export default function Toolbar() {
   const handleToolClick = async (toolType: ToolType) => {
     if (!currentBoardId) return;
 
-    // Special case for Arrow tool - just activate the mode, don't create element
-    if (toolType === 'arrow') {
-      setActiveTool(activeTool === 'arrow' ? null : 'arrow');
+    // Special case for Arrow and Drawing tools - just activate/toggle the mode, don't create element
+    if (toolType === 'arrow' || toolType === 'drawing') {
+      setActiveTool(activeTool === toolType ? null : toolType);
       return;
     }
 
@@ -282,28 +280,6 @@ export default function Toolbar() {
           }
         };
         await createElement(newLine);
-        break;
-      }
-
-      case 'drawing': {
-        const newDrawing: DrawingElement = {
-          id: uuidv4(),
-          boardId: currentBoardId,
-          type: 'drawing',
-          position: { x: snappedX, y: snappedY },
-          size: { width: 400, height: 300 },
-          zIndex: elements.length,
-          locked: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          content: {
-            paths: []
-          },
-          style: {
-            backgroundColor: '#FFFFFF'
-          }
-        };
-        await createElement(newDrawing);
         break;
       }
 

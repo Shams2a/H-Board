@@ -21,7 +21,6 @@ const ELEMENT_TYPES: { value: ElementType; label: string }[] = [
   { value: 'note', label: 'Note' },
   { value: 'image', label: 'Image' },
   { value: 'column', label: 'Column' },
-  { value: 'section', label: 'Section' },
   { value: 'line', label: 'Line' },
   { value: 'drawing', label: 'Drawing' },
   { value: 'link', label: 'Link' },

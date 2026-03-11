@@ -8,7 +8,6 @@ export type ElementType =
   | 'image'
   | 'column'
   | 'board'
-  | 'section'
   | 'line'
   | 'arrow'
   | 'drawing'
@@ -88,11 +87,6 @@ export interface BoardLinkContent {
   description?: string;
   thumbnailData?: string;
   elementCount?: number;
-}
-
-export interface SectionContent {
-  title?: string;
-  collapsed?: boolean;
 }
 
 export interface LineContent {
@@ -204,7 +198,6 @@ export type NoteElement = BaseElement & { type: 'note'; content: NoteContent };
 export type ImageElement = BaseElement & { type: 'image'; content: ImageContent };
 export type ColumnElement = BaseElement & { type: 'column'; content: ColumnContent };
 export type BoardElement = BaseElement & { type: 'board'; content: BoardLinkContent };
-export type SectionElement = BaseElement & { type: 'section'; content: SectionContent };
 export type LineElement = BaseElement & { type: 'line'; content: LineContent };
 export type ArrowElement = BaseElement & { type: 'arrow'; content: ArrowContent };
 export type DrawingElement = BaseElement & { type: 'drawing'; content: DrawingContent };
@@ -219,7 +212,6 @@ export type Element =
   | ImageElement
   | ColumnElement
   | BoardElement
-  | SectionElement
   | LineElement
   | ArrowElement
   | DrawingElement

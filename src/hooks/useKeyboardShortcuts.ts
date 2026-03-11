@@ -6,7 +6,7 @@
 import { useEffect, useCallback } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { generateId } from '../utils/uuid';
-import { useUIStore, selectZoom, selectGridEnabled, selectPanX, selectPanY, useBoardStore, selectCurrentBoardId, useElementStore, selectElements, selectSelectedIds } from '../store';
+import { useUIStore, selectZoom, selectGridEnabled, selectPanX, selectPanY, selectActiveTool, useBoardStore, selectCurrentBoardId, useElementStore, selectElements, selectSelectedIds } from '../store';
 import type { ElementType } from '../types';
 
 interface UseKeyboardShortcutsOptions {
@@ -18,6 +18,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   const gridEnabled = useUIStore(selectGridEnabled);
   const panX = useUIStore(selectPanX);
   const panY = useUIStore(selectPanY);
+  const activeTool = useUIStore(selectActiveTool);
   const setActiveTool = useUIStore(state => state.setActiveTool);
   const setZoom = useUIStore(state => state.setZoom);
   const toggleGrid = useUIStore(state => state.toggleGrid);
@@ -131,16 +132,6 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
         };
         break;
 
-      case 'section':
-        element = {
-          ...baseElement,
-          type: 'section' as const,
-          size: { width: 400, height: 300 },
-          content: { title: '' },
-          style: { backgroundColor: '#F3F4F6', opacity: 0.5 }
-        };
-        break;
-
       case 'line':
         element = {
           ...baseElement,
@@ -154,16 +145,6 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
             arrowEnd: true
           },
           style: { borderColor: '#374151', borderWidth: 2 }
-        };
-        break;
-
-      case 'drawing':
-        element = {
-          ...baseElement,
-          type: 'drawing' as const,
-          size: { width: 400, height: 300 },
-          content: { paths: [] },
-          style: { backgroundColor: '#FFFFFF' }
         };
         break;
 
@@ -256,14 +237,14 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   // B - Create Board (Sub-board)
   useHotkeys('b', () => createElementShortcut('board'), { enableOnFormTags: false });
 
-  // S - Create Section
-  useHotkeys('s', () => createElementShortcut('section'), { enableOnFormTags: false });
-
   // L - Create Line
   useHotkeys('l', () => createElementShortcut('line'), { enableOnFormTags: false });
 
-  // D - Create Drawing
-  useHotkeys('d', () => createElementShortcut('drawing'), { enableOnFormTags: false });
+  // D - Toggle Drawing Mode
+  useHotkeys('d', () => {
+    if (isInputActive()) return;
+    setActiveTool(activeTool === 'drawing' ? null : 'drawing');
+  }, { enableOnFormTags: false });
 
   // K - Create Link
   useHotkeys('k', () => createElementShortcut('link'), { enableOnFormTags: false });
@@ -416,9 +397,8 @@ export const keyboardShortcuts = [
       { keys: ['I'], description: 'Create Image' },
       { keys: ['C'], description: 'Create Column' },
       { keys: ['B'], description: 'Create Sub-Board' },
-      { keys: ['S'], description: 'Create Section' },
       { keys: ['L'], description: 'Create Line/Arrow' },
-      { keys: ['D'], description: 'Create Drawing' },
+      { keys: ['D'], description: 'Toggle Drawing Mode' },
       { keys: ['K'], description: 'Create Link' },
       { keys: ['F'], description: 'Create File' },
       { keys: ['T'], description: 'Create Todo List' },

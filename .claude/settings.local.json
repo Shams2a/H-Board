@@ -17,7 +17,8 @@
       "Bash(grep -r \"noEmit\\\\|skipLibCheck\\\\|allowJs\" /Users/aashams/Downloads/H-Board-main/tsconfig* | head -10)",
       "Bash(./node_modules/.bin/tsc --noEmit 2>&1 | head -100)",
       "Bash(npx tsc:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(find /Users/aashams/Downloads/H-Board-main/src -name \"*store*\" -type f | grep -E \"\\\\.\\(ts|tsx\\)$\" | head -5)"
     ],
     "deny": [],
     "ask": []
