@@ -87,16 +87,21 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   const createElementShortcut = async (type: ElementType) => {
     if (isInputActive() || !currentBoardId) return;
 
-    const centerX = 400;
-    const centerY = 300;
+    // Calculate true viewport center in canvas coordinates
+    const viewportCenterX = (-panX + window.innerWidth / 2) / zoom;
+    const viewportCenterY = (-panY + window.innerHeight / 2) / zoom;
     const gridSize = gridEnabled ? 8 : 1;
-    const snappedX = Math.round(centerX / gridSize) * gridSize;
-    const snappedY = Math.round(centerY / gridSize) * gridSize;
+
+    // Center an element of given size at viewport center
+    const centerPos = (w: number, h: number) => ({
+      x: Math.round((viewportCenterX - w / 2) / gridSize) * gridSize,
+      y: Math.round((viewportCenterY - h / 2) / gridSize) * gridSize,
+    });
 
     const baseElement = {
       id: generateId(),
       boardId: currentBoardId,
-      position: { x: snappedX, y: snappedY },
+      position: centerPos(300, 200), // default, overridden per type
       zIndex: elements.length,
       locked: false,
       createdAt: new Date(),
@@ -120,6 +125,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
         element = {
           ...baseElement,
           type: 'image' as const,
+          position: centerPos(400, 300),
           size: { width: 400, height: 300 },
           content: { src: '', alt: '', originalName: '' },
           style: { backgroundColor: '#FFFFFF' }
@@ -130,20 +136,23 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
         element = {
           ...baseElement,
           type: 'column' as const,
+          position: centerPos(350, 400),
           size: { width: 350, height: 400 },
           content: { title: 'New Column', childrenIds: [], maxWidth: 800 },
           style: { backgroundColor: '#FFFFFF' }
         };
         break;
 
-      case 'line':
+      case 'line': {
+        const linePos = centerPos(200, 2);
         element = {
           ...baseElement,
           type: 'line' as const,
+          position: linePos,
           size: { width: 200, height: 2 },
           content: {
-            startPoint: { x: snappedX, y: snappedY },
-            endPoint: { x: snappedX + 200, y: snappedY },
+            startPoint: { x: linePos.x, y: linePos.y },
+            endPoint: { x: linePos.x + 200, y: linePos.y },
             lineStyle: 'solid' as const,
             arrowStart: false,
             arrowEnd: true
@@ -151,11 +160,13 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
           style: { borderColor: '#374151', borderWidth: 2 }
         };
         break;
+      }
 
       case 'link':
         element = {
           ...baseElement,
           type: 'link' as const,
+          position: centerPos(350, 120),
           size: { width: 350, height: 120 },
           content: { url: '', title: '', description: '', favicon: '' },
           style: { backgroundColor: '#FFFFFF' }
@@ -176,6 +187,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
         element = {
           ...baseElement,
           type: 'todo' as const,
+          position: centerPos(350, 250),
           size: { width: 350, height: 250 },
           content: { items: [], showProgress: false },
           style: { backgroundColor: '#FFFFFF' }
@@ -183,13 +195,12 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
         break;
 
       case 'board': {
-        // Create a new sub-board first
         const newBoardId = await createBoard('New Sub-Board', currentBoardId as any);
 
-        // Then create a board link element
         element = {
           ...baseElement,
           type: 'board' as const,
+          position: centerPos(80, 100),
           size: { width: 80, height: 100 },
           content: {
             linkedBoardId: newBoardId,
@@ -206,6 +217,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
         element = {
           ...baseElement,
           type: 'table' as const,
+          position: centerPos(600, 300),
           size: { width: 600, height: 300 },
           content: {
             headers: ['Column 1', 'Column 2', 'Column 3'],

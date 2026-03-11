@@ -64,28 +64,26 @@ export default function Toolbar() {
       return;
     }
 
-    // Calculate center position based on current viewport
-    // Convert viewport center to canvas coordinates
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    // Calculate the center of the visible canvas area
-    const centerX = (-panX + viewportWidth / 2) / zoom;
-    const centerY = (-panY + viewportHeight / 2) / zoom;
-
-    // Grid snapping
+    // Calculate the center of the visible canvas area (in canvas coords)
+    const viewportCenterX = (-panX + window.innerWidth / 2) / zoom;
+    const viewportCenterY = (-panY + window.innerHeight / 2) / zoom;
     const gridSize = gridEnabled ? 8 : 1;
-    const snappedX = Math.round(centerX / gridSize) * gridSize;
-    const snappedY = Math.round(centerY / gridSize) * gridSize;
+
+    // Helper: center an element of given size at viewport center
+    const centerPos = (w: number, h: number) => ({
+      x: Math.round((viewportCenterX - w / 2) / gridSize) * gridSize,
+      y: Math.round((viewportCenterY - h / 2) / gridSize) * gridSize,
+    });
 
     // Create element based on type
     switch (toolType) {
       case 'note': {
+        const pos = centerPos(300, 200);
         const newNote: NoteElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'note',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 300, height: 200 },
           zIndex: elements.length,
           locked: false,
@@ -104,11 +102,12 @@ export default function Toolbar() {
       }
 
       case 'image': {
+        const pos = centerPos(400, 300);
         const newImage: ImageElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'image',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 400, height: 300 },
           zIndex: elements.length,
           locked: false,
@@ -128,11 +127,12 @@ export default function Toolbar() {
       }
 
       case 'column': {
+        const pos = centerPos(350, 400);
         const newColumn: ColumnElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'column',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 350, height: 400 },
           zIndex: elements.length,
           locked: false,
@@ -152,11 +152,12 @@ export default function Toolbar() {
       }
 
       case 'link': {
+        const pos = centerPos(350, 120);
         const newLink: LinkElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'link',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 350, height: 120 },
           zIndex: elements.length,
           locked: false,
@@ -179,11 +180,12 @@ export default function Toolbar() {
       }
 
       case 'todo': {
+        const pos = centerPos(350, 250);
         const newTodo: TodoElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'todo',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 350, height: 250 },
           zIndex: elements.length,
           locked: false,
@@ -202,11 +204,12 @@ export default function Toolbar() {
       }
 
       case 'file': {
+        const pos = centerPos(300, 200);
         const newFile: FileElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'file',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 300, height: 200 },
           zIndex: elements.length,
           locked: false,
@@ -227,11 +230,12 @@ export default function Toolbar() {
       }
 
       case 'table': {
+        const pos = centerPos(600, 300);
         const newTable: TableElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'table',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 600, height: 300 },
           zIndex: elements.length,
           locked: false,
@@ -257,19 +261,20 @@ export default function Toolbar() {
       }
 
       case 'line': {
+        const pos = centerPos(200, 2);
         const newLine: LineElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'line',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 200, height: 2 },
           zIndex: elements.length,
           locked: false,
           createdAt: new Date(),
           updatedAt: new Date(),
           content: {
-            startPoint: { x: snappedX, y: snappedY },
-            endPoint: { x: snappedX + 200, y: snappedY },
+            startPoint: { x: pos.x, y: pos.y },
+            endPoint: { x: pos.x + 200, y: pos.y },
             lineStyle: 'solid',
             arrowStart: false,
             arrowEnd: true
@@ -284,15 +289,14 @@ export default function Toolbar() {
       }
 
       case 'board': {
-        // Create a new canvas sub-board
+        const pos = centerPos(80, 100);
         const newBoardId = await createBoard('New Canvas Board', 'canvas', currentBoardId);
 
-        // Create a board link element that links to the new sub-board
         const newBoardLink: BoardElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'board',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 80, height: 100 },
           zIndex: elements.length,
           locked: false,
@@ -313,15 +317,14 @@ export default function Toolbar() {
       }
 
       case 'kanban-board': {
-        // Create a new Kanban sub-board
+        const pos = centerPos(80, 100);
         const newBoardId = await createBoard('New Kanban Board', 'kanban', currentBoardId);
 
-        // Create a board link element that links to the new Kanban board
         const newKanbanLink: BoardElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'board',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 80, height: 100 },
           zIndex: elements.length,
           locked: false,
@@ -342,15 +345,14 @@ export default function Toolbar() {
       }
 
       case 'database-board': {
-        // Create a new Database sub-board
+        const pos = centerPos(80, 100);
         const newBoardId = await createBoard('New Database Board', 'database', currentBoardId);
 
-        // Create a board link element that links to the new Database board
         const newDatabaseLink: BoardElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'board',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 80, height: 100 },
           zIndex: elements.length,
           locked: false,
@@ -371,11 +373,12 @@ export default function Toolbar() {
       }
 
       case 'shape': {
+        const pos = centerPos(200, 200);
         const newShape: ShapeElement = {
           id: uuidv4(),
           boardId: currentBoardId,
           type: 'shape',
-          position: { x: snappedX, y: snappedY },
+          position: pos,
           size: { width: 200, height: 200 },
           zIndex: elements.length,
           locked: false,
