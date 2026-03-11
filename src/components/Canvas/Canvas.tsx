@@ -186,19 +186,6 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
     }
   }, [activeTool, selectedIds, elements]);
 
-  // Escape key to deactivate drawing mode
-  useEffect(() => {
-    if (activeTool !== 'drawing') return;
-    const handleDrawingEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setActiveTool(null);
-        activeDrawingIdRef.current = null;
-      }
-    };
-    document.addEventListener('keydown', handleDrawingEscape);
-    return () => document.removeEventListener('keydown', handleDrawingEscape);
-  }, [activeTool, setActiveTool]);
-
   // --- Drawing mode event handlers ---
 
   const handleDrawingMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -307,12 +294,22 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
     clearSelection();
   }, [didSelect, setDidSelect, justFinishedDrag, clearSelection]);
 
-  // Handle right-click context menu
+  // Handle right-click context menu (works on canvas AND elements)
   const handleContextMenu = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
 
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
+
+    // If right-clicking on an element, auto-select it
+    const target = e.target as HTMLElement;
+    const elementCard = target.closest('[data-element-id]');
+    if (elementCard) {
+      const elementId = elementCard.getAttribute('data-element-id');
+      if (elementId && !selectedIds.includes(elementId)) {
+        selectElement(elementId);
+      }
+    }
 
     const canvasX = (e.clientX - rect.left) / zoom - panX;
     const canvasY = (e.clientY - rect.top) / zoom - panY;
@@ -322,7 +319,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
       y: e.clientY,
       canvasPosition: { x: canvasX, y: canvasY },
     });
-  }, [zoom, panX, panY]);
+  }, [zoom, panX, panY, selectedIds, selectElement]);
 
   const handleCloseContextMenu = useCallback(() => {
     setContextMenu(null);

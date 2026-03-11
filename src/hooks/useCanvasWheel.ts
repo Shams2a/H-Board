@@ -1,9 +1,13 @@
 /**
  * useCanvasWheel Hook
- * Manages mouse wheel panning logic for the Canvas.
+ * Manages mouse wheel interactions for the Canvas:
+ *   - Two-finger scroll → pan
+ *   - Shift + scroll → horizontal pan
+ *   - Ctrl/Cmd + scroll (or trackpad pinch) → zoom centered on cursor
  */
 
 import { useEffect } from 'react';
+import { useUIStore } from '../store';
 
 interface UseCanvasWheelParams {
   canvasRef: React.RefObject<HTMLDivElement | null>;
@@ -30,18 +34,24 @@ export function useCanvasWheel({
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-
       setIsInteracting(true);
 
-      const panSpeed = 1;
+      // Ctrl/Cmd + scroll OR trackpad pinch (fires as ctrlKey + wheel)
+      if (e.ctrlKey || e.metaKey) {
+        const { zoom, zoomAtPoint } = useUIStore.getState();
 
-      const deltaX = e.deltaX || (e.shiftKey ? e.deltaY : 0);
-      const deltaY = e.shiftKey ? 0 : e.deltaY;
+        // deltaY is negative when zooming in (pinch out / scroll up)
+        const zoomSensitivity = 0.01;
+        const newZoom = zoom * (1 - e.deltaY * zoomSensitivity);
 
-      const newPanX = panX - deltaX * panSpeed;
-      const newPanY = panY - deltaY * panSpeed;
+        zoomAtPoint(newZoom, e.clientX, e.clientY);
+      } else {
+        // Regular scroll → pan
+        const deltaX = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+        const deltaY = e.shiftKey ? 0 : e.deltaY;
 
-      setPan(newPanX, newPanY);
+        setPan(panX - deltaX, panY - deltaY);
+      }
 
       clearTimeout(wheelTimeout);
       wheelTimeout = setTimeout(() => {

@@ -44,7 +44,7 @@ export default function Toolbar() {
     { type: 'column', icon: <ColumnsIcon className="w-6 h-6" />, label: 'Column', shortcut: 'C' },
     { type: 'board', icon: <FolderPlus className="w-6 h-6" />, label: 'Canvas Board', shortcut: 'B' },
     { type: 'kanban-board', icon: <Trello className="w-6 h-6" />, label: 'Kanban Board', shortcut: 'K' },
-    { type: 'database-board', icon: <Database className="w-6 h-6" />, label: 'Database Board', shortcut: 'D' },
+    { type: 'database-board', icon: <Database className="w-6 h-6" />, label: 'Database Board', shortcut: '' },
     { type: 'shape', icon: <Shapes className="w-6 h-6" />, label: 'Shape', shortcut: 'H' },
     { type: 'line', icon: <ArrowRight className="w-6 h-6" />, label: 'Line', shortcut: 'L' },
     { type: 'arrow', icon: <MoveRight className="w-6 h-6" />, label: 'Arrow', shortcut: 'A' },

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useUIStore, selectZoom, selectGridEnabled, useElementStore, useHistoryStore } from '../../store';
+import { useUIStore, selectZoom, selectGridEnabled, useElementStore, selectElements, useHistoryStore } from '../../store';
 import {
   ZoomIn,
   ZoomOut,
@@ -19,7 +19,9 @@ export default function ViewControls() {
   const zoom = useUIStore(selectZoom);
   const gridEnabled = useUIStore(selectGridEnabled);
   const setZoom = useUIStore(state => state.setZoom);
+  const zoomToFit = useUIStore(state => state.zoomToFit);
   const toggleGrid = useUIStore(state => state.toggleGrid);
+  const elements = useElementStore(selectElements);
   const undo = useElementStore(state => state.undo);
   const redo = useElementStore(state => state.redo);
   const canUndo = useHistoryStore(state => state.canUndo());
@@ -129,8 +131,12 @@ export default function ViewControls() {
 
         <div className="w-full h-px bg-gray-200 dark:bg-[#252B32]" />
 
-        {/* Zoom Level */}
-        <div className="text-xs font-medium text-gray-600 dark:text-[#B1B9C4] px-2">
+        {/* Zoom Level — double-click to fit all */}
+        <div
+          className="text-xs font-medium text-gray-600 dark:text-[#B1B9C4] px-2 cursor-pointer select-none hover:text-primary-500"
+          title="Double-click to fit all elements"
+          onDoubleClick={() => zoomToFit(elements)}
+        >
           {Math.round(zoom * 100)}%
         </div>
       </div>

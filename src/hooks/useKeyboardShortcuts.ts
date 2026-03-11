@@ -7,6 +7,7 @@ import { useEffect, useCallback } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { generateId } from '../utils/uuid';
 import { useUIStore, selectZoom, selectGridEnabled, selectPanX, selectPanY, selectActiveTool, useBoardStore, selectCurrentBoardId, useElementStore, selectElements, selectSelectedIds } from '../store';
+import type { Element } from '../types';
 import type { ElementType } from '../types';
 
 interface UseKeyboardShortcutsOptions {
@@ -21,6 +22,8 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   const activeTool = useUIStore(selectActiveTool);
   const setActiveTool = useUIStore(state => state.setActiveTool);
   const setZoom = useUIStore(state => state.setZoom);
+  const zoomToFit = useUIStore(state => state.zoomToFit);
+  const zoomToSelection = useUIStore(state => state.zoomToSelection);
   const toggleGrid = useUIStore(state => state.toggleGrid);
   const currentBoardId = useBoardStore(selectCurrentBoardId);
   const createBoard = useBoardStore(state => state.createBoard);
@@ -28,6 +31,7 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   const elements = useElementStore(selectElements);
   const selectedIds = useElementStore(selectSelectedIds);
   const deleteElements = useElementStore(state => state.deleteElements);
+  const updateElement = useElementStore(state => state.updateElement);
   const copy = useElementStore(state => state.copy);
   const duplicate = useElementStore(state => state.duplicate);
   const selectAll = useElementStore(state => state.selectAll);
@@ -258,6 +262,36 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   // G - Create Table
   useHotkeys('g', () => createElementShortcut('table'), { enableOnFormTags: false });
 
+  // === ELEMENT MOVEMENT (Arrow Keys) ===
+
+  // Arrow keys — move selected elements (1px, or grid-snapped; Shift = 10x)
+  const moveSelected = (dx: number, dy: number) => {
+    if (isInputActive() || !selectedIds || selectedIds.length === 0) return;
+    const step = gridEnabled ? 8 : 1;
+    for (const id of selectedIds) {
+      const el = (elements as Element[]).find(e => e.id === id);
+      if (el && !el.locked) {
+        updateElement(id, {
+          position: {
+            x: el.position.x + dx * step,
+            y: el.position.y + dy * step,
+          },
+        });
+      }
+    }
+  };
+
+  useHotkeys('up', (e) => { e.preventDefault(); moveSelected(0, -1); }, { enableOnFormTags: false });
+  useHotkeys('down', (e) => { e.preventDefault(); moveSelected(0, 1); }, { enableOnFormTags: false });
+  useHotkeys('left', (e) => { e.preventDefault(); moveSelected(-1, 0); }, { enableOnFormTags: false });
+  useHotkeys('right', (e) => { e.preventDefault(); moveSelected(1, 0); }, { enableOnFormTags: false });
+
+  // Shift+Arrow — larger movement (10x step)
+  useHotkeys('shift+up', (e) => { e.preventDefault(); moveSelected(0, -10); }, { enableOnFormTags: false });
+  useHotkeys('shift+down', (e) => { e.preventDefault(); moveSelected(0, 10); }, { enableOnFormTags: false });
+  useHotkeys('shift+left', (e) => { e.preventDefault(); moveSelected(-10, 0); }, { enableOnFormTags: false });
+  useHotkeys('shift+right', (e) => { e.preventDefault(); moveSelected(10, 0); }, { enableOnFormTags: false });
+
   // === ELEMENT MANIPULATION ===
 
   // Delete - Remove selected elements
@@ -378,6 +412,23 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
     setZoom(Math.max(zoom - 0.1, 0.1));
   }, { enableOnFormTags: false });
 
+  // Shift+1 - Zoom to Fit (show all elements)
+  useHotkeys('shift+1', (e) => {
+    if (isInputActive()) return;
+    e.preventDefault();
+    zoomToFit(elements as Element[]);
+  }, { enableOnFormTags: false });
+
+  // Shift+2 - Zoom to Selection
+  useHotkeys('shift+2', (e) => {
+    if (isInputActive()) return;
+    e.preventDefault();
+    if (selectedIds && selectedIds.length > 0) {
+      const selectedElements = (elements as Element[]).filter(el => selectedIds.includes(el.id));
+      zoomToSelection(selectedElements);
+    }
+  }, { enableOnFormTags: false });
+
   // === HELP ===
 
   // Ctrl+/ - Show Help
@@ -408,12 +459,14 @@ export const keyboardShortcuts = [
   {
     category: 'Element Manipulation',
     shortcuts: [
+      { keys: ['Arrow Keys'], description: 'Move selected element(s)' },
+      { keys: ['Shift', 'Arrow Keys'], description: 'Move selected element(s) (large step)' },
       { keys: ['Delete', 'Backspace'], description: 'Delete selected element(s)' },
       { keys: ['Ctrl', 'C'], description: 'Copy selected element(s)' },
       { keys: ['Ctrl', 'V'], description: 'Paste copied elements or create Note from clipboard text' },
       { keys: ['Ctrl', 'D'], description: 'Duplicate selected element(s)' },
       { keys: ['Ctrl', 'A'], description: 'Select all elements' },
-      { keys: ['Escape'], description: 'Clear selection' },
+      { keys: ['Escape'], description: 'Clear selection / exit tool' },
     ]
   },
   {
@@ -421,8 +474,12 @@ export const keyboardShortcuts = [
     shortcuts: [
       { keys: ['Ctrl', '+'], description: 'Zoom in' },
       { keys: ['Ctrl', '-'], description: 'Zoom out' },
-      { keys: ['Ctrl', '0'], description: 'Reset zoom' },
+      { keys: ['Ctrl', '0'], description: 'Reset zoom (100%)' },
+      { keys: ['Ctrl', 'Scroll'], description: 'Zoom at cursor (or pinch trackpad)' },
+      { keys: ['Shift', '1'], description: 'Zoom to fit all elements' },
+      { keys: ['Shift', '2'], description: 'Zoom to selection' },
       { keys: ['Ctrl', 'G'], description: 'Toggle grid' },
+      { keys: ['Shift', 'Scroll'], description: 'Horizontal pan' },
     ]
   },
   {
