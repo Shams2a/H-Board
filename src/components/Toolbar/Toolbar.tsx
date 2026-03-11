@@ -65,8 +65,12 @@ export default function Toolbar() {
     }
 
     // Calculate the center of the visible canvas area (in canvas coords)
-    const viewportCenterX = (-panX + window.innerWidth / 2) / zoom;
-    const viewportCenterY = (-panY + window.innerHeight / 2) / zoom;
+    // Use the actual canvas rect to exclude sidebar/toolbar offsets
+    const canvasRect = document.querySelector('.canvas-container')?.getBoundingClientRect();
+    const cw = canvasRect?.width ?? window.innerWidth;
+    const ch = canvasRect?.height ?? window.innerHeight;
+    const viewportCenterX = cw / (2 * zoom) - panX;
+    const viewportCenterY = ch / (2 * zoom) - panY;
     const gridSize = gridEnabled ? 8 : 1;
 
     // Helper: center an element of given size at viewport center

@@ -52,16 +52,15 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
   const createNoteFromExternalPaste = useCallback(async (text: string) => {
     if (!currentBoardId) return;
 
-    // Calculate center of viewport
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    // Calculate center of viewport (using actual canvas rect)
+    const canvasRect = document.querySelector('.canvas-container')?.getBoundingClientRect();
+    const centerX = (canvasRect?.width ?? window.innerWidth) / (2 * zoom) - panX;
+    const centerY = (canvasRect?.height ?? window.innerHeight) / (2 * zoom) - panY;
 
-    const centerX = (-panX + viewportWidth / 2) / zoom;
-    const centerY = (-panY + viewportHeight / 2) / zoom;
-
+    // Center the note (300x200) on viewport center
     const gridSize = gridEnabled ? 8 : 1;
-    const snappedX = Math.round(centerX / gridSize) * gridSize;
-    const snappedY = Math.round(centerY / gridSize) * gridSize;
+    const snappedX = Math.round((centerX - 150) / gridSize) * gridSize;
+    const snappedY = Math.round((centerY - 100) / gridSize) * gridSize;
 
     const newNote = {
       id: generateId(),
@@ -88,8 +87,12 @@ export function useKeyboardShortcuts(options?: UseKeyboardShortcutsOptions) {
     if (isInputActive() || !currentBoardId) return;
 
     // Calculate true viewport center in canvas coordinates
-    const viewportCenterX = (-panX + window.innerWidth / 2) / zoom;
-    const viewportCenterY = (-panY + window.innerHeight / 2) / zoom;
+    // Use the actual canvas rect to exclude sidebar/toolbar offsets
+    const canvasRect = document.querySelector('.canvas-container')?.getBoundingClientRect();
+    const cw = canvasRect?.width ?? window.innerWidth;
+    const ch = canvasRect?.height ?? window.innerHeight;
+    const viewportCenterX = cw / (2 * zoom) - panX;
+    const viewportCenterY = ch / (2 * zoom) - panY;
     const gridSize = gridEnabled ? 8 : 1;
 
     // Center an element of given size at viewport center
