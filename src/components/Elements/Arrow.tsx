@@ -394,12 +394,12 @@ const Arrow = memo(function Arrow({ element, isSelected }: ArrowProps) {
               onChange={(e) => setLabelValue(e.target.value)}
               onKeyDown={handleLabelKeyDown}
               onBlur={handleLabelSubmit}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-blue-400 rounded shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[60px]"
+              className="px-2 py-1 text-xs bg-white dark:bg-[#1E252B] border border-blue-400 rounded shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[60px]"
               placeholder="Label"
             />
           ) : (
             <div
-              className="px-2 py-1 text-xs font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+              className="px-2 py-1 text-xs font-medium bg-white dark:bg-[#1E252B] border border-gray-300 dark:border-[#3D444D] rounded shadow-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-[#252B32] transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditingLabel(true);

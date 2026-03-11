@@ -127,7 +127,7 @@ export default function TableCustomization({ element }: TableCustomizationProps)
     <div className="space-y-4">
       {/* Background Color */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Background Color</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Background Color</h4>
         <div className="grid grid-cols-3 gap-2">
           {COLORS.map((color) => (
             <button
@@ -141,7 +141,7 @@ export default function TableCustomization({ element }: TableCustomizationProps)
                 w-full aspect-square rounded border-2 transition-all
                 ${(element.style.backgroundColor || '#FFFFFF') === color.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500'
                 }
               `}
               style={{ backgroundColor: color.value }}
@@ -155,7 +155,7 @@ export default function TableCustomization({ element }: TableCustomizationProps)
       {headers.length > 0 && (
         <>
           <div>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Column Configuration</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Column Configuration</h4>
 
             {/* Column Selector */}
             <select
@@ -163,7 +163,7 @@ export default function TableCustomization({ element }: TableCustomizationProps)
               onChange={(e) => setSelectedColumnIndex(parseInt(e.target.value))}
               onClick={(e) => e.stopPropagation()}
               onMouseDown={(e) => e.stopPropagation()}
-              className="w-full px-3 py-2 mb-3 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 mb-3 border border-gray-300 dark:border-[#3D444D] rounded bg-white dark:bg-[#1E252B] text-gray-900 dark:text-[#E0E6ED] focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {headers.map((header, idx) => (
                 <option key={idx} value={idx}>
@@ -186,7 +186,7 @@ export default function TableCustomization({ element }: TableCustomizationProps)
                     p-2 rounded border-2 transition-all flex items-center gap-2
                     ${selectedColumnType === cellType.type
                       ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                      : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                     }
                   `}
                   title={cellType.label}
@@ -201,17 +201,17 @@ export default function TableCustomization({ element }: TableCustomizationProps)
           {/* Dropdown Options (only shown for dropdown columns) */}
           {selectedColumnType === 'dropdown' && (
             <div>
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dropdown Options</h4>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Dropdown Options</h4>
 
               {/* Existing Options */}
               <div className="space-y-2 mb-3">
                 {selectedColumnOptions.length === 0 ? (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 italic">No options yet. Add some below.</p>
+                  <p className="text-xs text-gray-400 dark:text-[#6B7280] italic">No options yet. Add some below.</p>
                 ) : (
                   selectedColumnOptions.map((option, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 rounded text-sm text-gray-700 dark:text-gray-300"
+                      className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-[#252B32] rounded text-sm text-gray-700 dark:text-[#B1B9C4]"
                     >
                       <span>{option}</span>
                       <button
@@ -245,7 +245,7 @@ export default function TableCustomization({ element }: TableCustomizationProps)
                   onClick={(e) => e.stopPropagation()}
                   onMouseDown={(e) => e.stopPropagation()}
                   placeholder="New option..."
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-[#3D444D] rounded bg-white dark:bg-[#1E252B] text-gray-900 dark:text-[#E0E6ED] text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <button
                   onClick={(e) => {

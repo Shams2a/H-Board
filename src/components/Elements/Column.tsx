@@ -280,7 +280,7 @@ const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }
     <div
       ref={containerRef}
       className={`
-        element-card absolute border-2 border-gray-300 dark:border-gray-600
+        element-card absolute border-2 border-gray-300 dark:border-[#3D444D]
         ${isSelected ? 'selected ring-2 ring-primary-500 border-primary-400 dark:border-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : 'cursor-move'}
       `}
@@ -308,10 +308,10 @@ const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }
       tabIndex={0}
     >
       {/* Header */}
-      <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600 p-3 flex items-center gap-2">
+      <div className="bg-gray-50 dark:bg-[#252B32] border-b border-gray-300 dark:border-[#3D444D] p-3 flex items-center gap-2">
         {/* Collapse toggle button */}
         <button
-          className="p-1 -ml-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+          className="p-1 -ml-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             handleToggleCollapse();
@@ -319,14 +319,14 @@ const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }
           title={isCollapsed ? 'Expand' : 'Collapse'}
         >
           {isCollapsed ? (
-            <ChevronRight className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <ChevronRight className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <ChevronDown className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
           )}
         </button>
         {/* Grip handle for dragging - visual indicator */}
         <div className="p-1 -ml-1">
-          <GripVertical className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+          <GripVertical className="w-4 h-4 text-gray-400 dark:text-[#6B7280]" />
         </div>
         {/* Title */}
         {isEditingTitle ? (
@@ -346,12 +346,12 @@ const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }
               e.stopPropagation();
             }}
             autoFocus
-            className="flex-1 px-2 py-1 border border-primary-300 dark:border-primary-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800"
+            className="flex-1 px-2 py-1 border border-primary-300 dark:border-primary-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 font-semibold text-gray-900 dark:text-[#E0E6ED] bg-white dark:bg-[#1E252B]"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <h3
-            className="flex-1 font-semibold text-gray-900 dark:text-gray-100 cursor-text"
+            className="flex-1 font-semibold text-gray-900 dark:text-[#E0E6ED] cursor-text"
             onDoubleClick={(e) => {
               e.stopPropagation();
               if (isSelected && !element.locked) {
@@ -366,14 +366,14 @@ const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }
         {/* Add button */}
         {isSelected && (
           <button
-            className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+            className="p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded transition-colors"
             title="Add element"
             onClick={(e) => {
               e.stopPropagation();
               // TODO: Implement add element to column
             }}
           >
-            <Plus className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+            <Plus className="w-4 h-4 text-gray-600 dark:text-[#B1B9C4]" />
           </button>
         )}
       </div>
@@ -394,7 +394,7 @@ const Column = memo(function Column({ element, isSelected, onSelect: _onSelect }
         {childElements.length === 0 ? (
           <div className={`
             flex items-center justify-center h-24 w-full border-2 border-dashed rounded text-sm transition-colors
-            ${isHovering && draggedElementId ? 'border-primary-400 text-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500'}
+            ${isHovering && draggedElementId ? 'border-primary-400 text-primary-600 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-300 dark:border-[#3D444D] text-gray-400 dark:text-[#6B7280]'}
           `}>
             Drag elements here or click + to add
           </div>

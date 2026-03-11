@@ -217,7 +217,7 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
       else if (e.key === 'Tab') { e.preventDefault(); handleCellChange(rowIndex, colIndex, editValue); moveToNextCell(rowIndex, colIndex); }
     };
     const stopEvents = { onClick: (e: React.MouseEvent) => e.stopPropagation(), onMouseDown: (e: React.MouseEvent) => e.stopPropagation() };
-    const inputClass = "w-full h-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100";
+    const inputClass = "w-full h-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-[#1E252B] text-gray-900 dark:text-[#E0E6ED]";
 
     switch (columnType) {
       case 'checkbox':
@@ -274,7 +274,7 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
       case 'dropdown':
       case 'text':
       default:
-        return <span>{cell.value?.toString() || <span className="text-gray-300 dark:text-gray-600">&nbsp;</span>}</span>;
+        return <span>{cell.value?.toString() || <span className="text-gray-300 dark:text-[#6B7280]">&nbsp;</span>}</span>;
     }
   };
 
@@ -286,7 +286,7 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
         element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} cursor-move overflow-hidden
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
-        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
+        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-[#3D444D] shadow-none' : ''}
       `}
       style={{
         ...((parentColumnId && !isBeingDragged) ? {} : {
@@ -312,7 +312,7 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
         <table className="w-full border-collapse" style={{ tableLayout: 'fixed' }}>
           <thead>
             <tr>
-              <th className="w-8 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600"></th>
+              <th className="w-8 bg-gray-50 dark:bg-[#252B32] border border-gray-200 dark:border-[#3D444D]"></th>
               {headers.map((header, colIndex) => (
                 <th
                   key={colIndex}
@@ -320,7 +320,7 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
                   onDragLeave={handleColDragLeave}
                   onDrop={(e) => handleColDrop(e, colIndex)}
                   className={`
-                    relative bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-2 font-medium text-gray-700 dark:text-gray-200 group
+                    relative bg-gray-50 dark:bg-[#252B32] border border-gray-200 dark:border-[#3D444D] p-2 font-medium text-gray-700 dark:text-[#E0E6ED] group
                     ${draggedColIndex === colIndex ? 'opacity-50' : ''}
                     ${dragOverColIndex === colIndex ? 'border-l-2 border-primary-500' : ''}
                   `}
@@ -330,13 +330,13 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
                     {isSelected && !element.locked && (
                       <div draggable onDragStart={(e) => handleColDragStart(e, colIndex)} onDragEnd={handleColDragEnd}
                         onMouseDown={(e) => e.stopPropagation()}
-                        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded flex-shrink-0"
+                        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded flex-shrink-0"
                         title="Drag to reorder column">
                         <GripVertical className="w-3 h-3 text-gray-400 rotate-90" />
                       </div>
                     )}
                     <input type="text" value={header} onChange={(e) => handleHeaderChange(colIndex, e.target.value)}
-                      className="flex-1 bg-transparent text-center focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 dark:text-gray-200"
+                      className="flex-1 bg-transparent text-center focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 dark:text-[#E0E6ED]"
                       onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()} disabled={element.locked} />
                     {isSelected && !element.locked && headers.length > 1 && (
                       <button onClick={(e) => { e.stopPropagation(); handleDeleteColumn(colIndex); }}
@@ -354,7 +354,7 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
                 </th>
               ))}
               {isSelected && !element.locked && (
-                <th className="w-12 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                <th className="w-12 bg-gray-50 dark:bg-[#252B32] border border-gray-200 dark:border-[#3D444D]">
                   <button onClick={(e) => { e.stopPropagation(); handleAddColumn(); }}
                     className="w-full h-full flex items-center justify-center text-gray-400 hover:text-primary-600 transition-colors" title="Add column">
                     <Plus className="w-4 h-4" />
@@ -377,12 +377,12 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
                   onDragLeave={handleRowDragLeave}
                   onDrop={(e) => handleRowDrop(e, rowIndex)}
                   className={`group ${draggedRowIndex === rowIndex ? 'opacity-50' : ''} ${dragOverRowIndex === rowIndex ? 'border-t-2 border-primary-500' : ''}`}>
-                  <td className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-center text-gray-500 dark:text-gray-400 text-sm relative">
+                  <td className="bg-gray-50 dark:bg-[#252B32] border border-gray-200 dark:border-[#3D444D] text-center text-gray-500 dark:text-[#B1B9C4] text-sm relative">
                     <div className="flex flex-col items-center justify-center py-1">
                       {isSelected && !element.locked && (
                         <div draggable onDragStart={(e) => handleRowDragStart(e, rowIndex)} onDragEnd={handleRowDragEnd}
                           onMouseDown={(e) => e.stopPropagation()}
-                          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded" title="Drag to reorder">
+                          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded" title="Drag to reorder">
                           <GripVertical className="w-3 h-3 text-gray-400" />
                         </div>
                       )}
@@ -403,10 +403,10 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
                     const columnType = columnTypes[colIndex];
                     const isCheckbox = columnType === 'checkbox';
                     return (
-                      <td key={colIndex} className="border border-gray-200 dark:border-gray-600 p-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      <td key={colIndex} className="border border-gray-200 dark:border-[#3D444D] p-0 hover:bg-gray-50 dark:hover:bg-[#252B32] transition-colors"
                         style={{ width: `${adaptiveColumnWidths[colIndex]}px`, minWidth: '60px' }}>
                         {isEditing && !isCheckbox ? renderCellInput(cell, rowIndex, colIndex) : (
-                          <div className={`${isCheckbox ? '' : 'px-3 py-2 cursor-text'} min-h-[2.5rem] flex items-center text-gray-900 dark:text-gray-100`}
+                          <div className={`${isCheckbox ? '' : 'px-3 py-2 cursor-text'} min-h-[2.5rem] flex items-center text-gray-900 dark:text-[#E0E6ED]`}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (!element.locked && !isCheckbox) {
@@ -422,15 +422,15 @@ const Table = memo(function Table({ element, isSelected, onSelect: _onSelect, pa
                       </td>
                     );
                   })}
-                  {isSelected && !element.locked && <td className="border border-gray-200 dark:border-gray-600"></td>}
+                  {isSelected && !element.locked && <td className="border border-gray-200 dark:border-[#3D444D]"></td>}
                 </tr>
               ))
             )}
             {isSelected && !element.locked && (
               <tr>
-                <td colSpan={headers.length + 2} className="border border-gray-200 dark:border-gray-600 p-0">
+                <td colSpan={headers.length + 2} className="border border-gray-200 dark:border-[#3D444D] p-0">
                   <button onClick={(e) => { e.stopPropagation(); handleAddRow(); }}
-                    className="w-full py-2 text-gray-400 dark:text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-1 text-sm">
+                    className="w-full py-2 text-gray-400 dark:text-[#6B7280] hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-[#252B32] transition-colors flex items-center justify-center gap-1 text-sm">
                     <Plus className="w-4 h-4" /> Add row
                   </button>
                 </td>

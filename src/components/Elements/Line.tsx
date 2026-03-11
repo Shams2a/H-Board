@@ -513,12 +513,12 @@ export default function Line({ element, isSelected, onSelect: _onSelect }: LineP
               onChange={(e) => setTitleValue(e.target.value)}
               onKeyDown={handleTitleKeyDown}
               onBlur={handleTitleSubmit}
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-w-[60px]"
+              className="px-2 py-1 text-xs bg-white dark:bg-[#1E252B] border border-gray-300 dark:border-[#3D444D] rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 min-w-[60px]"
               placeholder="Label"
             />
           ) : (
             <span
-              className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="px-2 py-1 text-xs bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded shadow-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252B32]"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsEditingTitle(true);

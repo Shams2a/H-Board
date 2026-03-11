@@ -134,10 +134,10 @@ const Image = memo(function Image({ element, isSelected, onSelect: _onSelect, pa
           element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} overflow-hidden cursor-move
           ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
           ${element.locked ? 'cursor-not-allowed' : ''}
-          ${!hasImage ? 'border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}
+          ${!hasImage ? 'border-2 border-dashed border-gray-300 dark:border-[#3D444D]' : ''}
           ${isBeingDragged && dropTargetBoardId && isDropReady ? 'ring-2 ring-green-500 animate-pulse' : ''}
           ${isBeingDragged && dropTargetBoardId && !isDropReady ? 'ring-2 ring-yellow-500' : ''}
-          ${parentColumnId && !isBeingDragged && hasImage ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
+          ${parentColumnId && !isBeingDragged && hasImage ? 'border border-gray-300 dark:border-[#3D444D] shadow-none' : ''}
         `}
         style={{
           ...((parentColumnId && !isBeingDragged) ? {} : {
@@ -183,12 +183,12 @@ const Image = memo(function Image({ element, isSelected, onSelect: _onSelect, pa
             className="w-full h-full flex flex-col items-center justify-center gap-3 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500" />
+            <Upload className="w-12 h-12 text-gray-400 dark:text-[#6B7280]" />
             <div className="text-center">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+              <p className="text-sm font-medium text-gray-700 dark:text-[#E0E6ED]">
                 {isUploading ? 'Uploading...' : 'Click or drag to upload'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs text-gray-500 dark:text-[#B1B9C4] mt-1">
                 PNG, JPG, GIF up to 5MB
               </p>
             </div>

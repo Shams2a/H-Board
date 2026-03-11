@@ -360,7 +360,7 @@ const Note = memo(function Note({ element, isSelected, onSelect: _onSelect, pare
         ${element.locked ? 'cursor-not-allowed' : isEditing ? 'cursor-text' : 'cursor-move'}
         ${isBeingDragged && dropTargetBoardId && isDropReady ? 'ring-2 ring-green-500 animate-pulse' : ''}
         ${isBeingDragged && dropTargetBoardId && !isDropReady ? 'ring-2 ring-yellow-500' : ''}
-        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
+        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-[#3D444D] shadow-none' : ''}
       `}
       style={{
         ...((parentColumnId && !isBeingDragged) ? {} : {
@@ -412,7 +412,7 @@ const Note = memo(function Note({ element, isSelected, onSelect: _onSelect, pare
             }}
             onClick={(e) => e.stopPropagation()}
             placeholder="Add title..."
-            className="w-full px-2 py-1 text-lg font-semibold border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-2 py-1 text-lg font-semibold border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#252B32] dark:text-white"
           />
         ) : (
           (element.content.title || isSelected) && (

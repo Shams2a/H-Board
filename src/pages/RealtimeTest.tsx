@@ -94,13 +94,13 @@ export default function RealtimeTest() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#101418] p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
           🔬 Realtime Connection Test
         </h1>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-[#1E252B] rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Connection Status
           </h2>
@@ -114,13 +114,13 @@ export default function RealtimeTest() {
                   : 'bg-yellow-500 animate-pulse'
               }`}
             />
-            <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
+            <span className="text-lg font-medium text-gray-700 dark:text-[#B1B9C4]">
               {channelStatus}
             </span>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-[#1E252B] rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Actions
           </h2>
@@ -132,18 +132,18 @@ export default function RealtimeTest() {
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <div className="bg-white dark:bg-[#1E252B] rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Diagnostic Logs
           </h2>
-          <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 font-mono text-xs space-y-1 max-h-96 overflow-y-auto">
+          <div className="bg-gray-100 dark:bg-[#101418] rounded-lg p-4 font-mono text-xs space-y-1 max-h-96 overflow-y-auto">
             {logs.map((log, index) => (
-              <div key={index} className="text-gray-800 dark:text-gray-300">
+              <div key={index} className="text-gray-800 dark:text-[#B1B9C4]">
                 {log}
               </div>
             ))}
             {logs.length === 0 && (
-              <div className="text-gray-500 dark:text-gray-500">Waiting for logs...</div>
+              <div className="text-gray-500 dark:text-[#6B7280]">Waiting for logs...</div>
             )}
           </div>
         </div>

@@ -65,36 +65,36 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
     <div className="relative w-full">
       <div
         onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded min-h-[28px]"
+        className="flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252B32]/50 rounded min-h-[28px]"
       >
         {selectedBoard ? (
           <div className="flex items-center gap-2 flex-1">
             {getBoardIcon(selectedBoard)}
-            <span className="text-gray-900 dark:text-gray-100 font-medium truncate">
+            <span className="text-gray-900 dark:text-[#E0E6ED] font-medium truncate">
               {selectedBoard.name}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-gray-500 dark:text-[#B1B9C4]">
               ({getBoardTypeLabel(selectedBoard)})
             </span>
             <button
               onClick={handleOpenBoard}
-              className="ml-auto p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+              className="ml-auto p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded"
               title="Open board"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+              <ExternalLink className="w-3.5 h-3.5 text-gray-500 dark:text-[#B1B9C4]" />
             </button>
             <button
               onClick={handleClear}
-              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+              className="p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded"
               title="Clear"
             >
-              <X className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+              <X className="w-3.5 h-3.5 text-gray-500 dark:text-[#B1B9C4]" />
             </button>
           </div>
         ) : (
-          <span className="text-gray-400 dark:text-gray-500 flex-1">Select a board...</span>
+          <span className="text-gray-400 dark:text-[#6B7280] flex-1">Select a board...</span>
         )}
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 ml-auto" />
+        <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-[#6B7280] ml-auto" />
       </div>
 
       {showMenu && (
@@ -103,9 +103,9 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
             className="fixed inset-0 z-40"
             onClick={() => setShowMenu(false)}
           />
-          <div className="absolute top-full left-0 mt-1 w-full min-w-[300px] max-h-64 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
+          <div className="absolute top-full left-0 mt-1 w-full min-w-[300px] max-h-64 overflow-y-auto bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50 py-1">
             {boards.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 italic">
+              <div className="px-3 py-2 text-sm text-gray-500 dark:text-[#B1B9C4] italic">
                 No boards available
               </div>
             ) : (
@@ -117,19 +117,19 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
 
                   return (
                     <div key={type}>
-                      <div className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase border-t first:border-t-0 border-gray-200 dark:border-gray-700 mt-1 first:mt-0">
+                      <div className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-[#B1B9C4] uppercase border-t first:border-t-0 border-gray-200 dark:border-[#30363D] mt-1 first:mt-0">
                         {type === 'canvas' ? 'Canvas Boards' : type === 'kanban' ? 'Kanban Boards' : 'Database Boards'}
                       </div>
                       {filteredBoards.map((board) => (
                         <button
                           key={board.id}
                           onClick={() => handleSelect(board.id)}
-                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 ${
+                          className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 ${
                             selectedBoard?.id === board.id ? 'bg-primary-50 dark:bg-primary-900/20' : ''
                           }`}
                         >
                           {getBoardIcon(board)}
-                          <span className="flex-1 truncate text-gray-900 dark:text-gray-100">
+                          <span className="flex-1 truncate text-gray-900 dark:text-[#E0E6ED]">
                             {board.name}
                           </span>
                           {selectedBoard?.id === board.id && (

@@ -80,7 +80,7 @@ export default function CustomizationSidebar() {
   const options = getCustomizationOptions();
 
   return (
-    <div className="absolute top-20 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden z-toolbar">
+    <div className="absolute top-20 right-4 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg overflow-hidden z-toolbar">
       {activePage === null ? (
         /* Icon View */
         <div className="p-2 flex flex-col gap-2">
@@ -99,15 +99,15 @@ export default function CustomizationSidebar() {
         /* Subpage View */
         <div className="w-80 max-h-[500px] flex flex-col">
           {/* Subpage Header */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+          <div className="p-3 border-b border-gray-200 dark:border-[#30363D] flex items-center gap-2">
             <button
               onClick={() => setActivePage(null)}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
               title="Back"
             >
-              <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              <ArrowLeft className="w-4 h-4 text-gray-600 dark:text-[#B1B9C4]" />
             </button>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex-1">
+            <h3 className="font-semibold text-gray-900 dark:text-[#E0E6ED] flex-1">
               {options.find(opt => opt.page === activePage)?.label}
             </h3>
           </div>

@@ -35,7 +35,7 @@ export default function BoardLinkCustomization({ element }: BoardLinkCustomizati
     <div className="space-y-4">
       {/* Color Picker */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Icon Color
         </label>
         <div className="grid grid-cols-3 gap-2">
@@ -47,7 +47,7 @@ export default function BoardLinkCustomization({ element }: BoardLinkCustomizati
                 w-full aspect-square rounded border-2 transition-all
                 ${(element.style.backgroundColor || '#DBEAFE') === color.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500'
                 }
               `}
               style={{ backgroundColor: color.value }}

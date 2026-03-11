@@ -36,7 +36,7 @@ export default function ActiveUsers({
           >
             {/* Avatar Circle */}
             <div
-              className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-white text-xs font-semibold shadow-sm transition-transform group-hover:scale-110"
+              className="w-8 h-8 rounded-full border-2 border-white dark:border-[#30363D] flex items-center justify-center text-white text-xs font-semibold shadow-sm transition-transform group-hover:scale-110"
               style={{ backgroundColor: user.color }}
             >
               {getInitials(user.name)}
@@ -50,7 +50,7 @@ export default function ActiveUsers({
 
             {/* Active indicator (green dot) */}
             {user.isActive && (
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-[#30363D] rounded-full"></div>
             )}
           </div>
         ))}
@@ -58,7 +58,7 @@ export default function ActiveUsers({
         {/* Remaining count */}
         {remainingCount > 0 && (
           <div
-            className="w-8 h-8 rounded-full border-2 border-white dark:border-gray-800 bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-gray-700 dark:text-gray-200 text-xs font-semibold shadow-sm"
+            className="w-8 h-8 rounded-full border-2 border-white dark:border-[#30363D] bg-gray-300 dark:bg-[#2C333A] flex items-center justify-center text-gray-700 dark:text-[#E0E6ED] text-xs font-semibold shadow-sm"
             title={`${remainingCount} more user${remainingCount > 1 ? 's' : ''}`}
           >
             +{remainingCount}
@@ -68,7 +68,7 @@ export default function ActiveUsers({
 
       {/* User count (optional) */}
       {showCount && (
-        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
+        <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-[#B1B9C4] bg-gray-100 dark:bg-[#252B32] px-2 py-1 rounded-full">
           <Users className="w-3 h-3" />
           <span>{users.length}</span>
         </div>

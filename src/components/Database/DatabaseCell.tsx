@@ -84,7 +84,7 @@ export default function DatabaseCell({ row: _row, property, value, onUpdate }: D
     default:
       // Fallback for unsupported types
       return (
-        <div className="px-2 py-1 text-sm text-gray-500 dark:text-gray-400 italic">
+        <div className="px-2 py-1 text-sm text-gray-500 dark:text-[#B1B9C4] italic">
           Type "{property.type}" not yet implemented
         </div>
       );

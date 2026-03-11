@@ -113,11 +113,11 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-[#101418]">
       {/* Header */}
-      <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div className="flex-shrink-0 p-4 border-b border-gray-200 dark:border-[#30363D] bg-white dark:bg-[#1E252B]">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-[#E0E6ED]">
             Kanban Board
           </h2>
           {/* TODO: Add filters, search, view toggle */}
@@ -147,7 +147,7 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
             {/* Add column button/form */}
             <div className="flex-shrink-0 w-80">
               {isAddingColumn ? (
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                <div className="bg-white dark:bg-[#1E252B] rounded-lg p-3 border border-gray-200 dark:border-[#30363D]">
                   <input
                     type="text"
                     value={newColumnName}
@@ -161,14 +161,14 @@ export default function KanbanBoard({ boardId }: KanbanBoardProps) {
                     }}
                     onBlur={handleAddColumn}
                     placeholder="Nom de la colonne..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-[#3D444D] rounded-lg bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] focus:outline-none focus:ring-2 focus:ring-primary-500"
                     autoFocus
                   />
                 </div>
               ) : (
                 <button
                   onClick={() => setIsAddingColumn(true)}
-                  className="w-full h-full min-h-[100px] flex items-center justify-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
+                  className="w-full h-full min-h-[100px] flex items-center justify-center gap-2 bg-white dark:bg-[#1E252B] hover:bg-gray-50 dark:hover:bg-[#252B32] rounded-lg border-2 border-dashed border-gray-300 dark:border-[#3D444D] text-gray-600 dark:text-[#B1B9C4] hover:text-gray-900 dark:hover:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
                 >
                   <Plus className="w-5 h-5" />
                   <span className="font-medium">Ajouter une colonne</span>

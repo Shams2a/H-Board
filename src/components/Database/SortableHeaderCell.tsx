@@ -37,7 +37,7 @@ export default function SortableHeaderCell({ header, children }: SortableHeaderC
       style={{ ...style, width: header.getSize() }}
       {...attributes}
       {...listeners}
-      className="relative border-r border-b border-gray-200 dark:border-gray-700 text-left font-medium text-sm text-gray-700 dark:text-gray-300 px-3 py-2 cursor-grab active:cursor-grabbing"
+      className="relative border-r border-b border-gray-200 dark:border-[#30363D] text-left font-medium text-sm text-gray-700 dark:text-[#B1B9C4] px-3 py-2 cursor-grab active:cursor-grabbing"
     >
       {children}
 

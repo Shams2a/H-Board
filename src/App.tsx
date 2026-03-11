@@ -19,10 +19,10 @@ const RealtimeTest = lazy(() => import('./pages/RealtimeTest'));
 
 function LoadingSpinner() {
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-[#101418]">
       <div className="text-center">
         <div className="w-12 h-12 mx-auto mb-4 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-600 dark:text-gray-400">Chargement...</p>
+        <p className="text-gray-600 dark:text-[#B1B9C4]">Chargement...</p>
       </div>
     </div>
   );
@@ -42,10 +42,10 @@ function AppContent() {
   // Show loading while auth initializes
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-[#101418]">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto mb-4 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-600 dark:text-gray-400">Chargement...</p>
+          <p className="text-gray-600 dark:text-[#B1B9C4]">Chargement...</p>
         </div>
       </div>
     );

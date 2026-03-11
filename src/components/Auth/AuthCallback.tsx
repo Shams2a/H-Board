@@ -50,17 +50,17 @@ export default function AuthCallback() {
 
   if (error) {
     return (
-      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#101418]">
         <div className="text-center max-w-md px-4">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
             <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-[#E0E6ED] mb-2">
             Erreur d'authentification
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+          <p className="text-gray-600 dark:text-[#B1B9C4] mb-6">{error}</p>
           <button
             onClick={() => navigate('/login')}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -73,10 +73,10 @@ export default function AuthCallback() {
   }
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen flex items-center justify-center bg-gray-50 dark:bg-[#101418]">
       <div className="text-center">
         <div className="w-12 h-12 mx-auto mb-4 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-gray-600 dark:text-gray-400">Connexion en cours...</p>
+        <p className="text-gray-600 dark:text-[#B1B9C4]">Connexion en cours...</p>
       </div>
     </div>
   );

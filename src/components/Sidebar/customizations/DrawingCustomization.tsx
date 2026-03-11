@@ -133,7 +133,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
     <div className="space-y-5">
       {/* ── Section: Drawing Tool ─────────────────────────────────── */}
       <div>
-        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
+        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-[#B1B9C4] mb-2">
           Tool
         </h4>
         <div className="flex gap-2">
@@ -143,7 +143,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
               flex-1 px-3 py-2 rounded text-sm font-medium transition-all
               ${activeTool === 'pen'
                 ? 'bg-primary-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-200 dark:hover:bg-[#2C333A]'
               }
             `}
           >
@@ -155,7 +155,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
               flex-1 px-3 py-2 rounded text-sm font-medium transition-all
               ${activeTool === 'eraser'
                 ? 'bg-primary-500 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                : 'bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-200 dark:hover:bg-[#2C333A]'
               }
             `}
           >
@@ -166,7 +166,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
 
       {/* ── Section: Stroke Color ─────────────────────────────────── */}
       <div>
-        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
+        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-[#B1B9C4] mb-2">
           Stroke Color
         </h4>
         <div className="grid grid-cols-5 gap-2">
@@ -178,7 +178,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
                 w-full aspect-square rounded border-2 transition-all
                 ${activeColor === color.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500'
                 }
               `}
               style={{ backgroundColor: color.value }}
@@ -190,9 +190,9 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
 
       {/* ── Section: Stroke Thickness ─────────────────────────────── */}
       <div>
-        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
+        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-[#B1B9C4] mb-2">
           Thickness
-          <span className="ml-2 text-gray-400 dark:text-gray-500 font-normal normal-case">
+          <span className="ml-2 text-gray-400 dark:text-[#6B7280] font-normal normal-case">
             {activeThickness}px
           </span>
         </h4>
@@ -221,9 +221,9 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
 
       {/* ── Section: Path Management ──────────────────────────────── */}
       <div>
-        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
+        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-[#B1B9C4] mb-2">
           Strokes
-          <span className="ml-2 text-gray-400 dark:text-gray-500 font-normal normal-case">
+          <span className="ml-2 text-gray-400 dark:text-[#6B7280] font-normal normal-case">
             {strokeCount} stroke{strokeCount !== 1 ? 's' : ''}
           </span>
         </h4>
@@ -231,7 +231,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
           <button
             onClick={handleUndo}
             disabled={strokeCount === 0}
-            className="flex-1 px-3 py-2 rounded text-sm font-medium transition-all bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 px-3 py-2 rounded text-sm font-medium transition-all bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-200 dark:hover:bg-[#2C333A] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Undo Last
           </button>
@@ -247,7 +247,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
 
       {/* ── Section: Background Color ─────────────────────────────── */}
       <div>
-        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
+        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-[#B1B9C4] mb-2">
           Background
         </h4>
         <div className="grid grid-cols-4 gap-2">
@@ -259,7 +259,7 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
                 w-full aspect-square rounded border-2 transition-all
                 ${currentBgColor === color.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500'
                 }
                 ${color.value === 'transparent' ? 'bg-[length:8px_8px] bg-[image:linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%,#ccc),linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%,#ccc)] bg-[position:0_0,4px_4px]' : ''}
               `}
@@ -272,9 +272,9 @@ export default function DrawingCustomization({ element }: DrawingCustomizationPr
 
       {/* ── Section: Background Opacity ───────────────────────────── */}
       <div>
-        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">
+        <h4 className="text-xs font-semibold uppercase text-gray-500 dark:text-[#B1B9C4] mb-2">
           Background Opacity
-          <span className="ml-2 text-gray-400 dark:text-gray-500 font-normal normal-case">
+          <span className="ml-2 text-gray-400 dark:text-[#6B7280] font-normal normal-case">
             {currentOpacity}%
           </span>
         </h4>

@@ -15,7 +15,7 @@ export default function CheckboxCell({ value, onChange }: CheckboxCellProps) {
         type="checkbox"
         checked={value === true}
         onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 text-primary-600 dark:text-primary-500 border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-2 cursor-pointer bg-white dark:bg-gray-700"
+        className="w-4 h-4 text-primary-600 dark:text-primary-500 border-gray-300 dark:border-[#3D444D] rounded focus:ring-primary-500 dark:focus:ring-primary-400 focus:ring-2 cursor-pointer bg-white dark:bg-[#252B32]"
       />
     </div>
   );

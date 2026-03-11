@@ -17,7 +17,7 @@ interface KanbanCardProps {
 }
 
 const PRIORITY_COLORS = {
-  low: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+  low: 'bg-gray-100 text-gray-700 dark:bg-[#252B32] dark:text-[#B1B9C4]',
   medium: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
   high: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
   urgent: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
@@ -121,25 +121,25 @@ const KanbanCard = memo(function KanbanCard({ card, isDragging = false }: Kanban
         {...attributes}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
-        className="group bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 p-3 cursor-pointer hover:shadow-md hover:border-gray-300 dark:hover:border-gray-500 transition-all relative"
+        className="group bg-white dark:bg-[#252B32] rounded-lg border border-gray-200 dark:border-[#3D444D] p-3 cursor-pointer hover:shadow-md hover:border-gray-300 dark:hover:border-gray-500 transition-all relative"
       >
       {/* Drag handle - visible on hover */}
       <button
         {...listeners}
-        className="absolute top-2 left-2 p-1 opacity-0 group-hover:opacity-100 bg-white dark:bg-gray-600 hover:bg-gray-100 dark:hover:bg-gray-500 rounded transition-all z-10 cursor-grab active:cursor-grabbing"
+        className="absolute top-2 left-2 p-1 opacity-0 group-hover:opacity-100 bg-white dark:bg-[#2C333A] hover:bg-gray-100 dark:hover:bg-[#2C333A] rounded transition-all z-10 cursor-grab active:cursor-grabbing"
         title="Déplacer la carte"
         onClick={(e) => e.stopPropagation()}
       >
-        <GripVertical className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+        <GripVertical className="w-3.5 h-3.5 text-gray-500 dark:text-[#B1B9C4]" />
       </button>
 
       {/* Delete button - visible on hover */}
       <button
         onClick={handleDelete}
-        className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-100 bg-white dark:bg-gray-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-all z-10"
+        className="absolute top-2 right-2 p-1 opacity-0 group-hover:opacity-100 bg-white dark:bg-[#2C333A] hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-all z-10"
         title="Supprimer la carte"
       >
-        <Trash2 className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" />
+        <Trash2 className="w-3.5 h-3.5 text-gray-500 dark:text-[#B1B9C4] hover:text-red-600 dark:hover:text-red-400" />
       </button>
 
       {/* Cover image */}
@@ -169,11 +169,11 @@ const KanbanCard = memo(function KanbanCard({ card, isDragging = false }: Kanban
           }}
           onBlur={handleTitleEdit}
           onClick={(e) => e.stopPropagation()}
-          className="w-full text-sm font-medium border border-primary-500 dark:border-primary-400 rounded px-2 py-1 mb-2 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full text-sm font-medium border border-primary-500 dark:border-primary-400 rounded px-2 py-1 mb-2 bg-white dark:bg-[#2C333A] text-gray-900 dark:text-[#E0E6ED] focus:outline-none focus:ring-2 focus:ring-primary-500"
           autoFocus
         />
       ) : (
-        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+        <h4 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED] mb-2">
           {card.title}
         </h4>
       )}
@@ -184,7 +184,7 @@ const KanbanCard = memo(function KanbanCard({ card, isDragging = false }: Kanban
           {card.tags.map((tag, index) => (
             <span
               key={index}
-              className="px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded"
+              className="px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-[#2C333A] text-gray-700 dark:text-[#B1B9C4] rounded"
             >
               {tag}
             </span>
@@ -193,7 +193,7 @@ const KanbanCard = memo(function KanbanCard({ card, isDragging = false }: Kanban
       )}
 
       {/* Footer - Metadata */}
-      <div className="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-[#B1B9C4]">
         <div className="flex items-center gap-2 flex-wrap">
           {/* Priority */}
           {card.priority !== 'medium' && (
@@ -247,7 +247,7 @@ const KanbanCard = memo(function KanbanCard({ card, isDragging = false }: Kanban
 
       {/* Checklist progress bar */}
       {checklistTotal > 0 && (
-        <div className="mt-2 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+        <div className="mt-2 h-1 bg-gray-200 dark:bg-[#2C333A] rounded-full overflow-hidden">
           <div
             className={`h-full transition-all ${
               checklistProgress === 100

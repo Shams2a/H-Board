@@ -141,12 +141,12 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-auto"
+        className="bg-white dark:bg-[#1E252B] rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#30363D]">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED]">
             Filters
           </h2>
           <button
@@ -160,7 +160,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
         {/* Content */}
         <div className="p-4 space-y-3">
           {localFilters.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-8">
+            <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic text-center py-8">
               No filters yet. Click "Add Filter" to create one.
             </p>
           ) : (
@@ -175,7 +175,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                   <select
                     value={filter.propertyId}
                     onChange={(e) => handleUpdateFilter(filter.id!, 'propertyId', e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                    className="flex-1 px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                   >
                     {properties.map((prop) => (
                       <option key={prop.id} value={prop.id}>
@@ -188,7 +188,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                   <select
                     value={filter.operator}
                     onChange={(e) => handleUpdateFilter(filter.id!, 'operator', e.target.value)}
-                    className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                    className="flex-1 px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                   >
                     {operators.map((op) => (
                       <option key={op} value={op}>
@@ -204,7 +204,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                       value={filter.value != null ? String(filter.value) : ''}
                       onChange={(e) => handleUpdateFilter(filter.id!, 'value', e.target.value)}
                       placeholder="Value"
-                      className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                      className="flex-1 px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                     />
                   )}
 
@@ -224,7 +224,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
           <button
             onClick={handleAddFilter}
             disabled={properties.length === 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm border-2 border-dashed border-gray-300 dark:border-gray-600 rounded hover:border-primary-500 dark:hover:border-primary-400 text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm border-2 border-dashed border-gray-300 dark:border-[#3D444D] rounded hover:border-primary-500 dark:hover:border-primary-400 text-gray-600 dark:text-[#B1B9C4] hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Add Filter
@@ -232,10 +232,10 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-[#30363D]">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="px-4 py-2 text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
             Cancel
           </button>

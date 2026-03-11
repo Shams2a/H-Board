@@ -93,7 +93,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
     <div className="space-y-4">
       {/* Arrow Direction */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Arrows</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Arrows</h4>
         <div className="flex gap-2">
           <button
             onClick={(e) => {
@@ -105,7 +105,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
               flex-1 p-2 rounded border-2 transition-all flex items-center justify-center gap-2
               ${arrowStart
                 ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
               }
             `}
             title="Start arrow"
@@ -123,7 +123,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
               flex-1 p-2 rounded border-2 transition-all flex items-center justify-center gap-2
               ${arrowEnd
                 ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
               }
             `}
             title="End arrow"
@@ -136,7 +136,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
 
       {/* Line Style */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Style</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Style</h4>
         <div className="grid grid-cols-3 gap-2">
           {LINE_STYLES.map((style) => (
             <button
@@ -150,7 +150,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
                 p-2 rounded border-2 transition-all flex items-center justify-center
                 ${lineStyle === style.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={style.name}
@@ -163,7 +163,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
 
       {/* Thickness */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Thickness</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Thickness</h4>
         <div className="grid grid-cols-4 gap-2">
           {THICKNESSES.map((t) => (
             <button
@@ -177,7 +177,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
                 p-2 rounded border-2 transition-all flex items-center justify-center
                 ${thickness === t.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={t.name}
@@ -193,7 +193,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
 
       {/* Color Selection */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Color</h4>
         <div className="grid grid-cols-3 gap-2">
           {COLORS.map((color) => (
             <button
@@ -207,7 +207,7 @@ export default function LineCustomization({ element }: LineCustomizationProps) {
                 w-full aspect-square rounded border-2 transition-all
                 ${(element.style.borderColor || '#000000') === color.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500'
                 }
               `}
               style={{ backgroundColor: color.value }}

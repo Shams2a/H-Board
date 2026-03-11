@@ -30,12 +30,12 @@ class ErrorBoundary extends Component<Props, State> {
   render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-          <div className="max-w-md w-full mx-4 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg text-center">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-[#101418]">
+          <div className="max-w-md w-full mx-4 p-6 bg-white dark:bg-[#1E252B] rounded-lg shadow-lg text-center">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-[#E0E6ED] mb-2">
               Something went wrong
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 break-words">
+            <p className="text-sm text-gray-600 dark:text-[#B1B9C4] mb-4 break-words">
               {this.state.error?.message ?? 'An unexpected error occurred.'}
             </p>
             <button

@@ -90,7 +90,7 @@ export default function NumberCell({ value, onChange, format }: NumberCellProps)
             handleCancel();
           }
         }}
-        className="w-full px-2 py-1 text-sm bg-white dark:bg-gray-700 border border-primary-500 dark:border-primary-400 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-gray-100"
+        className="w-full px-2 py-1 text-sm bg-white dark:bg-[#252B32] border border-primary-500 dark:border-primary-400 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 dark:focus:ring-primary-400 text-gray-900 dark:text-[#E0E6ED]"
       />
     );
   }
@@ -98,7 +98,7 @@ export default function NumberCell({ value, onChange, format }: NumberCellProps)
   return (
     <div
       onClick={() => setIsEditing(true)}
-      className="w-full px-2 py-1 text-sm cursor-text hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded min-h-[28px] text-right text-gray-900 dark:text-gray-100"
+      className="w-full px-2 py-1 text-sm cursor-text hover:bg-gray-50 dark:hover:bg-[#252B32]/50 rounded min-h-[28px] text-right text-gray-900 dark:text-[#E0E6ED]"
     >
       {formatNumber(value)}
     </div>

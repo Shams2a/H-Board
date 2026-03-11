@@ -88,15 +88,15 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md mx-4">
+      <div className="relative bg-white dark:bg-[#1E252B] rounded-xl shadow-2xl w-full max-w-md mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#30363D]">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED]">
             Export
           </h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
@@ -106,7 +106,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
         <div className="p-4 space-y-4">
           {/* Scope Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
               Contenu à exporter
             </label>
             <div className="flex gap-2">
@@ -115,7 +115,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                 className={`flex-1 py-2 px-3 rounded-lg border text-sm font-medium transition-colors ${
                   scope === 'canvas'
                     ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-500 text-primary-700 dark:text-primary-300'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'border-gray-300 dark:border-[#3D444D] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-50 dark:hover:bg-[#252B32]'
                 }`}
               >
                 Canvas entier
@@ -128,8 +128,8 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                   scope === 'selection'
                     ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-500 text-primary-700 dark:text-primary-300'
                     : hasSelection
-                      ? 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      : 'border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                      ? 'border-gray-300 dark:border-[#3D444D] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-50 dark:hover:bg-[#252B32]'
+                      : 'border-gray-200 dark:border-[#30363D] text-gray-400 dark:text-[#6B7280] cursor-not-allowed'
                 }`}
               >
                 Sélection
@@ -140,7 +140,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
 
           {/* Format Selection */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
               Format
             </label>
             <div className="flex gap-2">
@@ -149,7 +149,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                 className={`flex-1 py-3 px-3 rounded-lg border text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
                   format === 'png'
                     ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-500 text-primary-700 dark:text-primary-300'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'border-gray-300 dark:border-[#3D444D] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-50 dark:hover:bg-[#252B32]'
                 }`}
               >
                 <Image className="w-5 h-5" />
@@ -160,7 +160,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                 className={`flex-1 py-3 px-3 rounded-lg border text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
                   format === 'json'
                     ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-500 text-primary-700 dark:text-primary-300'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'border-gray-300 dark:border-[#3D444D] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-50 dark:hover:bg-[#252B32]'
                 }`}
               >
                 <FileJson className="w-5 h-5" />
@@ -171,7 +171,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                 className={`flex-1 py-3 px-3 rounded-lg border text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
                   format === 'txt'
                     ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-500 text-primary-700 dark:text-primary-300'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'border-gray-300 dark:border-[#3D444D] text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-50 dark:hover:bg-[#252B32]'
                 }`}
               >
                 <FileText className="w-5 h-5" />
@@ -182,7 +182,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
 
           {/* Format-specific options */}
           {format === 'png' && (
-            <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="space-y-3 p-3 bg-gray-50 dark:bg-[#101418] rounded-lg">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -190,7 +190,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                   onChange={(e) => setIncludeBackground(e.target.checked)}
                   className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700 dark:text-[#B1B9C4]">
                   Inclure l'arrière-plan
                 </span>
               </label>
@@ -201,7 +201,7 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                   onChange={(e) => setHighResolution(e.target.checked)}
                   className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700 dark:text-[#B1B9C4]">
                   Haute résolution (2x)
                 </span>
               </label>
@@ -209,8 +209,8 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
           )}
 
           {(format === 'json' || format === 'txt') && (
-            <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <div className="space-y-3 p-3 bg-gray-50 dark:bg-[#101418] rounded-lg">
+              <label className="block text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
                 Style du texte
               </label>
               <div className="flex gap-2">
@@ -218,8 +218,8 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                   onClick={() => setTextStyle('styled')}
                   className={`flex-1 py-2 px-3 rounded border text-sm transition-colors ${
                     textStyle === 'styled'
-                      ? 'bg-white dark:bg-gray-800 border-primary-500 text-primary-700 dark:text-primary-300'
-                      : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                      ? 'bg-white dark:bg-[#1E252B] border-primary-500 text-primary-700 dark:text-primary-300'
+                      : 'border-gray-300 dark:border-[#3D444D] text-gray-600 dark:text-[#B1B9C4]'
                   }`}
                 >
                   Avec styles
@@ -228,8 +228,8 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
                   onClick={() => setTextStyle('plain')}
                   className={`flex-1 py-2 px-3 rounded border text-sm transition-colors ${
                     textStyle === 'plain'
-                      ? 'bg-white dark:bg-gray-800 border-primary-500 text-primary-700 dark:text-primary-300'
-                      : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+                      ? 'bg-white dark:bg-[#1E252B] border-primary-500 text-primary-700 dark:text-primary-300'
+                      : 'border-gray-300 dark:border-[#3D444D] text-gray-600 dark:text-[#B1B9C4]'
                   }`}
                 >
                   Texte brut
@@ -240,10 +240,10 @@ export default function ExportModal({ isOpen, onClose }: ExportModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-[#30363D]">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded-lg transition-colors"
           >
             Annuler
           </button>

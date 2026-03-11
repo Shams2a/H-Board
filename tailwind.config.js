@@ -10,8 +10,15 @@ export default {
       colors: {
         // H-Board color palette
         background: {
-          canvas: '#F5F5F5',
-          DEFAULT: '#FFFFFF',
+          canvas: '#F4F7F9',      // Light mode canvas — cool gray, not flat white
+          DEFAULT: '#FFFFFF',      // Light mode surfaces (cards, panels)
+        },
+        // Dark mode surface hierarchy (Level 0 → 3)
+        surface: {
+          0: '#101418',   // Canvas / deepest background — blue-gray ultra-deep
+          1: '#1E252B',   // Cards & panels — elevated from canvas
+          2: '#252B32',   // Nested panels, table headers, hover states
+          3: '#2C333A',   // Active states, raised UI
         },
         primary: {
           50: '#EEF2FF',
@@ -26,16 +33,26 @@ export default {
           900: '#1E1B4B',
         },
         text: {
-          primary: '#1F2937',
-          secondary: '#6B7280',
-          tertiary: '#9CA3AF',
+          // Light mode
+          primary: '#1C1E21',     // Near-black, not pure black — professional
+          secondary: '#6A737D',   // Muted gray for secondary content
+          tertiary: '#9CA3AF',    // Placeholder / disabled
+          // Dark mode (accessed via dark: prefix)
+          'dark-primary': '#E0E6ED',     // Off-white — no haloing
+          'dark-secondary': '#B1B9C4',   // Muted light gray
+          'dark-tertiary': '#6B7280',    // Subtle
+          'dark-heading': '#FFFFFF',     // Pure white for headings only
         },
         border: {
-          DEFAULT: '#E5E7EB',
+          DEFAULT: '#E1E4E8',     // Light mode — subtle
           light: '#F3F4F6',
           dark: '#D1D5DB',
+          // Dark mode borders
+          'dark-DEFAULT': '#30363D',  // Subtle delimiter for cards
+          'dark-light': '#252B32',
+          'dark-strong': '#3D444D',
         },
-        // Element colors (for notes, sections, etc.)
+        // Element colors (for notes, shapes, etc.)
         element: {
           yellow: '#FEF3C7',
           orange: '#FED7AA',
@@ -48,9 +65,16 @@ export default {
         }
       },
       boxShadow: {
-        'element': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        'element-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        // Light mode — soft floating shadows
+        'element': '0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04)',
+        'element-hover': '0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04)',
         'element-selected': '0 0 0 2px #4F46E5',
+        'card': '0 4px 12px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.08)',
+        // Dark mode — very subtle, mostly rely on surface color hierarchy
+        'dark-element': '0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2)',
+        'dark-card': '0 2px 8px rgba(0, 0, 0, 0.25)',
+        'dark-card-hover': '0 4px 16px rgba(0, 0, 0, 0.35)',
       },
       spacing: {
         '18': '4.5rem',

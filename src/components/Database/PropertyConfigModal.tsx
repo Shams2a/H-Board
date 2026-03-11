@@ -94,12 +94,12 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-auto"
+        className="bg-white dark:bg-[#1E252B] rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#30363D]">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED]">
             Configure Property: {property.name}
           </h2>
           <button
@@ -115,18 +115,18 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
           {/* Number format configuration */}
           {property.type === 'number' && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED]">
                 Number Format
               </h3>
 
               <div>
-                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                <label className="block text-xs text-gray-600 dark:text-[#B1B9C4] mb-1">
                   Format Type
                 </label>
                 <select
                   value={config.numberFormat?.type || 'number'}
                   onChange={(e) => handleNumberFormatChange('type', e.target.value)}
-                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                 >
                   {NUMBER_FORMATS.map((fmt) => (
                     <option key={fmt.value} value={fmt.value}>
@@ -137,7 +137,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
               </div>
 
               <div>
-                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                <label className="block text-xs text-gray-600 dark:text-[#B1B9C4] mb-1">
                   Decimal Places
                 </label>
                 <input
@@ -146,19 +146,19 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
                   max="10"
                   value={config.numberFormat?.decimals ?? 0}
                   onChange={(e) => handleNumberFormatChange('decimals', parseInt(e.target.value))}
-                  className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                  className="w-full px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                 />
               </div>
 
               {config.numberFormat?.type === 'currency' && (
                 <div>
-                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
+                  <label className="block text-xs text-gray-600 dark:text-[#B1B9C4] mb-1">
                     Currency
                   </label>
                   <select
                     value={config.numberFormat?.currency || 'USD'}
                     onChange={(e) => handleNumberFormatChange('currency', e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                    className="w-full px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                   >
                     {CURRENCIES.map((curr) => (
                       <option key={curr} value={curr}>
@@ -174,7 +174,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
           {/* Date configuration */}
           {property.type === 'date' && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED]">
                 Date Format
               </h3>
 
@@ -183,9 +183,9 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
                   type="checkbox"
                   checked={config.includeTime || false}
                   onChange={(e) => handleDateConfigChange(e.target.checked)}
-                  className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+                  className="rounded border-gray-300 dark:border-[#3D444D] text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-gray-700 dark:text-[#B1B9C4]">
                   Include Time
                 </span>
               </label>
@@ -196,7 +196,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
           {(property.type === 'select' || property.type === 'multi_select') && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED]">
                   Options
                 </h3>
                 <button
@@ -215,13 +215,13 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
                       type="color"
                       value={option.color}
                       onChange={(e) => handleUpdateOption(option.id, 'color', e.target.value)}
-                      className="w-8 h-8 rounded border border-gray-300 dark:border-gray-600 cursor-pointer"
+                      className="w-8 h-8 rounded border border-gray-300 dark:border-[#3D444D] cursor-pointer"
                     />
                     <input
                       type="text"
                       value={option.name}
                       onChange={(e) => handleUpdateOption(option.id, 'name', e.target.value)}
-                      className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100"
+                      className="flex-1 px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                       placeholder="Option name"
                     />
                     <button
@@ -234,7 +234,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
                 ))}
 
                 {(!config.options || config.options.length === 0) && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic text-center py-4">
+                  <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic text-center py-4">
                     No options yet. Click "Add Option" to create one.
                   </p>
                 )}
@@ -244,17 +244,17 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
 
           {/* No configuration needed */}
           {!['number', 'date', 'select', 'multi_select'].includes(property.type) && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+            <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic">
               No configuration options available for this property type.
             </p>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-[#30363D]">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="px-4 py-2 text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
             Cancel
           </button>

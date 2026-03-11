@@ -128,7 +128,7 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
     >
       <div
         ref={tableContainerRef}
-        className="relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+        className="relative w-full h-full overflow-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-[#3D444D] scrollbar-track-transparent"
       >
         <SortableContext
           items={properties.map((p) => p.id)}
@@ -136,7 +136,7 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
         >
           <table className="min-w-full border-collapse" style={{ width: 'max-content' }}>
             {/* Table Header */}
-            <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900">
+            <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#101418]">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -148,7 +148,7 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
                     </SortableHeaderCell>
                   ))}
                   {/* Actions column */}
-                  <th className="sticky right-0 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 w-12 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.3)]" />
+                  <th className="sticky right-0 bg-gray-50 dark:bg-[#101418] border-b border-gray-200 dark:border-[#30363D] w-12 shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_-2px_rgba(0,0,0,0.3)]" />
                 </tr>
               ))}
             </thead>
@@ -167,7 +167,7 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
                 key={row.id}
                 data-index={virtualRow.index}
                 ref={(node) => rowVirtualizer.measureElement(node)}
-                className="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                className="group hover:bg-gray-50 dark:hover:bg-[#252B32]/50 transition-colors"
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -179,7 +179,7 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="border-r border-b border-gray-200 dark:border-gray-700 px-3 py-2"
+                    className="border-r border-b border-gray-200 dark:border-[#30363D] px-3 py-2"
                     style={{ width: cell.column.getSize() }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -187,14 +187,14 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
                 ))}
 
                 {/* Actions column */}
-                <td className="sticky right-0 bg-white dark:bg-gray-800 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700 px-2 py-2">
+                <td className="sticky right-0 bg-white dark:bg-[#1E252B] group-hover:bg-gray-50 dark:group-hover:bg-gray-700/50 border-b border-gray-200 dark:border-[#30363D] px-2 py-2">
                   <div className="relative">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setOpenMenuRowId(openMenuRowId === row.original.id ? null : row.original.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                      className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all p-1 rounded hover:bg-gray-100 dark:hover:bg-[#252B32]"
                       title="Row actions"
                     >
                       <MoreVertical className="w-4 h-4" />
@@ -207,14 +207,14 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
                           className="fixed inset-0 z-40"
                           onClick={() => setOpenMenuRowId(null)}
                         />
-                        <div className="absolute top-full right-0 mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
+                        <div className="absolute top-full right-0 mt-1 w-40 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50 py-1">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               useDatabaseStore.getState().duplicateRow(row.original.id);
                               setOpenMenuRowId(null);
                             }}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 text-gray-700 dark:text-[#B1B9C4]"
                           >
                             <Copy className="w-4 h-4" />
                             Duplicate
@@ -244,7 +244,7 @@ export default function DatabaseTable({ boardId, properties, rows }: DatabaseTab
 
         {/* Empty rows state */}
         {rows.length === 0 && (
-          <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-center h-64 text-gray-500 dark:text-[#B1B9C4]">
             <div className="text-center">
               <p className="text-lg font-medium mb-2">No rows yet</p>
               <p className="text-sm">Click "New Row" to add your first entry</p>

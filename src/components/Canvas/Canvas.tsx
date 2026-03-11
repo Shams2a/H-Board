@@ -543,17 +543,17 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
       </div>
 
       {/* Canvas info (bottom right) */}
-      <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary dark:text-gray-400 pointer-events-none">
+      <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-[#1E252B]/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm text-xs text-text-tertiary dark:text-[#B1B9C4] pointer-events-none">
         Board: {currentBoard.name} • Elements: {elements.length}
       </div>
 
       {/* Horizontal Scrollbar */}
       <div
-        className="absolute bottom-0 left-0 right-3 h-3 bg-gray-200/50 dark:bg-gray-700/50 cursor-pointer"
+        className="absolute bottom-0 left-0 right-3 h-3 bg-gray-200/50 dark:bg-[#252B32]/50 cursor-pointer"
         onClick={handleScrollbarTrackClick('horizontal')}
       >
         <div
-          className="absolute top-0 h-full bg-gray-400 dark:bg-gray-500 rounded-full hover:bg-gray-500 dark:hover:bg-gray-400 transition-colors cursor-grab active:cursor-grabbing"
+          className="absolute top-0 h-full bg-gray-400 dark:bg-[#2C333A] rounded-full hover:bg-gray-500 dark:hover:bg-[#252B32] transition-colors cursor-grab active:cursor-grabbing"
           style={{
             left: `${scrollbarInfo.hThumbPosition}px`,
             width: `${scrollbarInfo.hThumbWidth}px`,
@@ -565,11 +565,11 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
 
       {/* Vertical Scrollbar */}
       <div
-        className="absolute top-0 right-0 bottom-3 w-3 bg-gray-200/50 dark:bg-gray-700/50 cursor-pointer"
+        className="absolute top-0 right-0 bottom-3 w-3 bg-gray-200/50 dark:bg-[#252B32]/50 cursor-pointer"
         onClick={handleScrollbarTrackClick('vertical')}
       >
         <div
-          className="absolute left-0 w-full bg-gray-400 dark:bg-gray-500 rounded-full hover:bg-gray-500 dark:hover:bg-gray-400 transition-colors cursor-grab active:cursor-grabbing"
+          className="absolute left-0 w-full bg-gray-400 dark:bg-[#2C333A] rounded-full hover:bg-gray-500 dark:hover:bg-[#252B32] transition-colors cursor-grab active:cursor-grabbing"
           style={{
             top: `${scrollbarInfo.vThumbPosition}px`,
             height: `${scrollbarInfo.vThumbHeight}px`,
@@ -580,7 +580,7 @@ export default function Canvas({ onExport }: CanvasProps = {}) {
       </div>
 
       {/* Corner square */}
-      <div className="absolute bottom-0 right-0 w-3 h-3 bg-gray-300/50 dark:bg-gray-600/50" />
+      <div className="absolute bottom-0 right-0 w-3 h-3 bg-gray-300/50 dark:bg-[#2C333A]/50" />
 
       {/* Context Menu */}
       {contextMenu && (

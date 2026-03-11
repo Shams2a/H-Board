@@ -65,22 +65,22 @@ export default function BoardTypeSelector({ onSelect, onClose }: BoardTypeSelect
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4"
+        className="bg-white dark:bg-[#1E252B] rounded-lg shadow-xl p-6 max-w-3xl w-full mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-[#E0E6ED] mb-2">
             Créer un nouveau tableau
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-[#B1B9C4]">
             Choisissez le type de tableau et donnez-lui un nom
           </p>
         </div>
 
         {/* Board name input */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
             Nom du tableau
           </label>
           <input
@@ -90,13 +90,13 @@ export default function BoardTypeSelector({ onSelect, onClose }: BoardTypeSelect
             onChange={(e) => setBoardName(e.target.value)}
             onKeyDown={handleKeyDown}
             autoFocus
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+            className="w-full px-4 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
           />
         </div>
 
         {/* Board type cards */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
             Type de tableau
           </label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -107,7 +107,7 @@ export default function BoardTypeSelector({ onSelect, onClose }: BoardTypeSelect
                 className={`group flex flex-col items-center text-center p-6 rounded-lg border-2 transition-all hover:shadow-lg ${
                   selectedType === boardType.type
                     ? 'border-primary-500 dark:border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600'
+                    : 'border-gray-200 dark:border-[#30363D] hover:border-primary-300 dark:hover:border-primary-600'
                 }`}
               >
                 {/* Icon */}
@@ -122,12 +122,12 @@ export default function BoardTypeSelector({ onSelect, onClose }: BoardTypeSelect
                 </div>
 
                 {/* Name */}
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED] mb-2">
                   {boardType.name}
                 </h3>
 
                 {/* Description */}
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-gray-600 dark:text-[#B1B9C4]">
                   {boardType.description}
                 </p>
               </button>
@@ -139,7 +139,7 @@ export default function BoardTypeSelector({ onSelect, onClose }: BoardTypeSelect
         <div className="flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="px-4 py-2 text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded-lg transition-colors"
           >
             Annuler
           </button>

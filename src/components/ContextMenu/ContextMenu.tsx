@@ -342,7 +342,7 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
   return (
     <div
       ref={menuRef}
-      className="fixed bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl py-1 z-[9999] min-w-[200px]"
+      className="fixed bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-xl py-1 z-[9999] min-w-[200px]"
       style={{
         left: `${x}px`,
         top: `${y}px`,
@@ -352,12 +352,12 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
     >
       {menuItems.map((item, index) => {
         if (item.type === 'separator') {
-          return <div key={index} className="h-px bg-gray-200 dark:bg-gray-700 my-1" />;
+          return <div key={index} className="h-px bg-gray-200 dark:bg-[#252B32] my-1" />;
         }
 
         if (item.type === 'header') {
           return (
-            <div key={index} className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+            <div key={index} className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-[#B1B9C4] uppercase">
               {item.label}
             </div>
           );
@@ -376,17 +376,17 @@ export default function ContextMenu({ x, y, onClose, canvasPosition, onExport }:
             className={`
               w-full px-3 py-2 text-sm text-left flex items-center gap-3
               ${item.disabled
-                ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                ? 'text-gray-400 dark:text-[#6B7280] cursor-not-allowed'
                 : item.danger
                   ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-700 dark:text-[#E0E6ED] hover:bg-gray-100 dark:hover:bg-[#252B32]'
               }
             `}
           >
             <span className={item.disabled ? 'opacity-50' : ''}>{item.icon}</span>
             <span className="flex-1">{item.label}</span>
             {item.shortcut && (
-              <span className="text-xs text-gray-400 dark:text-gray-500">{item.shortcut}</span>
+              <span className="text-xs text-gray-400 dark:text-[#6B7280]">{item.shortcut}</span>
             )}
           </button>
         );

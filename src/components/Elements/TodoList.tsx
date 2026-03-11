@@ -176,7 +176,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
         ${element.locked ? 'cursor-not-allowed' : ''}
         ${isBeingDragged && dropTargetBoardId && isDropReady ? 'ring-2 ring-green-500 animate-pulse' : ''}
         ${isBeingDragged && dropTargetBoardId && !isDropReady ? 'ring-2 ring-yellow-500' : ''}
-        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
+        ${parentColumnId && !isBeingDragged ? 'border border-gray-300 dark:border-[#3D444D] shadow-none' : ''}
       `}
       style={{
         ...((parentColumnId && !isBeingDragged) ? {} : {
@@ -223,7 +223,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
             }}
             onClick={(e) => e.stopPropagation()}
             placeholder="Add title..."
-            className="w-full px-2 py-1 mb-3 text-lg font-semibold border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-2 py-1 mb-3 text-lg font-semibold border border-primary-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-[#252B32] dark:text-white"
           />
         ) : (
           (element.content.title || isSelected) && (
@@ -264,7 +264,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
           {items.map((item, index) => (
             <div
               key={item.id}
-              className="flex items-start gap-2 group hover:bg-gray-50 dark:hover:bg-gray-700 -mx-2 px-2 py-1.5 rounded transition-colors"
+              className="flex items-start gap-2 group hover:bg-gray-50 dark:hover:bg-[#252B32] -mx-2 px-2 py-1.5 rounded transition-colors"
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', item.id);
@@ -344,7 +344,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
                 <span
                   className={`
                     flex-1 cursor-text
-                    ${item.checked ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-900 dark:text-gray-100'}
+                    ${item.checked ? 'line-through text-gray-400 dark:text-[#6B7280]' : 'text-gray-900 dark:text-[#E0E6ED]'}
                   `}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
@@ -375,7 +375,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
           {/* Always show empty input for new item */}
           <div className="flex items-center gap-2 -mx-2 px-2 py-1.5">
             <div className="w-4 h-4" /> {/* Spacer for drag handle */}
-            <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white dark:bg-gray-700 dark:border-gray-500 flex-shrink-0" />
+            <div className="w-5 h-5 rounded border-2 border-gray-300 bg-white dark:bg-[#252B32] dark:border-[#3D444D] flex-shrink-0" />
             <input
               type="text"
               value={newItemText}
@@ -388,7 +388,7 @@ export default function TodoList({ element, isSelected, onSelect: _onSelect, par
                 e.stopPropagation();
               }}
               placeholder="New item..."
-              className="flex-1 px-2 py-1 text-sm bg-transparent border-none focus:outline-none placeholder-gray-400 dark:placeholder-gray-500 dark:text-white"
+              className="flex-1 px-2 py-1 text-sm bg-transparent border-none focus:outline-none placeholder-gray-400 dark:placeholder-[#6B7280] dark:text-white"
               onClick={(e) => e.stopPropagation()}
             />
           </div>

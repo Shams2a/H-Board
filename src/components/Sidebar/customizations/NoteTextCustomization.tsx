@@ -106,7 +106,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
     <div className="space-y-6">
       {/* Inline Text Styles (applied to selection) */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Text Style (selection)
         </label>
         <div className="grid grid-cols-4 gap-2">
@@ -117,7 +117,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${isActive('bold')
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Bold (Ctrl+B)"
@@ -131,7 +131,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${isActive('italic')
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Italic (Ctrl+I)"
@@ -145,7 +145,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${isActive('strike')
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Strikethrough"
@@ -159,7 +159,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${isActive('code')
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Code"
@@ -171,7 +171,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
 
       {/* Lists */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Lists
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -182,7 +182,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${isActive('bulletList')
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Bullet List"
@@ -196,7 +196,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${isActive('orderedList')
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Numbered List"
@@ -208,7 +208,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
 
       {/* Text Color (applied to selection) */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Text Color (selection)
         </label>
         <div className="grid grid-cols-4 gap-2">
@@ -221,7 +221,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
                 w-full h-8 rounded border-2 transition-all
                 ${getCurrentColor() === color.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400'
                 }
               `}
               style={{ backgroundColor: color.value }}
@@ -232,13 +232,13 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
       </div>
 
       {/* Block-level styles (applied to entire note) */}
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Block styles (entire note)</p>
+      <div className="pt-4 border-t border-gray-200 dark:border-[#30363D]">
+        <p className="text-xs text-gray-500 dark:text-[#B1B9C4] mb-4">Block styles (entire note)</p>
       </div>
 
       {/* Font Size */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Font Size
         </label>
         <div className="space-y-1">
@@ -250,7 +250,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
                 w-full px-3 py-2 text-left rounded border transition-all
                 ${element.style.fontSize === size.value
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
                 }
               `}
             >
@@ -262,7 +262,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
 
       {/* Font Family */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Font Family
         </label>
         <div className="space-y-1">
@@ -274,7 +274,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
                 w-full px-3 py-2 text-left rounded border transition-all
                 ${element.style.fontFamily === font.value
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
                 }
               `}
             >
@@ -286,7 +286,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
 
       {/* Line Height */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Line Height
         </label>
         <div className="space-y-1">
@@ -298,7 +298,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
                 w-full px-3 py-2 text-left rounded border transition-all
                 ${element.style.lineHeight === height.value
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
                 }
               `}
             >
@@ -310,7 +310,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
 
       {/* Letter Spacing */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Letter Spacing
         </label>
         <div className="space-y-1">
@@ -322,7 +322,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
                 w-full px-3 py-2 text-left rounded border transition-all
                 ${element.style.letterSpacing === spacing.value
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
                 }
               `}
             >
@@ -334,7 +334,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
 
       {/* Text Alignment */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">
           Text Alignment
         </label>
         <div className="grid grid-cols-4 gap-2">
@@ -344,7 +344,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${element.style.textAlign === 'left'
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Align Left"
@@ -357,7 +357,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${element.style.textAlign === 'center'
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Align Center"
@@ -370,7 +370,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${element.style.textAlign === 'right'
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Align Right"
@@ -383,7 +383,7 @@ export default function NoteTextCustomization({ element }: NoteTextCustomization
               p-3 rounded border transition-all flex items-center justify-center
               ${element.style.textAlign === 'justify'
                 ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
-                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-gray-100'
+                : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-900 dark:text-[#E0E6ED]'
               }
             `}
             title="Justify"

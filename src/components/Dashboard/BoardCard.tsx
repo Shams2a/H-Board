@@ -70,7 +70,7 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className="group bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
+        className="group bg-white dark:bg-[#1E252B] hover:bg-gray-50 dark:hover:bg-[#252B32] border-b border-gray-100 dark:border-[#30363D] last:border-b-0 transition-colors"
       >
         <div className="px-6 py-4 flex items-center gap-4 cursor-pointer" onClick={handleOpen}>
           {/* Icon - Drag handle */}
@@ -85,9 +85,9 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">{board.name}</h3>
+            <h3 className="font-medium text-gray-900 dark:text-[#E0E6ED] truncate">{board.name}</h3>
             {board.description && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{board.description}</p>
+              <p className="text-sm text-gray-500 dark:text-[#B1B9C4] truncate">{board.description}</p>
             )}
           </div>
 
@@ -96,20 +96,20 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
             {board.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-xs"
+                className="px-2 py-1 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#E0E6ED] rounded text-xs"
               >
                 {tag}
               </span>
             ))}
             {board.tags.length > 2 && (
-              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
+              <span className="px-2 py-1 bg-gray-100 dark:bg-[#252B32] text-gray-600 dark:text-[#B1B9C4] rounded text-xs">
                 +{board.tags.length - 2}
               </span>
             )}
           </div>
 
           {/* Date */}
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 flex-shrink-0">
+          <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-[#B1B9C4] flex-shrink-0">
             <Calendar className="w-4 h-4" />
             <span className="hidden md:inline">{formatDate(board.updatedAt)}</span>
           </div>
@@ -121,17 +121,17 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
           >
             <button
               onClick={handleEdit}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-[#2C333A] rounded transition-colors"
               title="Modifier"
             >
-              <Edit3 className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              <Edit3 className="w-4 h-4 text-gray-600 dark:text-[#B1B9C4]" />
             </button>
             <button
               onClick={handleDuplicate}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-[#2C333A] rounded transition-colors"
               title="Dupliquer"
             >
-              <Copy className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+              <Copy className="w-4 h-4 text-gray-600 dark:text-[#B1B9C4]" />
             </button>
             <button
               onClick={handleDelete}
@@ -152,7 +152,7 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className="group bg-white dark:bg-gray-800 rounded-lg hover:shadow-md transition-all border border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600 overflow-hidden"
+      className="group bg-white dark:bg-[#1E252B] rounded-lg hover:shadow-md transition-all border border-gray-200 dark:border-[#30363D] hover:border-primary-300 dark:hover:border-primary-600 overflow-hidden"
     >
       {/* Rectangular Icon/Preview - Drag handle only */}
       <div
@@ -166,13 +166,13 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
       {/* Content - Click to open */}
       <div className="p-4" onClick={handleOpen}>
         {/* Title */}
-        <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1 truncate cursor-pointer">
+        <h3 className="font-medium text-gray-900 dark:text-[#E0E6ED] mb-1 truncate cursor-pointer">
           {board.name}
         </h3>
 
         {/* Description */}
         {board.description && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2 min-h-[2.5rem] cursor-pointer">
+          <p className="text-sm text-gray-500 dark:text-[#B1B9C4] mb-3 line-clamp-2 min-h-[2.5rem] cursor-pointer">
             {board.description}
           </p>
         )}
@@ -183,13 +183,13 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
             {board.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded text-xs"
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#E0E6ED] rounded text-xs"
               >
                 {tag}
               </span>
             ))}
             {board.tags.length > 2 && (
-              <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs">
+              <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 dark:bg-[#252B32] text-gray-600 dark:text-[#B1B9C4] rounded text-xs">
                 +{board.tags.length - 2}
               </span>
             )}
@@ -197,7 +197,7 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
         )}
 
         {/* Metadata and Actions */}
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-[#B1B9C4] pt-2 border-t border-gray-100 dark:border-[#30363D]">
           <div className="flex items-center gap-1 cursor-pointer">
             <Calendar className="w-3.5 h-3.5" />
             <span>{formatDate(board.updatedAt)}</span>
@@ -210,17 +210,17 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
           >
             <button
               onClick={handleEdit}
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
               title="Modifier"
             >
-              <Edit3 className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
+              <Edit3 className="w-3.5 h-3.5 text-gray-600 dark:text-[#B1B9C4]" />
             </button>
             <button
               onClick={handleDuplicate}
-              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
               title="Dupliquer"
             >
-              <Copy className="w-3.5 h-3.5 text-gray-600 dark:text-gray-300" />
+              <Copy className="w-3.5 h-3.5 text-gray-600 dark:text-[#B1B9C4]" />
             </button>
             <button
               onClick={handleDelete}

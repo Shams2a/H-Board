@@ -100,8 +100,8 @@ export default function Link({ element, isSelected, onSelect: _onSelect, parentC
         element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
-        ${!hasValidUrl ? 'border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}
-        ${parentColumnId && !isBeingDragged && hasValidUrl ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
+        ${!hasValidUrl ? 'border-2 border-dashed border-gray-300 dark:border-[#3D444D]' : ''}
+        ${parentColumnId && !isBeingDragged && hasValidUrl ? 'border border-gray-300 dark:border-[#3D444D] shadow-none' : ''}
       `}
       style={{
         ...((parentColumnId && !isBeingDragged) ? {} : {
@@ -132,7 +132,7 @@ export default function Link({ element, isSelected, onSelect: _onSelect, parentC
         {isEditingUrl ? (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-1">
                 URL *
               </label>
               <input
@@ -141,7 +141,7 @@ export default function Link({ element, isSelected, onSelect: _onSelect, parentC
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com"
                 autoFocus
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3D444D] rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED]"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -154,7 +154,7 @@ export default function Link({ element, isSelected, onSelect: _onSelect, parentC
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-[#B1B9C4] mb-1">
                 Title (optional)
               </label>
               <input
@@ -162,7 +162,7 @@ export default function Link({ element, isSelected, onSelect: _onSelect, parentC
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Link title"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3D444D] rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED]"
                 onClick={(e) => e.stopPropagation()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -227,7 +227,7 @@ export default function Link({ element, isSelected, onSelect: _onSelect, parentC
             </div>
 
             {/* External link icon */}
-            <ExternalLink className="w-4 h-4 text-gray-400 dark:text-gray-300 flex-shrink-0 mt-1" />
+            <ExternalLink className="w-4 h-4 text-gray-400 dark:text-[#B1B9C4] flex-shrink-0 mt-1" />
           </div>
         ) : (
           <div

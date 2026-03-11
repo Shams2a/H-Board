@@ -86,11 +86,11 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
     <div
       ref={setNodeRef}
       style={style}
-      className="flex-shrink-0 w-80 flex flex-col bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 h-full"
+      className="flex-shrink-0 w-80 flex flex-col bg-white dark:bg-[#1E252B] rounded-lg border border-gray-200 dark:border-[#30363D] h-full"
     >
       {/* Column header */}
       <div
-        className="flex items-center gap-2 p-3 border-b border-gray-200 dark:border-gray-700"
+        className="flex items-center gap-2 p-3 border-b border-gray-200 dark:border-[#30363D]"
         style={{ borderTopColor: column.color, borderTopWidth: '3px' }}
       >
         {/* Drag handle */}
@@ -116,12 +116,12 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
               }
             }}
             onBlur={handleRename}
-            className="flex-1 px-2 py-1 text-sm font-semibold border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="flex-1 px-2 py-1 text-sm font-semibold border border-gray-300 dark:border-[#3D444D] rounded bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] focus:outline-none focus:ring-2 focus:ring-primary-500"
             autoFocus
           />
         ) : (
           <h3
-            className="flex-1 text-sm font-semibold text-gray-900 dark:text-gray-100 cursor-pointer"
+            className="flex-1 text-sm font-semibold text-gray-900 dark:text-[#E0E6ED] cursor-pointer"
             onDoubleClick={() => setIsEditingName(true)}
           >
             {column.name}
@@ -133,7 +133,7 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
           className={`text-xs font-medium px-2 py-1 rounded ${
             isOverWipLimit
               ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-              : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
+              : 'bg-gray-100 text-gray-700 dark:bg-[#252B32] dark:text-[#B1B9C4]'
           }`}
         >
           {cards.length}
@@ -144,9 +144,9 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
-            <MoreVertical className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+            <MoreVertical className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
           </button>
 
           {showMenu && (
@@ -155,20 +155,20 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#1E252B] rounded-lg shadow-lg border border-gray-200 dark:border-[#30363D] z-20">
                 <button
                   onClick={() => {
                     setIsEditingName(true);
                     setShowMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 rounded-t-lg"
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 rounded-t-lg"
                 >
                   <Edit2 className="w-4 h-4" />
                   Renommer
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 rounded-b-lg"
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 rounded-b-lg"
                 >
                   <Trash2 className="w-4 h-4" />
                   Supprimer
@@ -187,14 +187,14 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
 
         {/* Empty state */}
         {cards.length === 0 && !isAddingCard && (
-          <div className="text-center py-8 text-gray-400 dark:text-gray-500 text-sm">
+          <div className="text-center py-8 text-gray-400 dark:text-[#6B7280] text-sm">
             Aucune carte
           </div>
         )}
       </div>
 
       {/* Add card */}
-      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-3 border-t border-gray-200 dark:border-[#30363D]">
         {isAddingCard ? (
           <div className="space-y-2">
             <textarea
@@ -211,7 +211,7 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
                 }
               }}
               placeholder="Titre de la carte..."
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-[#3D444D] rounded-lg bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
               rows={3}
               autoFocus
             />
@@ -227,7 +227,7 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
                   setIsAddingCard(false);
                   setNewCardTitle('');
                 }}
-                className="px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded-lg transition-colors"
               >
                 Annuler
               </button>
@@ -236,7 +236,7 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
         ) : (
           <button
             onClick={() => setIsAddingCard(true)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             Ajouter une carte

@@ -16,7 +16,7 @@ interface KanbanCardModalProps {
 }
 
 const PRIORITY_OPTIONS: { value: KanbanPriority; label: string; color: string }[] = [
-  { value: 'low', label: 'Basse', color: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' },
+  { value: 'low', label: 'Basse', color: 'bg-gray-100 text-gray-700 dark:bg-[#252B32] dark:text-[#B1B9C4]' },
   { value: 'medium', label: 'Moyenne', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
   { value: 'high', label: 'Haute', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' },
   { value: 'urgent', label: 'Urgente', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' }
@@ -50,7 +50,7 @@ function ChecklistItemRow({
         type="checkbox"
         checked={item.completed}
         onChange={onToggle}
-        className="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+        className="w-4 h-4 rounded border-gray-300 dark:border-[#3D444D] text-primary-600 focus:ring-primary-500"
       />
       {isEditing ? (
         <input
@@ -65,7 +65,7 @@ function ChecklistItemRow({
             }
           }}
           onBlur={handleSave}
-          className="flex-1 px-2 py-1 text-sm border border-primary-500 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none"
+          className="flex-1 px-2 py-1 text-sm border border-primary-500 rounded bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] focus:outline-none"
           autoFocus
         />
       ) : (
@@ -73,8 +73,8 @@ function ChecklistItemRow({
           onClick={() => setIsEditing(true)}
           className={`flex-1 text-sm cursor-pointer ${
             item.completed
-              ? 'line-through text-gray-500 dark:text-gray-400'
-              : 'text-gray-900 dark:text-gray-100'
+              ? 'line-through text-gray-500 dark:text-[#B1B9C4]'
+              : 'text-gray-900 dark:text-[#E0E6ED]'
           }`}
         >
           {item.text}
@@ -84,7 +84,7 @@ function ChecklistItemRow({
         onClick={onDelete}
         className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-all"
       >
-        <Trash2 className="w-3 h-3 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" />
+        <Trash2 className="w-3 h-3 text-gray-500 dark:text-[#B1B9C4] hover:text-red-600 dark:hover:text-red-400" />
       </button>
     </div>
   );
@@ -257,26 +257,26 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-[#1E252B] rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-white dark:bg-[#1E252B] border-b border-gray-200 dark:border-[#30363D] p-6 flex items-center justify-between z-10">
           <div className="flex-1">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full text-2xl font-bold bg-transparent border-none focus:outline-none text-gray-900 dark:text-gray-100"
+              className="w-full text-2xl font-bold bg-transparent border-none focus:outline-none text-gray-900 dark:text-[#E0E6ED]"
               placeholder="Titre de la carte"
             />
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ml-4"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded-lg transition-colors ml-4"
           >
-            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            <X className="w-5 h-5 text-gray-500 dark:text-[#B1B9C4]" />
           </button>
         </div>
 
@@ -284,7 +284,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
         <div className="p-6 space-y-6">
           {/* Description */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
               <CheckSquare className="w-4 h-4" />
               Description
             </label>
@@ -292,14 +292,14 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ajouter une description..."
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"
               rows={6}
             />
           </div>
 
           {/* Tags */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
               <Tag className="w-4 h-4" />
               Tags
             </label>
@@ -307,7 +307,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
               {tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] rounded-full text-sm"
                 >
                   {tag}
                   <button
@@ -326,11 +326,11 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
                 placeholder="Nouveau tag..."
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <button
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] rounded-lg hover:bg-gray-200 dark:hover:bg-[#2C333A] transition-colors"
               >
                 Ajouter
               </button>
@@ -339,7 +339,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
 
           {/* Priority */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
               <Flag className="w-4 h-4" />
               Priorité
             </label>
@@ -364,7 +364,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Start Date */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
                 <Calendar className="w-4 h-4" />
                 Date de début
               </label>
@@ -372,13 +372,13 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
 
             {/* Due Date */}
             <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
                 <Calendar className="w-4 h-4" />
                 Date d'échéance
               </label>
@@ -386,18 +386,18 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
           </div>
 
           {/* Checklist */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
               <CheckSquare className="w-4 h-4" />
               Checklist
               {checklist.length > 0 && (
-                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                <span className="text-xs font-normal text-gray-500 dark:text-[#B1B9C4]">
                   ({checklist.filter(item => item.completed).length}/{checklist.length})
                 </span>
               )}
@@ -424,11 +424,11 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 onChange={(e) => setNewChecklistItem(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddChecklistItem()}
                 placeholder="Ajouter un élément..."
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <button
                 onClick={handleAddChecklistItem}
-                className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 py-2 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] rounded-lg hover:bg-gray-200 dark:hover:bg-[#2C333A] transition-colors"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -437,11 +437,11 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
 
           {/* Attachments */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
               <Paperclip className="w-4 h-4" />
               Pièces jointes
               {attachments.length > 0 && (
-                <span className="text-xs font-normal text-gray-500 dark:text-gray-400">
+                <span className="text-xs font-normal text-gray-500 dark:text-[#B1B9C4]">
                   ({attachments.length})
                 </span>
               )}
@@ -453,15 +453,15 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 {attachments.map((attachment) => (
                   <div
                     key={attachment.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded border border-gray-200 dark:border-gray-600 group"
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-[#252B32]/50 rounded border border-gray-200 dark:border-[#3D444D] group"
                   >
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <Paperclip className="w-4 h-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                      <Paperclip className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4] flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                        <p className="text-sm text-gray-900 dark:text-[#E0E6ED] truncate">
                           {attachment.name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500 dark:text-[#B1B9C4]">
                           {formatFileSize(attachment.size)}
                         </p>
                       </div>
@@ -470,17 +470,17 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                       <a
                         href={attachment.url}
                         download={attachment.name}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded transition-colors"
                         title="Télécharger"
                       >
-                        <Download className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                        <Download className="w-4 h-4 text-gray-600 dark:text-[#B1B9C4]" />
                       </a>
                       <button
                         onClick={() => handleDeleteAttachment(attachment.id)}
                         className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                         title="Supprimer"
                       >
-                        <Trash2 className="w-4 h-4 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" />
+                        <Trash2 className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4] hover:text-red-600 dark:hover:text-red-400" />
                       </button>
                     </div>
                   </div>
@@ -498,7 +498,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#B1B9C4] rounded-lg hover:bg-gray-200 dark:hover:bg-[#2C333A] transition-colors"
             >
               <Upload className="w-4 h-4" />
               Ajouter un fichier
@@ -507,7 +507,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
 
           {/* Cover Image */}
           <div>
-            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-[#B1B9C4] mb-2">
               <ImageIcon className="w-4 h-4" />
               Image de couverture
             </label>
@@ -517,7 +517,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 <img
                   src={coverImage}
                   alt="Cover"
-                  className="w-full h-48 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                  className="w-full h-48 object-cover rounded-lg border border-gray-200 dark:border-[#3D444D]"
                 />
                 <button
                   onClick={handleRemoveCoverImage}
@@ -537,10 +537,10 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
                 />
                 <button
                   onClick={() => coverImageInputRef.current?.click()}
-                  className="w-full h-32 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-400 dark:hover:border-primary-500 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  className="w-full h-32 flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-300 dark:border-[#3D444D] rounded-lg hover:border-primary-400 dark:hover:border-primary-500 hover:bg-gray-50 dark:hover:bg-[#252B32]/50 transition-colors"
                 >
-                  <ImageIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <ImageIcon className="w-8 h-8 text-gray-400 dark:text-[#6B7280]" />
+                  <span className="text-sm text-gray-600 dark:text-[#B1B9C4]">
                     Cliquer pour ajouter une image
                   </span>
                 </button>
@@ -550,7 +550,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
+        <div className="sticky bottom-0 bg-white dark:bg-[#1E252B] border-t border-gray-200 dark:border-[#30363D] p-6 flex items-center justify-between">
           <button
             onClick={handleDelete}
             className="flex items-center gap-2 px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
@@ -561,7 +561,7 @@ export default function KanbanCardModal({ card, isOpen, onClose }: KanbanCardMod
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded-lg transition-colors"
             >
               Annuler
             </button>

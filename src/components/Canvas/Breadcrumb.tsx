@@ -47,9 +47,9 @@ export default function Breadcrumb() {
 
   if (!currentBoardId) {
     return (
-      <div className="h-12 bg-white dark:bg-gray-800 border-b border-border dark:border-gray-700 flex items-center px-4">
-        <Home className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-        <span className="ml-2 text-sm text-text-tertiary dark:text-gray-400">No board selected</span>
+      <div className="h-12 bg-white dark:bg-[#1E252B] border-b border-border dark:border-[#30363D] flex items-center px-4">
+        <Home className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
+        <span className="ml-2 text-sm text-text-tertiary dark:text-[#B1B9C4]">No board selected</span>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function Breadcrumb() {
   const path = getBoardPath(currentBoardId);
 
   return (
-    <div className="h-12 bg-white dark:bg-gray-800 border-b border-border dark:border-gray-700 flex items-center px-4 gap-2">
+    <div className="h-12 bg-white dark:bg-[#1E252B] border-b border-border dark:border-[#30363D] flex items-center px-4 gap-2">
       {/* Home icon */}
       <button
         onClick={() => {
@@ -65,10 +65,10 @@ export default function Breadcrumb() {
             navigate(`/board/${path[0].id}`);
           }
         }}
-        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+        className="p-1 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
         aria-label="Go to root board"
       >
-        <Home className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+        <Home className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
       </button>
 
       {/* Breadcrumb path */}
@@ -79,7 +79,7 @@ export default function Breadcrumb() {
           return (
             <div key={board.id} className="flex items-center gap-1">
               {index > 0 && (
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-[#6B7280] flex-shrink-0" />
               )}
 
               <button
@@ -89,8 +89,8 @@ export default function Breadcrumb() {
                 className={`
                   px-2 py-1 rounded text-sm transition-colors whitespace-nowrap
                   ${isLast
-                    ? 'font-semibold text-text-primary dark:text-gray-100 bg-gray-100 dark:bg-gray-700'
-                    : 'text-text-secondary dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    ? 'font-semibold text-text-primary dark:text-[#E0E6ED] bg-gray-100 dark:bg-[#252B32]'
+                    : 'text-text-secondary dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32]'
                   }
                   ${!isLast && dropTargetBoardId === board.id && isDropReady
                     ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/20'

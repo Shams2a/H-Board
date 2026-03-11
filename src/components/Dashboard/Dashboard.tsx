@@ -136,14 +136,14 @@ export default function Dashboard() {
   const rootFolders = folders.filter(f => f.parentFolderId === null);
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-[#101418]">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-8 py-6">
+      <header className="bg-white dark:bg-[#1E252B] border-b border-gray-200 dark:border-[#30363D] px-8 py-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Mes Projets</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-[#E0E6ED]">Mes Projets</h1>
+              <p className="text-gray-600 dark:text-[#B1B9C4] mt-1">
                 {filteredBoards.length} projet{filteredBoards.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -153,7 +153,7 @@ export default function Dashboard() {
               <NewSyncStatus />
               <button
                 onClick={() => setShowNewFolderDialog(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#252B32] text-gray-700 dark:text-[#E0E6ED] rounded-lg hover:bg-gray-200 dark:hover:bg-[#2C333A] transition-colors"
               >
                 <FolderPlus className="w-5 h-5" />
                 Nouveau Dossier
@@ -172,13 +172,13 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-[#6B7280]" />
               <input
                 type="text"
                 placeholder="Rechercher un projet..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
               />
             </div>
 
@@ -188,7 +188,7 @@ export default function Dashboard() {
               className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${
                 showFilters || selectedTags.length > 0
                   ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300'
-                  : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600'
+                  : 'bg-white dark:bg-[#252B32] border-gray-300 dark:border-[#3D444D] text-gray-700 dark:text-[#E0E6ED] hover:bg-gray-50 dark:hover:bg-[#2C333A]'
               }`}
             >
               <SlidersHorizontal className="w-5 h-5" />
@@ -201,13 +201,13 @@ export default function Dashboard() {
             </button>
 
             {/* View Toggle */}
-            <div className="flex items-center gap-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded-lg p-1">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded transition-colors ${
                   viewMode === 'grid'
                     ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    : 'text-gray-600 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#2C333A]'
                 }`}
                 title="Vue grille"
               >
@@ -218,7 +218,7 @@ export default function Dashboard() {
                 className={`p-2 rounded transition-colors ${
                   viewMode === 'list'
                     ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    : 'text-gray-600 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#2C333A]'
                 }`}
                 title="Vue liste"
               >
@@ -230,7 +230,7 @@ export default function Dashboard() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+              className="px-4 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
             >
               <option value="updated">Modifié récemment</option>
               <option value="created">Créé récemment</option>
@@ -240,9 +240,9 @@ export default function Dashboard() {
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+            <div className="mt-4 p-4 bg-gray-50 dark:bg-[#252B32]/50 rounded-lg border border-gray-200 dark:border-[#3D444D]">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Filtrer par tags</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-[#E0E6ED]">Filtrer par tags</h3>
                 {selectedTags.length > 0 && (
                   <button
                     onClick={() => setSelectedTags([])}
@@ -260,14 +260,14 @@ export default function Dashboard() {
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                       selectedTags.includes(tag)
                         ? 'bg-primary-600 text-white'
-                        : 'bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-500 hover:border-primary-300 dark:hover:border-primary-500'
+                        : 'bg-white dark:bg-[#2C333A] text-gray-700 dark:text-[#E0E6ED] border border-gray-300 dark:border-[#3D444D] hover:border-primary-300 dark:hover:border-primary-500'
                     }`}
                   >
                     {tag}
                   </button>
                 ))}
                 {allTags.length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Aucun tag disponible</p>
+                  <p className="text-sm text-gray-500 dark:text-[#B1B9C4]">Aucun tag disponible</p>
                 )}
               </div>
             </div>
@@ -320,7 +320,7 @@ export default function Dashboard() {
                   )}
                 </div>
               ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="bg-white dark:bg-[#1E252B] rounded-lg border border-gray-200 dark:border-[#30363D] overflow-hidden">
                   {/* Folders */}
                   {rootFolders.map((folder) => (
                     <FolderItem
@@ -355,13 +355,13 @@ export default function Dashboard() {
               )
             ) : (
             <div className="text-center py-16">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full mb-4">
-                <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-[#252B32] rounded-full mb-4">
+                <Search className="w-8 h-8 text-gray-400 dark:text-[#6B7280]" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED] mb-2">
                 Aucun projet trouvé
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <p className="text-gray-600 dark:text-[#B1B9C4] mb-6">
                 {searchQuery || selectedTags.length > 0
                   ? 'Essayez de modifier vos filtres de recherche'
                   : 'Créez votre premier projet pour commencer'}

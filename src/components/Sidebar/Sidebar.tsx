@@ -39,51 +39,51 @@ export default function Sidebar() {
     return (
       <button
         onClick={toggleSidebar}
-        className="fixed left-0 top-4 z-sidebar bg-white dark:bg-gray-800 p-2 rounded-r-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="fixed left-0 top-4 z-sidebar bg-white dark:bg-[#1E252B] p-2 rounded-r-lg shadow-lg hover:bg-gray-50 dark:hover:bg-[#252B32] transition-colors"
         aria-label="Open sidebar"
       >
-        <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+        <ChevronRight className="w-5 h-5 text-gray-600 dark:text-[#B1B9C4]" />
       </button>
     );
   }
 
   return (
-    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-border dark:border-gray-700 flex flex-col h-full slide-in-left">
+    <aside className="w-64 bg-white dark:bg-[#1E252B] border-r border-border dark:border-[#30363D] flex flex-col h-full slide-in-left">
       {/* Header */}
-      <div className="p-4 border-b border-border dark:border-gray-700 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text-primary dark:text-gray-100">H-Board</h1>
+      <div className="p-4 border-b border-border dark:border-[#30363D] flex items-center justify-between">
+        <h1 className="text-lg font-bold text-text-primary dark:text-[#E0E6ED]">H-Board</h1>
         <button
           onClick={toggleSidebar}
-          className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          className="p-1.5 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           aria-label="Close sidebar"
         >
-          <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-[#B1B9C4]" />
         </button>
       </div>
 
       {/* Search Bar */}
-      <div className="p-4 border-b border-border dark:border-gray-700">
+      <div className="p-4 border-b border-border dark:border-[#30363D]">
         <SearchBar />
       </div>
 
       {/* Filter Controls */}
-      <div className="p-4 border-b border-border dark:border-gray-700">
+      <div className="p-4 border-b border-border dark:border-[#30363D]">
         <FilterControls onFilterChange={handleFilterChange} />
       </div>
 
       {/* Boards Section */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-text-secondary dark:text-gray-400 uppercase tracking-wide">
+          <h2 className="text-sm font-semibold text-text-secondary dark:text-[#B1B9C4] uppercase tracking-wide">
             Boards
           </h2>
           <button
             onClick={handleCreateBoard}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
             aria-label="Create new board"
             title="Create new board"
           >
-            <Plus className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+            <Plus className="w-4 h-4 text-gray-600 dark:text-[#B1B9C4]" />
           </button>
         </div>
 
@@ -91,7 +91,7 @@ export default function Sidebar() {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border dark:border-gray-700 text-xs text-text-tertiary dark:text-gray-400">
+      <div className="p-4 border-t border-border dark:border-[#30363D] text-xs text-text-tertiary dark:text-[#B1B9C4]">
         <p>H-Board v1.0.0</p>
         <p className="mt-1">Local creative workspace</p>
       </div>

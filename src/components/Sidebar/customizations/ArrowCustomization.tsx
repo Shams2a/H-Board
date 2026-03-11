@@ -147,7 +147,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
     <div className="space-y-4">
       {/* Path Type */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Path Type</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Path Type</h4>
         <div className="grid grid-cols-3 gap-2">
           {PATH_TYPES.map((type) => (
             <button
@@ -161,7 +161,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
                 p-2 rounded border-2 transition-all flex flex-col items-center justify-center gap-1
                 ${pathType === type.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={type.name}
@@ -175,7 +175,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
 
       {/* Arrow Head Start */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2 flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
           Start Arrow
         </h4>
@@ -192,7 +192,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
                 p-2 rounded border-2 transition-all flex flex-col items-center justify-center gap-1
                 ${arrowHeadStart === style.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={style.name}
@@ -206,7 +206,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
 
       {/* Arrow Head End */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2 flex items-center gap-2">
           <ArrowRight className="w-4 h-4" />
           End Arrow
         </h4>
@@ -223,7 +223,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
                 p-2 rounded border-2 transition-all flex flex-col items-center justify-center gap-1
                 ${arrowHeadEnd === style.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={style.name}
@@ -237,7 +237,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
 
       {/* Line Style */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Line Style</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Line Style</h4>
         <div className="grid grid-cols-3 gap-2">
           {LINE_STYLES.map((style) => (
             <button
@@ -251,7 +251,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
                 p-2 rounded border-2 transition-all flex items-center justify-center
                 ${lineStyle === style.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={style.name}
@@ -264,7 +264,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
 
       {/* Thickness */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Thickness</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Thickness</h4>
         <div className="grid grid-cols-5 gap-2">
           {THICKNESSES.map((t) => (
             <button
@@ -278,7 +278,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
                 p-2 rounded border-2 transition-all flex items-center justify-center
                 ${thickness === t.value
                   ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
                 }
               `}
               title={t.name}
@@ -294,7 +294,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
 
       {/* Color */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Color</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Color</h4>
         <div className="grid grid-cols-3 gap-2">
           {COLORS.map((c) => (
             <button
@@ -308,7 +308,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
                 w-full aspect-square rounded border-2 transition-all
                 ${color === c.value
                   ? 'border-primary-500 ring-2 ring-primary-200 dark:ring-primary-800'
-                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500'
                 }
               `}
               style={{ backgroundColor: c.value }}
@@ -320,7 +320,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
 
       {/* Animation */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Animation</h4>
+        <h4 className="text-sm font-medium text-gray-700 dark:text-[#B1B9C4] mb-2">Animation</h4>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -331,7 +331,7 @@ export default function ArrowCustomization({ element }: ArrowCustomizationProps)
             w-full p-3 rounded border-2 transition-all flex items-center justify-center gap-2
             ${animated
               ? 'border-primary-500 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400'
-              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-gray-400'
+              : 'border-gray-300 dark:border-[#3D444D] hover:border-gray-400 dark:hover:border-gray-500 text-gray-600 dark:text-[#B1B9C4]'
             }
           `}
         >

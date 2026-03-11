@@ -57,7 +57,7 @@ export default function ViewControls() {
   const handleZoomOut = () => setZoom(zoom - 0.1);
 
   return (
-    <div className="absolute bottom-4 right-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 z-toolbar">
+    <div className="absolute bottom-4 right-4 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg p-2 z-toolbar">
       <div className="flex flex-col items-center gap-2">
         {/* Grid Toggle */}
         <button
@@ -69,7 +69,7 @@ export default function ViewControls() {
           <Grid className="w-6 h-6" />
         </button>
 
-        <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
+        <div className="w-full h-px bg-gray-200 dark:bg-[#252B32]" />
 
         {/* Zoom Out */}
         <button
@@ -127,10 +127,10 @@ export default function ViewControls() {
           <Redo className="w-6 h-6" />
         </button>
 
-        <div className="w-full h-px bg-gray-200 dark:bg-gray-700" />
+        <div className="w-full h-px bg-gray-200 dark:bg-[#252B32]" />
 
         {/* Zoom Level */}
-        <div className="text-xs font-medium text-gray-600 dark:text-gray-300 px-2">
+        <div className="text-xs font-medium text-gray-600 dark:text-[#B1B9C4] px-2">
           {Math.round(zoom * 100)}%
         </div>
       </div>

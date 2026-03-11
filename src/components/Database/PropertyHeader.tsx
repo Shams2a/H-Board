@@ -76,7 +76,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
             }
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="flex-1 px-1 py-0.5 text-sm font-medium border border-primary-500 dark:border-primary-400 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-primary-500"
+          className="flex-1 px-1 py-0.5 text-sm font-medium border border-primary-500 dark:border-primary-400 rounded bg-white dark:bg-[#1E252B] text-gray-900 dark:text-[#E0E6ED] focus:outline-none focus:ring-1 focus:ring-primary-500"
           onClick={(e) => e.stopPropagation()}
         />
       ) : (
@@ -97,10 +97,10 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
             setShowMenu(!showMenu);
           }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-all"
+          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-[#252B32] rounded transition-all"
           title="More actions"
         >
-          <MoreVertical className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          <MoreVertical className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
         </button>
 
         {/* Dropdown Menu */}
@@ -110,14 +110,14 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
               className="fixed inset-0 z-40"
               onClick={() => setShowMenu(false)}
             />
-            <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
+            <div className="absolute top-full right-0 mt-1 w-48 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50 py-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsEditing(true);
                   setShowMenu(false);
                 }}
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 text-gray-700 dark:text-[#B1B9C4]"
               >
                 <Edit2 className="w-4 h-4" />
                 Rename
@@ -130,7 +130,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
                     setShowConfigModal(true);
                     setShowMenu(false);
                   }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 text-gray-700 dark:text-[#B1B9C4]"
                 >
                   <Settings className="w-4 h-4" />
                   Configure

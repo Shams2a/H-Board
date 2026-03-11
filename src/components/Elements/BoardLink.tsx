@@ -225,7 +225,7 @@ export default function BoardLink({ element, isSelected, onSelect: _onSelect, pa
               e.stopPropagation();
             }}
             autoFocus
-            className="w-full px-1 py-0.5 text-sm font-semibold border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-center bg-white dark:bg-gray-700 dark:text-white"
+            className="w-full px-1 py-0.5 text-sm font-semibold border border-primary-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500 text-center bg-white dark:bg-[#252B32] dark:text-white"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (

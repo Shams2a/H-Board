@@ -27,17 +27,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="w-full max-w-md px-8 py-10 bg-white dark:bg-gray-800 rounded-2xl shadow-xl">
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-[#101418] dark:to-[#1E252B]">
+      <div className="w-full max-w-md px-8 py-10 bg-white dark:bg-[#1E252B] rounded-2xl shadow-xl">
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center">
             <span className="text-3xl font-bold text-primary-600 dark:text-primary-400">H</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-[#E0E6ED]">
             Bienvenue sur H-Board
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-gray-600 dark:text-[#B1B9C4] mt-2">
             Connectez-vous pour accéder à vos boards
           </p>
         </div>
@@ -69,7 +69,7 @@ export default function LoginPage() {
         </button>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-8 text-center text-sm text-gray-500 dark:text-[#B1B9C4]">
           Authentification sécurisée par Authentik
         </p>
       </div>

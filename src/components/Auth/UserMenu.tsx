@@ -38,7 +38,7 @@ export default function UserMenu() {
       {/* Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-[#252B32] transition-colors"
         title={user.name}
       >
         {user.avatarUrl ? (
@@ -58,13 +58,13 @@ export default function UserMenu() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-[#1E252B] rounded-xl shadow-lg border border-gray-200 dark:border-[#30363D] py-2 z-50">
           {/* User Info */}
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <p className="font-medium text-gray-900 dark:text-gray-100">
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-[#30363D]">
+            <p className="font-medium text-gray-900 dark:text-[#E0E6ED]">
               {user.name}
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-sm text-gray-500 dark:text-[#B1B9C4] truncate">
               {user.email}
             </p>
           </div>
@@ -73,7 +73,7 @@ export default function UserMenu() {
           <div className="py-2">
             <button
               onClick={() => setIsOpen(false)}
-              className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-left text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] transition-colors"
             >
               <Settings className="w-4 h-4" />
               Paramètres
@@ -81,7 +81,7 @@ export default function UserMenu() {
           </div>
 
           {/* Sign Out */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-2">
+          <div className="border-t border-gray-200 dark:border-[#30363D] pt-2">
             <button
               onClick={() => {
                 setIsOpen(false);

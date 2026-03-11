@@ -156,8 +156,8 @@ export default function File({ element, isSelected, onSelect: _onSelect, parentC
         element-card ${(parentColumnId && !isBeingDragged) ? 'relative' : 'absolute'} cursor-move
         ${isSelected ? 'selected ring-2 ring-primary-500' : ''}
         ${element.locked ? 'cursor-not-allowed' : ''}
-        ${!hasFile ? 'border-2 border-dashed border-gray-300 dark:border-gray-600' : ''}
-        ${parentColumnId && !isBeingDragged && hasFile ? 'border border-gray-300 dark:border-gray-500 shadow-none' : ''}
+        ${!hasFile ? 'border-2 border-dashed border-gray-300 dark:border-[#3D444D]' : ''}
+        ${parentColumnId && !isBeingDragged && hasFile ? 'border border-gray-300 dark:border-[#3D444D] shadow-none' : ''}
       `}
       style={{
         ...((parentColumnId && !isBeingDragged) ? {} : {
@@ -265,16 +265,16 @@ export default function File({ element, isSelected, onSelect: _onSelect, parentC
             className="flex flex-col items-center justify-center py-8 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
           >
-            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
-              <Upload className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <div className="w-16 h-16 bg-gray-100 dark:bg-[#252B32] rounded-full flex items-center justify-center mb-4">
+              <Upload className="w-8 h-8 text-gray-400 dark:text-[#6B7280]" />
             </div>
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+            <p className="text-sm font-medium text-gray-700 dark:text-[#E0E6ED]">
               {isUploading ? 'Uploading...' : 'Click or drag to upload'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-gray-500 dark:text-[#B1B9C4] mt-1">
               Max 10MB
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+            <p className="text-xs text-gray-400 dark:text-[#6B7280] mt-2">
               PDF, DOC, Images, Videos, etc.
             </p>
           </div>

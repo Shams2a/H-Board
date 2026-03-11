@@ -405,7 +405,7 @@ export default function Toolbar() {
   };
 
   return (
-    <div className="absolute top-20 left-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-2 z-toolbar">
+    <div className="absolute top-20 left-4 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg p-2 z-toolbar overflow-y-auto overflow-x-hidden scrollbar-thin" style={{ maxHeight: 'calc(100vh - 6rem)' }}>
       {/* Creation Tools */}
       <div className="flex flex-col items-center gap-2">
         {tools.map(tool => (
