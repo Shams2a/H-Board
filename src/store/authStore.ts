@@ -46,9 +46,13 @@ const extractUserProfile = (user: User): AuthUser => {
   };
 };
 
+// Track listener registration outside the store (module-level flag)
+let _authListenerRegistered = false;
+let _initializePromise: Promise<void> | null = null;
+
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       user: null,
       session: null,
       isLoading: true,
@@ -61,63 +65,70 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        set({ isLoading: true });
+        // Deduplicate concurrent initialize() calls
+        if (_initializePromise) return _initializePromise;
 
-        try {
-          const { data: { session }, error } = await supabase.auth.getSession();
+        _initializePromise = (async () => {
+          try {
+            const { data: { session }, error } = await supabase.auth.getSession();
 
-          if (error) throw error;
+            if (error) throw error;
 
-          if (session?.user) {
+            if (session?.user) {
+              set({
+                user: extractUserProfile(session.user),
+                session,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+            } else {
+              set({
+                user: null,
+                session: null,
+                isAuthenticated: false,
+                isLoading: false,
+              });
+            }
+
+            // Listen for auth state changes (only register once)
+            if (!_authListenerRegistered) {
+              _authListenerRegistered = true;
+              supabase.auth.onAuthStateChange(async (event, session) => {
+                logger.debug('Auth state change:', event);
+
+                if (event === 'SIGNED_IN' && session?.user) {
+                  set({
+                    user: extractUserProfile(session.user),
+                    session,
+                    isAuthenticated: true,
+                    isLoading: false,
+                    error: null,
+                  });
+                } else if (event === 'SIGNED_OUT') {
+                  set({
+                    user: null,
+                    session: null,
+                    isAuthenticated: false,
+                    isLoading: false,
+                  });
+                } else if (event === 'TOKEN_REFRESHED' && session) {
+                  set({ session });
+                }
+              });
+            }
+          } catch (error) {
+            console.error('Auth initialization error:', error);
             set({
-              user: extractUserProfile(session.user),
-              session,
-              isAuthenticated: true,
-              isLoading: false,
-              error: null,
-            });
-          } else {
-            set({
-              user: null,
-              session: null,
-              isAuthenticated: false,
+              error: error instanceof Error ? error.message : 'Authentication failed',
               isLoading: false,
             });
+          } finally {
+            _initializePromise = null;
           }
+        })();
 
-          // Listen for auth state changes (only register once)
-          if (!(get() as any)._authListenerSet) {
-            (get() as any)._authListenerSet = true;
-            supabase.auth.onAuthStateChange(async (event, session) => {
-              logger.debug('Auth state change:', event);
-
-              if (event === 'SIGNED_IN' && session?.user) {
-                set({
-                  user: extractUserProfile(session.user),
-                  session,
-                  isAuthenticated: true,
-                  isLoading: false,
-                  error: null,
-                });
-              } else if (event === 'SIGNED_OUT') {
-                set({
-                  user: null,
-                  session: null,
-                  isAuthenticated: false,
-                  isLoading: false,
-                });
-              } else if (event === 'TOKEN_REFRESHED' && session) {
-                set({ session });
-              }
-            });
-          }
-        } catch (error) {
-          console.error('Auth initialization error:', error);
-          set({
-            error: error instanceof Error ? error.message : 'Authentication failed',
-            isLoading: false,
-          });
-        }
+        return _initializePromise;
       },
 
       signInWithOIDC: async () => {
