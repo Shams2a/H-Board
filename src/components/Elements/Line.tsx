@@ -360,11 +360,7 @@ export default function Line({ element, isSelected, onSelect: _onSelect }: LineP
     <div
       ref={containerRef}
       data-element-id={element.id}
-      className={`
-        element-card absolute
-        ${isSelected ? 'ring-2 ring-primary-500 ring-offset-2' : ''}
-        ${element.locked ? 'cursor-not-allowed' : 'cursor-move'}
-      `}
+      className={`absolute ${element.locked ? 'cursor-not-allowed' : 'cursor-move'}`}
       style={{
         left: `${minX - padding}px`,
         top: `${minY - padding}px`,
@@ -372,9 +368,6 @@ export default function Line({ element, isSelected, onSelect: _onSelect }: LineP
         height: `${height}px`,
         zIndex: element.zIndex,
         pointerEvents: isBeingDragged ? 'none' : 'auto',
-        background: 'transparent',
-        boxShadow: 'none',
-        borderRadius: 0
       }}
       onClick={handleClick}
       onMouseDown={handleLineDrag}

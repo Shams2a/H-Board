@@ -19,12 +19,12 @@ export function useAuth(options: UseAuthOptions = {}) {
   const isAuthenticated = useAuthStore(selectIsAuthenticated);
   const error = useAuthStore(state => state.error);
 
-  // Initialize auth on mount
+  // Initialize auth on mount — always run to restore session from Supabase
   useEffect(() => {
-    if (autoInitialize && !isAuthenticated && !user) {
+    if (autoInitialize) {
       useAuthStore.getState().initialize();
     }
-  }, [autoInitialize, isAuthenticated, user]);
+  }, [autoInitialize]);
 
   // Auto-refresh session before expiry
   useEffect(() => {

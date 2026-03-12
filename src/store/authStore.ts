@@ -61,6 +61,8 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
+        set({ isLoading: true });
+
         try {
           const { data: { session }, error } = await supabase.auth.getSession();
 
@@ -83,29 +85,32 @@ export const useAuthStore = create<AuthState>()(
             });
           }
 
-          // Listen for auth state changes
-          supabase.auth.onAuthStateChange(async (event, session) => {
-            logger.debug('Auth state change:', event);
+          // Listen for auth state changes (only register once)
+          if (!(get() as any)._authListenerSet) {
+            (get() as any)._authListenerSet = true;
+            supabase.auth.onAuthStateChange(async (event, session) => {
+              logger.debug('Auth state change:', event);
 
-            if (event === 'SIGNED_IN' && session?.user) {
-              set({
-                user: extractUserProfile(session.user),
-                session,
-                isAuthenticated: true,
-                isLoading: false,
-                error: null,
-              });
-            } else if (event === 'SIGNED_OUT') {
-              set({
-                user: null,
-                session: null,
-                isAuthenticated: false,
-                isLoading: false,
-              });
-            } else if (event === 'TOKEN_REFRESHED' && session) {
-              set({ session });
-            }
-          });
+              if (event === 'SIGNED_IN' && session?.user) {
+                set({
+                  user: extractUserProfile(session.user),
+                  session,
+                  isAuthenticated: true,
+                  isLoading: false,
+                  error: null,
+                });
+              } else if (event === 'SIGNED_OUT') {
+                set({
+                  user: null,
+                  session: null,
+                  isAuthenticated: false,
+                  isLoading: false,
+                });
+              } else if (event === 'TOKEN_REFRESHED' && session) {
+                set({ session });
+              }
+            });
+          }
         } catch (error) {
           console.error('Auth initialization error:', error);
           set({

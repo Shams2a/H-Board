@@ -225,19 +225,13 @@ const Arrow = memo(function Arrow({ element, isSelected }: ArrowProps) {
   return (
     <div
       data-element-id={element.id}
-      className={`
-        element-card absolute pointer-events-none
-        ${isSelected ? 'ring-2 ring-primary-500 ring-offset-2' : ''}
-      `}
+      className="absolute pointer-events-none"
       style={{
         left: `${minX - padding}px`,
         top: `${minY - padding}px`,
         width: `${width}px`,
         height: `${height}px`,
         zIndex: element.zIndex,
-        background: 'transparent',
-        boxShadow: 'none',
-        borderRadius: 0
       }}
       onClick={handleClick}
     >
