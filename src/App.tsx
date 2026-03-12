@@ -29,7 +29,8 @@ function LoadingSpinner() {
 }
 
 function AppContent() {
-  const { isLoading } = useAuth();
+  // Initialize auth (ProtectedRoute handles its own loading state)
+  useAuth();
 
   // Initialize database on mount
   useEffect(() => {
@@ -38,18 +39,6 @@ function AppContent() {
 
   // Sync data before page unload to prevent data loss
   useBeforeUnload({ enabled: true });
-
-  // Show loading while auth initializes
-  if (isLoading) {
-    return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-50 dark:bg-[#101418]">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto mb-4 border-4 border-primary-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-gray-600 dark:text-[#B1B9C4]">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen w-screen overflow-hidden">
