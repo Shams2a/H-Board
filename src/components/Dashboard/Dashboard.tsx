@@ -296,16 +296,14 @@ export default function Dashboard() {
                       viewMode="grid"
                       onEdit={setEditingFolder}
                     >
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {folderBoards.get(folder.id)?.map((board) => (
-                          <BoardCard
-                            key={board.id}
-                            board={board}
-                            viewMode="grid"
-                            onEdit={setEditingBoard}
-                          />
-                        ))}
-                      </div>
+                      {folderBoards.get(folder.id)?.map((board) => (
+                        <BoardCard
+                          key={board.id}
+                          board={board}
+                          viewMode="grid"
+                          onEdit={setEditingBoard}
+                        />
+                      ))}
                     </FolderItem>
                   ))}
 

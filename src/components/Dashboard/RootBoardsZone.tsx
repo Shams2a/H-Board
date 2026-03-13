@@ -23,7 +23,7 @@ export default function RootBoardsZone({ children, viewMode: _viewMode }: RootBo
       ref={setNodeRef}
       className={`transition-all rounded-lg ${
         isOver
-          ? 'bg-primary-50/50 ring-2 ring-primary-300 ring-inset p-4'
+          ? 'bg-primary-50/50 dark:bg-primary-900/10 ring-2 ring-primary-300 dark:ring-primary-600 ring-inset p-4'
           : 'p-0'
       }`}
     >

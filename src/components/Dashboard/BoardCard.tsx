@@ -3,11 +3,12 @@
  * Displays a single board as a card in the dashboard
  */
 
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Trash2, Copy, Edit3, FileText } from 'lucide-react';
+import { Calendar, Trash2, Copy, Edit3, Layout, Columns, Database } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
-import type { Board } from '../../types';
+import type { Board, BoardType } from '../../types';
 import { useBoardStore } from '../../store';
 
 interface BoardCardProps {
@@ -16,10 +17,18 @@ interface BoardCardProps {
   onEdit?: (board: Board) => void;
 }
 
+// Board type config: icon, color, label
+const BOARD_TYPE_CONFIG: Record<BoardType, { icon: typeof Layout; color: string; label: string }> = {
+  canvas: { icon: Layout, color: '#3B82F6', label: 'Canvas' },
+  kanban: { icon: Columns, color: '#10B981', label: 'Kanban' },
+  database: { icon: Database, color: '#8B5CF6', label: 'Database' },
+};
+
 export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCardProps) {
   const navigate = useNavigate();
   const deleteBoard = useBoardStore(state => state.deleteBoard);
   const duplicateBoard = useBoardStore(state => state.duplicateBoard);
+  const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `board-${board.id}`,
@@ -34,7 +43,21 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
     opacity: isDragging ? 0.5 : undefined
   };
 
-  const handleOpen = () => {
+  const typeConfig = BOARD_TYPE_CONFIG[board.type] || BOARD_TYPE_CONFIG.canvas;
+  const TypeIcon = typeConfig.icon;
+
+  // Track pointer down position to distinguish click vs drag
+  const handlePointerDown = (e: React.PointerEvent) => {
+    pointerStart.current = { x: e.clientX, y: e.clientY };
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // If drag moved significantly, don't open
+    if (pointerStart.current) {
+      const dx = Math.abs(e.clientX - pointerStart.current.x);
+      const dy = Math.abs(e.clientY - pointerStart.current.y);
+      if (dx > 5 || dy > 5) return;
+    }
     navigate(`/board/${board.id}`);
   };
 
@@ -73,17 +96,21 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
         ref={setNodeRef}
         style={style}
         {...attributes}
-        className="group bg-white dark:bg-[#1E252B] hover:bg-gray-50 dark:hover:bg-[#252B32] border-b border-gray-100 dark:border-[#30363D] last:border-b-0 transition-colors"
+        {...listeners}
+        onPointerDown={(e) => {
+          handlePointerDown(e);
+          listeners?.onPointerDown?.(e as any);
+        }}
+        onClick={handleClick}
+        className="group bg-white dark:bg-[#1E252B] hover:bg-gray-50 dark:hover:bg-[#252B32] border-b border-gray-100 dark:border-[#30363D] last:border-b-0 transition-colors cursor-pointer"
       >
-        <div className="px-6 py-4 flex items-center gap-4 cursor-pointer" onClick={handleOpen}>
-          {/* Icon - Drag handle */}
+        <div className="px-6 py-4 flex items-center gap-4">
+          {/* Type icon */}
           <div
-            {...listeners}
-            className="w-12 h-12 rounded flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing"
-            style={{ backgroundColor: board.settings.backgroundColor || '#E0E7FF' }}
-            onClick={(e) => e.stopPropagation()}
+            className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${typeConfig.color}15` }}
           >
-            <FileText className="w-6 h-6 text-primary-600 dark:text-primary-400 opacity-60" />
+            <TypeIcon className="w-5 h-5" style={{ color: typeConfig.color }} />
           </div>
 
           {/* Content */}
@@ -93,6 +120,14 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
               <p className="text-sm text-gray-500 dark:text-[#B1B9C4] truncate">{board.description}</p>
             )}
           </div>
+
+          {/* Type badge */}
+          <span
+            className="px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
+            style={{ backgroundColor: `${typeConfig.color}15`, color: typeConfig.color }}
+          >
+            {typeConfig.label}
+          </span>
 
           {/* Tags */}
           <div className="flex gap-1.5 flex-shrink-0">
@@ -149,40 +184,56 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
     );
   }
 
-  // Grid view (cleaner rectangular design)
+  // Grid view
   return (
     <div
       ref={setNodeRef}
       style={style}
       {...attributes}
-      className="group bg-white dark:bg-[#1E252B] rounded-lg hover:shadow-md transition-all border border-gray-200 dark:border-[#30363D] hover:border-primary-300 dark:hover:border-primary-600 overflow-hidden"
+      {...listeners}
+      onPointerDown={(e) => {
+        handlePointerDown(e);
+        listeners?.onPointerDown?.(e as any);
+      }}
+      onClick={handleClick}
+      className="group bg-white dark:bg-[#1E252B] rounded-lg hover:shadow-md transition-all border border-gray-200 dark:border-[#30363D] hover:border-primary-300 dark:hover:border-primary-600 overflow-hidden cursor-pointer"
     >
-      {/* Rectangular Icon/Preview - Drag handle only */}
+      {/* Preview header with type indicator */}
       <div
-        {...listeners}
-        className="h-24 flex items-center justify-center relative cursor-grab active:cursor-grabbing"
+        className="h-24 flex items-center justify-center relative"
         style={{ backgroundColor: board.settings.backgroundColor || '#E0E7FF' }}
       >
-        <FileText className="w-12 h-12 text-primary-600 dark:text-primary-400 opacity-40" />
+        <TypeIcon className="w-10 h-10 opacity-30" style={{ color: typeConfig.color }} />
+
+        {/* Type badge */}
+        <span
+          className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide backdrop-blur-sm"
+          style={{
+            backgroundColor: `${typeConfig.color}20`,
+            color: typeConfig.color,
+          }}
+        >
+          {typeConfig.label}
+        </span>
       </div>
 
-      {/* Content - Click to open */}
-      <div className="p-4" onClick={handleOpen}>
+      {/* Content */}
+      <div className="p-4">
         {/* Title */}
-        <h3 className="font-medium text-gray-900 dark:text-[#E0E6ED] mb-1 truncate cursor-pointer">
+        <h3 className="font-medium text-gray-900 dark:text-[#E0E6ED] mb-1 truncate">
           {board.name}
         </h3>
 
         {/* Description */}
         {board.description && (
-          <p className="text-sm text-gray-500 dark:text-[#B1B9C4] mb-3 line-clamp-2 min-h-[2.5rem] cursor-pointer">
+          <p className="text-sm text-gray-500 dark:text-[#B1B9C4] mb-3 line-clamp-2 min-h-[2.5rem]">
             {board.description}
           </p>
         )}
 
         {/* Tags */}
         {board.tags && board.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3 cursor-pointer">
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {board.tags.slice(0, 2).map((tag) => (
               <span
                 key={tag}
@@ -201,7 +252,7 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
 
         {/* Metadata and Actions */}
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-[#B1B9C4] pt-2 border-t border-gray-100 dark:border-[#30363D]">
-          <div className="flex items-center gap-1 cursor-pointer">
+          <div className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             <span>{formatDate(displayDate)}</span>
           </div>
