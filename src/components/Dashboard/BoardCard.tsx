@@ -64,6 +64,9 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
     });
   };
 
+  // Show last opened date (lastAccess), fallback to updatedAt
+  const displayDate = board.lastAccess || board.updatedAt;
+
   if (viewMode === 'list') {
     return (
       <div
@@ -111,7 +114,7 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
           {/* Date */}
           <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-[#B1B9C4] flex-shrink-0">
             <Calendar className="w-4 h-4" />
-            <span className="hidden md:inline">{formatDate(board.updatedAt)}</span>
+            <span className="hidden md:inline">{formatDate(displayDate)}</span>
           </div>
 
           {/* Actions */}
@@ -200,7 +203,7 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-[#B1B9C4] pt-2 border-t border-gray-100 dark:border-[#30363D]">
           <div className="flex items-center gap-1 cursor-pointer">
             <Calendar className="w-3.5 h-3.5" />
-            <span>{formatDate(board.updatedAt)}</span>
+            <span>{formatDate(displayDate)}</span>
           </div>
 
           {/* Actions */}

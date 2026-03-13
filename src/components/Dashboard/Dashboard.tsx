@@ -20,7 +20,7 @@ import { UserMenu } from '../Auth';
 import { newSyncService } from '../../services/supabase/newSyncService';
 import type { Board, Folder, BoardType } from '../../types';
 
-type SortBy = 'name' | 'created' | 'updated';
+type SortBy = 'name' | 'created' | 'updated' | 'opened';
 type ViewMode = 'grid' | 'list';
 
 export default function Dashboard() {
@@ -33,7 +33,7 @@ export default function Dashboard() {
   const loadFolders = useFolderStore(state => state.loadFolders);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<SortBy>('updated');
+  const [sortBy, setSortBy] = useState<SortBy>('opened');
   const [showFilters, setShowFilters] = useState(false);
   const [showNewBoardDialog, setShowNewBoardDialog] = useState(false);
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
@@ -98,8 +98,13 @@ export default function Dashboard() {
         case 'created':
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case 'updated':
-        default:
           return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        case 'opened':
+        default: {
+          const aDate = new Date(a.lastAccess || a.updatedAt).getTime();
+          const bDate = new Date(b.lastAccess || b.updatedAt).getTime();
+          return bDate - aDate;
+        }
       }
     });
 
@@ -232,6 +237,7 @@ export default function Dashboard() {
               onChange={(e) => setSortBy(e.target.value as SortBy)}
               className="px-4 py-2 border border-gray-300 dark:border-[#3D444D] bg-white dark:bg-[#252B32] text-gray-900 dark:text-[#E0E6ED] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
             >
+              <option value="opened">Ouvert récemment</option>
               <option value="updated">Modifié récemment</option>
               <option value="created">Créé récemment</option>
               <option value="name">Nom (A-Z)</option>

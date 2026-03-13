@@ -87,11 +87,15 @@ export const boardOperations = {
 
   /**
    * Update an existing board
+   * Only sets updatedAt if content-related fields changed (not metadata like folderId)
    */
   async update(id: string, updates: Partial<Board>): Promise<number> {
+    const metadataOnlyKeys = ['folderId', 'lastAccess'];
+    const hasContentChanges = Object.keys(updates).some(key => !metadataOnlyKeys.includes(key));
+
     return await db.boards.update(id, {
       ...updates,
-      updatedAt: new Date()
+      ...(hasContentChanges ? { updatedAt: new Date() } : {}),
     });
   },
 

@@ -71,9 +71,14 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   },
 
   setCurrentBoard: (boardId: string) => {
-    set({ currentBoardId: boardId });
+    const now = new Date();
+    const currentBoards = get().boards;
+    set({
+      currentBoardId: boardId,
+      boards: currentBoards.map(b => b.id === boardId ? { ...b, lastAccess: now } : b),
+    });
 
-    // Update board access time for LRU cache
+    // Persist access time to IndexedDB for LRU cache
     storageManager.updateBoardAccess(boardId).catch(error => {
       console.error('Failed to update board access time:', error);
     });
