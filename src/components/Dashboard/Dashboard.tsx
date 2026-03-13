@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, SlidersHorizontal, Grid3x3, List, FolderPlus } from 'lucide-react';
-import { DndContext } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useBoardStore, selectBoards, useFolderStore, selectFolders } from '../../store';
 import BoardCard from './BoardCard';
 import BoardEditModal from './BoardEditModal';
@@ -139,6 +139,13 @@ export default function Dashboard() {
 
   // Get root folders only
   const rootFolders = folders.filter(f => f.parentFolderId === null);
+
+  // Require 8px movement before drag starts, so clicks work normally
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  );
 
   return (
     <div className="h-full flex flex-col bg-gray-50 dark:bg-[#101418]">
@@ -284,7 +291,7 @@ export default function Dashboard() {
       {/* Boards List/Grid with Drag & Drop */}
       <main className="flex-1 overflow-auto px-8 py-6">
         <div className="max-w-7xl mx-auto">
-          <DndContext onDragEnd={handleDragEndEvent}>
+          <DndContext sensors={sensors} onDragEnd={handleDragEndEvent}>
             {(filteredBoards.length > 0 || folders.length > 0) ? (
               viewMode === 'grid' ? (
                 <div className="space-y-4">

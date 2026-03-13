@@ -3,7 +3,6 @@
  * Displays a single board as a card in the dashboard
  */
 
-import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Trash2, Copy, Edit3, Layout, Columns, Database } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
@@ -28,7 +27,6 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
   const navigate = useNavigate();
   const deleteBoard = useBoardStore(state => state.deleteBoard);
   const duplicateBoard = useBoardStore(state => state.duplicateBoard);
-  const pointerStart = useRef<{ x: number; y: number } | null>(null);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `board-${board.id}`,
@@ -46,18 +44,8 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
   const typeConfig = BOARD_TYPE_CONFIG[board.type] || BOARD_TYPE_CONFIG.canvas;
   const TypeIcon = typeConfig.icon;
 
-  // Track pointer down position to distinguish click vs drag
-  const handlePointerDown = (e: React.PointerEvent) => {
-    pointerStart.current = { x: e.clientX, y: e.clientY };
-  };
-
-  const handleClick = (e: React.MouseEvent) => {
-    // If drag moved significantly, don't open
-    if (pointerStart.current) {
-      const dx = Math.abs(e.clientX - pointerStart.current.x);
-      const dy = Math.abs(e.clientY - pointerStart.current.y);
-      if (dx > 5 || dy > 5) return;
-    }
+  const handleClick = () => {
+    if (isDragging) return;
     navigate(`/board/${board.id}`);
   };
 
@@ -97,10 +85,6 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
         style={style}
         {...attributes}
         {...listeners}
-        onPointerDown={(e) => {
-          handlePointerDown(e);
-          listeners?.onPointerDown?.(e as any);
-        }}
         onClick={handleClick}
         className="group bg-white dark:bg-[#1E252B] hover:bg-gray-50 dark:hover:bg-[#252B32] border-b border-gray-100 dark:border-[#30363D] last:border-b-0 transition-colors cursor-pointer"
       >
