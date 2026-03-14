@@ -8,7 +8,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useKanbanColumnStore, useKanbanCardStore } from '../../store/kanbanStore';
 import KanbanCard from './KanbanCard';
-import { Plus, GripVertical, MoreVertical, Trash2, Edit2 } from 'lucide-react';
+import { Plus, GripVertical, MoreVertical, Trash2, Edit2, Palette } from 'lucide-react';
 import type { KanbanColumn as KanbanColumnType, KanbanCard as KanbanCardType } from '../../types';
 
 interface KanbanColumnProps {
@@ -25,6 +25,7 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(column.name);
   const [showMenu, setShowMenu] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
 
   // Sortable for column drag & drop
   const {
@@ -76,6 +77,26 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
     }
 
     await useKanbanColumnStore.getState().deleteColumn(column.id);
+    setShowMenu(false);
+  };
+
+  // Handle color change
+  const COLUMN_COLORS = [
+    '#9CA3AF', // Gray
+    '#60A5FA', // Blue
+    '#34D399', // Green
+    '#FBBF24', // Yellow
+    '#F97316', // Orange
+    '#F87171', // Red
+    '#EC4899', // Pink
+    '#A78BFA', // Purple
+    '#2DD4BF', // Teal
+    '#38BDF8', // Sky
+  ];
+
+  const handleColorChange = async (color: string) => {
+    await useKanbanColumnStore.getState().updateColumn(column.id, { color });
+    setShowColorPicker(false);
     setShowMenu(false);
   };
 
@@ -155,20 +176,47 @@ const KanbanColumn = memo(function KanbanColumn({ column, cards, boardId: _board
                 className="fixed inset-0 z-10"
                 onClick={() => setShowMenu(false)}
               />
-              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#1E252B] rounded-lg shadow-lg border border-gray-200 dark:border-[#30363D] z-20">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-[#1E252B] rounded-lg shadow-lg border border-gray-200 dark:border-[#30363D] z-20 overflow-hidden">
                 <button
                   onClick={() => {
                     setIsEditingName(true);
                     setShowMenu(false);
                   }}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 rounded-t-lg"
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2"
                 >
                   <Edit2 className="w-4 h-4" />
                   Renommer
                 </button>
                 <button
+                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2"
+                >
+                  <Palette className="w-4 h-4" />
+                  Couleur
+                  <div
+                    className="w-3 h-3 rounded-full ml-auto border border-gray-300 dark:border-[#3D444D]"
+                    style={{ backgroundColor: column.color }}
+                  />
+                </button>
+                {showColorPicker && (
+                  <div className="px-3 py-2 border-t border-gray-100 dark:border-[#30363D]">
+                    <div className="grid grid-cols-5 gap-1.5">
+                      {COLUMN_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => handleColorChange(c)}
+                          className={`w-6 h-6 rounded-full transition-transform hover:scale-125 ${
+                            c === column.color ? 'ring-2 ring-offset-1 ring-primary-500 dark:ring-offset-[#1E252B]' : ''
+                          }`}
+                          style={{ backgroundColor: c }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <button
                   onClick={handleDelete}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 rounded-b-lg"
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 border-t border-gray-100 dark:border-[#30363D]"
                 >
                   <Trash2 className="w-4 h-4" />
                   Supprimer
