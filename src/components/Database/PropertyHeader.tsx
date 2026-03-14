@@ -43,7 +43,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
   };
 
   const handleDelete = async () => {
-    if (window.confirm(`Delete property "${property.name}"? This will remove all data in this column.`)) {
+    if (window.confirm(`Supprimer la propriete "${property.name}" ? Toutes les donnees de cette colonne seront perdues.`)) {
       await useDatabaseStore.getState().deleteProperty(property.id);
     }
     setShowMenu(false);
@@ -83,7 +83,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
         <span
           className="flex-1 text-sm font-medium cursor-pointer hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
           onDoubleClick={() => setIsEditing(true)}
-          title="Double-click to rename"
+          title="Double-clic pour renommer"
         >
           {property.name}
         </span>
@@ -98,7 +98,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
           }}
           onPointerDown={(e) => e.stopPropagation()}
           className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-[#252B32] rounded transition-all"
-          title="More actions"
+          title="Plus d'actions"
         >
           <MoreVertical className="w-4 h-4 text-gray-500 dark:text-[#B1B9C4]" />
         </button>
@@ -120,7 +120,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
                 className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 text-gray-700 dark:text-[#B1B9C4]"
               >
                 <Edit2 className="w-4 h-4" />
-                Rename
+                Renommer
               </button>
 
               {hasConfig && (
@@ -133,7 +133,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
                   className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-[#252B32] flex items-center gap-2 text-gray-700 dark:text-[#B1B9C4]"
                 >
                   <Settings className="w-4 h-4" />
-                  Configure
+                  Configurer
                 </button>
               )}
 
@@ -142,7 +142,7 @@ export default function PropertyHeader({ property, boardId: _boardId }: Property
                 className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2 text-red-600 dark:text-red-400"
               >
                 <Trash2 className="w-4 h-4" />
-                Delete
+                Supprimer
               </button>
             </div>
           </>

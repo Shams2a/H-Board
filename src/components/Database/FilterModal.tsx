@@ -17,11 +17,11 @@ interface FilterModalProps {
 
 const FILTER_OPERATORS: Record<string, { label: string; operators: FilterOperator[] }> = {
   text: {
-    label: 'Text',
+    label: 'Texte',
     operators: ['contains', 'not_contains', 'is', 'is_not', 'starts_with', 'ends_with', 'is_empty', 'is_not_empty']
   },
   number: {
-    label: 'Number',
+    label: 'Nombre',
     operators: ['equals', 'not_equals', 'greater_than', 'less_than', 'greater_than_or_equal', 'less_than_or_equal', 'is_empty', 'is_not_empty']
   },
   date: {
@@ -29,41 +29,41 @@ const FILTER_OPERATORS: Record<string, { label: string; operators: FilterOperato
     operators: ['is_before', 'is_after', 'is_on_or_before', 'is_on_or_after', 'is_empty', 'is_not_empty']
   },
   select: {
-    label: 'Select',
+    label: 'Selection',
     operators: ['is', 'is_not', 'is_any_of', 'is_none_of', 'is_empty', 'is_not_empty']
   },
   checkbox: {
-    label: 'Checkbox',
+    label: 'Case a cocher',
     operators: ['is_checked', 'is_not_checked']
   }
 };
 
 const OPERATOR_LABELS: Record<FilterOperator, string> = {
-  contains: 'Contains',
-  not_contains: 'Does not contain',
-  is: 'Is',
-  is_not: 'Is not',
-  starts_with: 'Starts with',
-  ends_with: 'Ends with',
-  is_empty: 'Is empty',
-  is_not_empty: 'Is not empty',
-  equals: 'Equals',
-  not_equals: 'Does not equal',
-  greater_than: 'Greater than',
-  less_than: 'Less than',
-  greater_than_or_equal: 'Greater than or equal to',
-  less_than_or_equal: 'Less than or equal to',
-  is_before: 'Is before',
-  is_after: 'Is after',
-  is_on_or_before: 'Is on or before',
-  is_on_or_after: 'Is on or after',
-  is_within: 'Is within',
-  past_week: 'Past week',
-  past_month: 'Past month',
-  is_any_of: 'Is any of',
-  is_none_of: 'Is none of',
-  is_checked: 'Is checked',
-  is_not_checked: 'Is not checked'
+  contains: 'Contient',
+  not_contains: 'Ne contient pas',
+  is: 'Est',
+  is_not: 'N\'est pas',
+  starts_with: 'Commence par',
+  ends_with: 'Se termine par',
+  is_empty: 'Est vide',
+  is_not_empty: 'N\'est pas vide',
+  equals: 'Egal a',
+  not_equals: 'Different de',
+  greater_than: 'Superieur a',
+  less_than: 'Inferieur a',
+  greater_than_or_equal: 'Superieur ou egal a',
+  less_than_or_equal: 'Inferieur ou egal a',
+  is_before: 'Avant',
+  is_after: 'Apres',
+  is_on_or_before: 'Le ou avant',
+  is_on_or_after: 'Le ou apres',
+  is_within: 'Dans',
+  past_week: 'Semaine passee',
+  past_month: 'Mois passe',
+  is_any_of: 'Est l\'un de',
+  is_none_of: 'N\'est aucun de',
+  is_checked: 'Est coche',
+  is_not_checked: 'N\'est pas coche'
 };
 
 export default function FilterModal({ properties, filters, onClose, onSave }: FilterModalProps) {
@@ -147,7 +147,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#30363D]">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED]">
-            Filters
+            Filtres
           </h2>
           <button
             onClick={onClose}
@@ -161,7 +161,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
         <div className="p-4 space-y-3">
           {localFilters.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic text-center py-8">
-              No filters yet. Click "Add Filter" to create one.
+              Aucun filtre. Cliquez sur "Ajouter un filtre" pour en creer un.
             </p>
           ) : (
             localFilters.map((filter) => {
@@ -203,7 +203,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
                       type="text"
                       value={filter.value != null ? String(filter.value) : ''}
                       onChange={(e) => handleUpdateFilter(filter.id!, 'value', e.target.value)}
-                      placeholder="Value"
+                      placeholder="Valeur"
                       className="flex-1 px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
                     />
                   )}
@@ -227,7 +227,7 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
             className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm border-2 border-dashed border-gray-300 dark:border-[#3D444D] rounded hover:border-primary-500 dark:hover:border-primary-400 text-gray-600 dark:text-[#B1B9C4] hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
-            Add Filter
+            Ajouter un filtre
           </button>
         </div>
 
@@ -237,13 +237,13 @@ export default function FilterModal({ properties, filters, onClose, onSave }: Fi
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
-            Cancel
+            Annuler
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 dark:hover:bg-primary-500 transition-colors"
           >
-            Apply Filters
+            Appliquer les filtres
           </button>
         </div>
       </div>

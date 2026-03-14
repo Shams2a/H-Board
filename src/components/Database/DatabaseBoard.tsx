@@ -150,7 +150,7 @@ export default function DatabaseBoard({ boardId }: DatabaseBoardProps) {
       <div className="h-full flex items-center justify-center bg-white dark:bg-[#1E252B]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-[#B1B9C4]">Loading database...</p>
+          <p className="text-gray-600 dark:text-[#B1B9C4]">Chargement de la base...</p>
         </div>
       </div>
     );
@@ -174,8 +174,8 @@ export default function DatabaseBoard({ boardId }: DatabaseBoardProps) {
       {boardProperties.length === 0 && (
         <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-[#B1B9C4]">
           <div className="text-center">
-            <p className="text-lg font-medium mb-2">No properties yet</p>
-            <p className="text-sm">Click "Add Property" to get started</p>
+            <p className="text-lg font-medium mb-2">Aucune propriete</p>
+            <p className="text-sm">Cliquez sur "Ajouter une propriete" pour commencer</p>
           </div>
         </div>
       )}

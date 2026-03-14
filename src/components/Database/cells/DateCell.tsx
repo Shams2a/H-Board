@@ -3,7 +3,8 @@
  * Date/time picker editor
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar } from 'lucide-react';
 
 interface DateCellProps {
@@ -14,6 +15,8 @@ interface DateCellProps {
 
 export default function DateCell({ value, onChange, includeTime = false }: DateCellProps) {
   const [showPicker, setShowPicker] = useState(false);
+  const [pickerPos, setPickerPos] = useState<{ top: number; left: number } | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   // Format date for display
   const formatDate = (date: Date | null): string => {
@@ -21,7 +24,7 @@ export default function DateCell({ value, onChange, includeTime = false }: DateC
 
     const d = new Date(date);
     if (includeTime) {
-      return d.toLocaleString('en-US', {
+      return d.toLocaleString('fr-FR', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -29,7 +32,7 @@ export default function DateCell({ value, onChange, includeTime = false }: DateC
         minute: '2-digit'
       });
     }
-    return d.toLocaleDateString('en-US', {
+    return d.toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -54,6 +57,16 @@ export default function DateCell({ value, onChange, includeTime = false }: DateC
     return `${year}-${month}-${day}`;
   };
 
+  useEffect(() => {
+    if (showPicker && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setPickerPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+      });
+    }
+  }, [showPicker]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value === '') {
       onChange(null);
@@ -71,6 +84,7 @@ export default function DateCell({ value, onChange, includeTime = false }: DateC
   return (
     <div className="relative w-full">
       <div
+        ref={triggerRef}
         onClick={() => setShowPicker(!showPicker)}
         className="flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252B32]/50 rounded min-h-[28px] text-gray-900 dark:text-[#E0E6ED]"
       >
@@ -86,13 +100,16 @@ export default function DateCell({ value, onChange, includeTime = false }: DateC
         )}
       </div>
 
-      {showPicker && (
+      {showPicker && pickerPos && createPortal(
         <>
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setShowPicker(false)}
           />
-          <div className="absolute top-full left-0 mt-1 p-3 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50">
+          <div
+            className="fixed p-3 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-[9999]"
+            style={{ top: pickerPos.top, left: pickerPos.left }}
+          >
             <input
               type={includeTime ? 'datetime-local' : 'date'}
               value={formatForInput(value)}
@@ -101,7 +118,8 @@ export default function DateCell({ value, onChange, includeTime = false }: DateC
               autoFocus
             />
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

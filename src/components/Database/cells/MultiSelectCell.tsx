@@ -3,7 +3,8 @@
  * Multi-select dropdown with colored tags and text labels
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, X } from 'lucide-react';
 import type { SelectOption } from '../../../types/database';
 
@@ -15,10 +16,23 @@ interface MultiSelectCellProps {
 
 export default function MultiSelectCell({ value = [], onChange, options = [] }: MultiSelectCellProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
   const selectedOptions = value
     .map(v => options.find(opt => opt.id === v || opt.name === v))
     .filter(Boolean) as SelectOption[];
+
+  useEffect(() => {
+    if (showMenu && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: Math.max(rect.width, 200),
+      });
+    }
+  }, [showMenu]);
 
   const handleToggle = (optionId: string) => {
     const newValue = value.includes(optionId)
@@ -35,6 +49,7 @@ export default function MultiSelectCell({ value = [], onChange, options = [] }: 
   return (
     <div className="relative w-full">
       <div
+        ref={triggerRef}
         onClick={() => setShowMenu(!showMenu)}
         className="flex flex-wrap items-center gap-1 px-2 py-1 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252B32]/50 rounded min-h-[28px]"
       >
@@ -51,28 +66,31 @@ export default function MultiSelectCell({ value = [], onChange, options = [] }: 
               <button
                 onClick={(e) => handleRemove(e, option.id)}
                 className="hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded p-0.5 flex-shrink-0"
-                title="Remove"
+                title="Retirer"
               >
                 <X className="w-3 h-3 text-gray-500 dark:text-[#B1B9C4]" />
               </button>
             </div>
           ))
         ) : (
-          <span className="text-gray-400 dark:text-[#6B7280]">Select...</span>
+          <span className="text-gray-400 dark:text-[#6B7280]">Selectionner...</span>
         )}
         <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-[#6B7280] ml-auto" />
       </div>
 
-      {showMenu && (
+      {showMenu && menuPos && createPortal(
         <>
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setShowMenu(false)}
           />
-          <div className="absolute top-full left-0 mt-1 w-full min-w-[200px] max-h-64 overflow-y-auto bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50 py-1">
+          <div
+            className="fixed max-h-64 overflow-y-auto bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-[9999] py-1"
+            style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
+          >
             {options.length === 0 ? (
               <div className="px-3 py-2 text-sm text-gray-500 dark:text-[#B1B9C4] italic">
-                No options available
+                Aucune option disponible
               </div>
             ) : (
               options.map((option) => {
@@ -100,7 +118,8 @@ export default function MultiSelectCell({ value = [], onChange, options = [] }: 
               })
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

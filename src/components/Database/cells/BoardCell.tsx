@@ -3,7 +3,8 @@
  * Select and link to a board (Canvas, Kanban, or Database)
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown, Square, Trello, Database, ExternalLink, X } from 'lucide-react';
 import { useBoardStore, selectBoards } from '../../../store';
 import type { Board } from '../../../types';
@@ -15,9 +16,22 @@ interface BoardCellProps {
 
 export default function BoardCell({ value, onChange }: BoardCellProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const boards = useBoardStore(selectBoards);
 
   const selectedBoard = boards.find(b => b.id === value);
+
+  useEffect(() => {
+    if (showMenu && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: Math.max(rect.width, 300),
+      });
+    }
+  }, [showMenu]);
 
   const handleSelect = (boardId: string) => {
     onChange(boardId);
@@ -64,6 +78,7 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
   return (
     <div className="relative w-full">
       <div
+        ref={triggerRef}
         onClick={() => setShowMenu(!showMenu)}
         className="flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252B32]/50 rounded min-h-[28px]"
       >
@@ -79,34 +94,37 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
             <button
               onClick={handleOpenBoard}
               className="ml-auto p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded"
-              title="Open board"
+              title="Ouvrir le projet"
             >
               <ExternalLink className="w-3.5 h-3.5 text-gray-500 dark:text-[#B1B9C4]" />
             </button>
             <button
               onClick={handleClear}
               className="p-1 hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded"
-              title="Clear"
+              title="Effacer"
             >
               <X className="w-3.5 h-3.5 text-gray-500 dark:text-[#B1B9C4]" />
             </button>
           </div>
         ) : (
-          <span className="text-gray-400 dark:text-[#6B7280] flex-1">Select a board...</span>
+          <span className="text-gray-400 dark:text-[#6B7280] flex-1">Selectionner un projet...</span>
         )}
         <ChevronDown className="w-3.5 h-3.5 text-gray-400 dark:text-[#6B7280] ml-auto" />
       </div>
 
-      {showMenu && (
+      {showMenu && menuPos && createPortal(
         <>
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-[9998]"
             onClick={() => setShowMenu(false)}
           />
-          <div className="absolute top-full left-0 mt-1 w-full min-w-[300px] max-h-64 overflow-y-auto bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50 py-1">
+          <div
+            className="fixed max-h-64 overflow-y-auto bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-[9999] py-1"
+            style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
+          >
             {boards.length === 0 ? (
               <div className="px-3 py-2 text-sm text-gray-500 dark:text-[#B1B9C4] italic">
-                No boards available
+                Aucun projet disponible
               </div>
             ) : (
               <>
@@ -118,7 +136,7 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
                   return (
                     <div key={type}>
                       <div className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-[#B1B9C4] uppercase border-t first:border-t-0 border-gray-200 dark:border-[#30363D] mt-1 first:mt-0">
-                        {type === 'canvas' ? 'Canvas Boards' : type === 'kanban' ? 'Kanban Boards' : 'Database Boards'}
+                        {type === 'canvas' ? 'Projets Canvas' : type === 'kanban' ? 'Projets Kanban' : 'Projets Database'}
                       </div>
                       {filteredBoards.map((board) => (
                         <button
@@ -143,7 +161,8 @@ export default function BoardCell({ value, onChange }: BoardCellProps) {
               </>
             )}
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

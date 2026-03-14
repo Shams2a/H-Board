@@ -57,7 +57,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#30363D]">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED]">
-            Sort
+            Tri
           </h2>
           <button
             onClick={onClose}
@@ -71,7 +71,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
         <div className="p-4 space-y-3">
           {localSorts.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic text-center py-8">
-              No sorts yet. Click "Add Sort" to create one.
+              Aucun tri. Cliquez sur "Ajouter un tri" pour en creer un.
             </p>
           ) : (
             localSorts.map((sort, index) => {
@@ -106,7 +106,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
                           ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-300'
                           : 'border-gray-300 dark:border-[#3D444D] text-gray-500 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32]'
                       }`}
-                      title="Ascending"
+                      title="Croissant"
                     >
                       <ArrowUp className="w-4 h-4" />
                     </button>
@@ -117,7 +117,7 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
                           ? 'bg-primary-100 dark:bg-primary-900/30 border-primary-500 dark:border-primary-400 text-primary-700 dark:text-primary-300'
                           : 'border-gray-300 dark:border-[#3D444D] text-gray-500 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32]'
                       }`}
-                      title="Descending"
+                      title="Decroissant"
                     >
                       <ArrowDown className="w-4 h-4" />
                     </button>
@@ -142,12 +142,12 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
             className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm border-2 border-dashed border-gray-300 dark:border-[#3D444D] rounded hover:border-primary-500 dark:hover:border-primary-400 text-gray-600 dark:text-[#B1B9C4] hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
-            Add Sort
+            Ajouter un tri
           </button>
 
           {localSorts.length > 0 && (
             <p className="text-xs text-gray-500 dark:text-[#B1B9C4] mt-2">
-              Sorts are applied in order from top to bottom
+              Les tris sont appliques dans l'ordre de haut en bas
             </p>
           )}
         </div>
@@ -158,13 +158,13 @@ export default function SortModal({ properties, sorts, onClose, onSave }: SortMo
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
-            Cancel
+            Annuler
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 dark:hover:bg-primary-500 transition-colors"
           >
-            Apply Sort
+            Appliquer le tri
           </button>
         </div>
       </div>

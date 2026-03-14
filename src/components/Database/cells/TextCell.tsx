@@ -69,7 +69,7 @@ export default function TextCell({ value, onChange, isTitle = false }: TextCellP
         isTitle && !value ? 'text-gray-400 dark:text-[#6B7280] italic' : 'text-gray-900 dark:text-[#E0E6ED]'
       }`}
     >
-      {value || (isTitle ? 'Untitled' : '')}
+      {value || (isTitle ? 'Sans titre' : '')}
     </div>
   );
 }

@@ -35,7 +35,7 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
     const typeInfo = propertyTypes.find(pt => pt.type === type);
 
     if (typeInfo) {
-      await useDatabaseStore.getState().createProperty(boardId, `New ${typeInfo.label}`, type as any);
+      await useDatabaseStore.getState().createProperty(boardId, `${typeInfo.label}`, type as any);
     }
     setShowPropertyMenu(false);
   };
@@ -64,7 +64,7 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
         className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-[#B1B9C4] bg-gray-100 dark:bg-[#252B32] hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded-md transition-colors"
       >
         <Plus className="w-4 h-4" />
-        New Row
+        Nouvelle ligne
       </button>
 
       {/* Add Property Button */}
@@ -74,14 +74,14 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
           className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-[#B1B9C4] bg-gray-100 dark:bg-[#252B32] hover:bg-gray-200 dark:hover:bg-[#2C333A] rounded-md transition-colors"
         >
           <Plus className="w-4 h-4" />
-          Add Property
+          Ajouter une propriete
         </button>
 
         {/* Property Type Menu */}
         {showPropertyMenu && (
           <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-[#1E252B] border border-gray-200 dark:border-[#30363D] rounded-lg shadow-lg z-50 py-1 max-h-96 overflow-y-auto">
             <div className="px-3 py-2 text-xs font-semibold text-gray-500 dark:text-[#B1B9C4] uppercase">
-              Property Types
+              Types de propriete
             </div>
             {getMVPPropertyTypes().map((typeInfo) => (
               <button
@@ -114,7 +114,7 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
         title="Filters"
       >
         <Filter className="w-4 h-4" />
-        Filter
+        Filtrer
         {activeView && activeView.filters.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
             {activeView.filters.length}
@@ -129,7 +129,7 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
         title="Sort"
       >
         <ArrowUpDown className="w-4 h-4" />
-        Sort
+        Trier
         {activeView && activeView.sorts.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
             {activeView.sorts.length}
@@ -139,8 +139,8 @@ export default function DatabaseToolbar({ boardId }: DatabaseToolbarProps) {
 
       {/* Stats */}
       <div className="ml-auto flex items-center gap-4 text-sm text-gray-500 dark:text-[#B1B9C4]">
-        <span>{boardProperties.length} properties</span>
-        <span>{boardRows.length} rows</span>
+        <span>{boardProperties.length} propriete{boardProperties.length !== 1 ? 's' : ''}</span>
+        <span>{boardRows.length} ligne{boardRows.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Click outside to close menu */}

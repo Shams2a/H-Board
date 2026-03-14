@@ -212,28 +212,28 @@ export interface PropertyTypeInfo {
 
 export const PROPERTY_TYPES: PropertyTypeInfo[] = [
   // MVP Types
-  { type: 'title', label: 'Title', icon: '📝', description: 'Primary text field', availableInMVP: true },
-  { type: 'text', label: 'Text', icon: '📄', description: 'Plain text', availableInMVP: true },
-  { type: 'number', label: 'Number', icon: '🔢', description: 'Numbers with formatting', availableInMVP: true },
-  { type: 'select', label: 'Select', icon: '🏷️', description: 'Single choice', availableInMVP: true },
-  { type: 'multi_select', label: 'Multi-select', icon: '🏷️', description: 'Multiple choices', availableInMVP: true },
-  { type: 'date', label: 'Date', icon: '📅', description: 'Date and/or time', availableInMVP: true },
-  { type: 'checkbox', label: 'Checkbox', icon: '☑️', description: 'Yes/No checkbox', availableInMVP: true },
-  { type: 'url', label: 'URL', icon: '🔗', description: 'Web links', availableInMVP: true },
-  { type: 'email', label: 'Email', icon: '📧', description: 'Email addresses', availableInMVP: true },
-  { type: 'phone', label: 'Phone', icon: '📞', description: 'Phone numbers', availableInMVP: true },
-  { type: 'board', label: 'Board', icon: '📋', description: 'Link to a board', availableInMVP: true },
+  { type: 'title', label: 'Titre', icon: '📝', description: 'Champ texte principal', availableInMVP: true },
+  { type: 'text', label: 'Texte', icon: '📄', description: 'Texte simple', availableInMVP: true },
+  { type: 'number', label: 'Nombre', icon: '🔢', description: 'Nombres avec formatage', availableInMVP: true },
+  { type: 'select', label: 'Selection', icon: '🏷️', description: 'Choix unique', availableInMVP: true },
+  { type: 'multi_select', label: 'Multi-selection', icon: '🏷️', description: 'Choix multiples', availableInMVP: true },
+  { type: 'date', label: 'Date', icon: '📅', description: 'Date et/ou heure', availableInMVP: true },
+  { type: 'checkbox', label: 'Case a cocher', icon: '☑️', description: 'Oui/Non', availableInMVP: true },
+  { type: 'url', label: 'URL', icon: '🔗', description: 'Liens web', availableInMVP: true },
+  { type: 'email', label: 'Email', icon: '📧', description: 'Adresses email', availableInMVP: true },
+  { type: 'phone', label: 'Telephone', icon: '📞', description: 'Numeros de telephone', availableInMVP: true },
+  { type: 'board', label: 'Projet', icon: '📋', description: 'Lien vers un projet', availableInMVP: true },
 
   // Advanced Types (Phase 4.2)
-  { type: 'file', label: 'Files', icon: '📎', description: 'File attachments', availableInMVP: false },
-  { type: 'person', label: 'Person', icon: '👤', description: 'User assignments', availableInMVP: false },
-  { type: 'formula', label: 'Formula', icon: 'ƒ', description: 'Calculated values', availableInMVP: false },
-  { type: 'relation', label: 'Relation', icon: '🔗', description: 'Links to other databases', availableInMVP: false },
-  { type: 'rollup', label: 'Rollup', icon: '∑', description: 'Aggregations', availableInMVP: false },
-  { type: 'created_time', label: 'Created time', icon: '🕐', description: 'Auto: creation date', availableInMVP: false },
-  { type: 'created_by', label: 'Created by', icon: '👤', description: 'Auto: creator', availableInMVP: false },
-  { type: 'last_edited_time', label: 'Last edited time', icon: '🕐', description: 'Auto: edit date', availableInMVP: false },
-  { type: 'last_edited_by', label: 'Last edited by', icon: '👤', description: 'Auto: editor', availableInMVP: false },
+  { type: 'file', label: 'Fichiers', icon: '📎', description: 'Pieces jointes', availableInMVP: false },
+  { type: 'person', label: 'Personne', icon: '👤', description: 'Assignation utilisateur', availableInMVP: false },
+  { type: 'formula', label: 'Formule', icon: 'ƒ', description: 'Valeurs calculees', availableInMVP: false },
+  { type: 'relation', label: 'Relation', icon: '🔗', description: 'Liens vers d\'autres bases', availableInMVP: false },
+  { type: 'rollup', label: 'Agregation', icon: '∑', description: 'Agregations', availableInMVP: false },
+  { type: 'created_time', label: 'Date de creation', icon: '🕐', description: 'Auto : date de creation', availableInMVP: false },
+  { type: 'created_by', label: 'Cree par', icon: '👤', description: 'Auto : createur', availableInMVP: false },
+  { type: 'last_edited_time', label: 'Derniere modification', icon: '🕐', description: 'Auto : date de modification', availableInMVP: false },
+  { type: 'last_edited_by', label: 'Modifie par', icon: '👤', description: 'Auto : editeur', availableInMVP: false },
 ];
 
 // Helper to get available property types for MVP

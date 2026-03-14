@@ -29,12 +29,16 @@ export default function SortableHeaderCell({ header, children }: SortableHeaderC
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    width: header.getSize(),
+    minWidth: header.getSize(),
+    maxWidth: header.getSize(),
+    flexShrink: 0,
   };
 
   return (
-    <th
+    <div
       ref={setNodeRef}
-      style={{ ...style, width: header.getSize() }}
+      style={style}
       {...attributes}
       {...listeners}
       className="relative border-r border-b border-gray-200 dark:border-[#30363D] text-left font-medium text-sm text-gray-700 dark:text-[#B1B9C4] px-3 py-2 cursor-grab active:cursor-grabbing"
@@ -62,6 +66,6 @@ export default function SortableHeaderCell({ header, children }: SortableHeaderC
           style={{ touchAction: 'none' }}
         />
       )}
-    </th>
+    </div>
   );
 }

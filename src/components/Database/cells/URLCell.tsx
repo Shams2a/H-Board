@@ -89,7 +89,7 @@ export default function URLCell({ value, onChange }: URLCellProps) {
           onClick={() => setIsEditing(true)}
           className="text-xs text-gray-400 hover:text-gray-600 dark:text-[#6B7280] dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          Edit
+          Modifier
         </button>
       </div>
     );
@@ -100,7 +100,7 @@ export default function URLCell({ value, onChange }: URLCellProps) {
       onClick={() => setIsEditing(true)}
       className="w-full px-2 py-1 text-sm cursor-text hover:bg-gray-50 dark:hover:bg-[#252B32]/50 rounded min-h-[28px] text-gray-400 dark:text-[#6B7280] italic"
     >
-      Add URL...
+      Ajouter une URL...
     </div>
   );
 }

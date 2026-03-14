@@ -15,10 +15,10 @@ interface PropertyConfigModalProps {
 }
 
 const NUMBER_FORMATS = [
-  { value: 'number', label: 'Number' },
+  { value: 'number', label: 'Nombre' },
   { value: 'decimal', label: 'Decimal' },
-  { value: 'percentage', label: 'Percentage' },
-  { value: 'currency', label: 'Currency' }
+  { value: 'percentage', label: 'Pourcentage' },
+  { value: 'currency', label: 'Devise' }
 ];
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'];
@@ -57,7 +57,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
   const handleAddOption = () => {
     const newOption: SelectOption = {
       id: generateId(),
-      name: 'New Option',
+      name: 'Nouvelle option',
       color: COLORS[Math.floor(Math.random() * COLORS.length)]
     };
 
@@ -100,7 +100,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-[#30363D]">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-[#E0E6ED]">
-            Configure Property: {property.name}
+            Configurer : {property.name}
           </h2>
           <button
             onClick={onClose}
@@ -116,12 +116,12 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
           {property.type === 'number' && (
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED]">
-                Number Format
+                Format du nombre
               </h3>
 
               <div>
                 <label className="block text-xs text-gray-600 dark:text-[#B1B9C4] mb-1">
-                  Format Type
+                  Type de format
                 </label>
                 <select
                   value={config.numberFormat?.type || 'number'}
@@ -138,7 +138,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
 
               <div>
                 <label className="block text-xs text-gray-600 dark:text-[#B1B9C4] mb-1">
-                  Decimal Places
+                  Decimales
                 </label>
                 <input
                   type="number"
@@ -153,7 +153,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
               {config.numberFormat?.type === 'currency' && (
                 <div>
                   <label className="block text-xs text-gray-600 dark:text-[#B1B9C4] mb-1">
-                    Currency
+                    Devise
                   </label>
                   <select
                     value={config.numberFormat?.currency || 'USD'}
@@ -175,7 +175,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
           {property.type === 'date' && (
             <div className="space-y-3">
               <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED]">
-                Date Format
+                Format de date
               </h3>
 
               <label className="flex items-center gap-2">
@@ -186,7 +186,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
                   className="rounded border-gray-300 dark:border-[#3D444D] text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-sm text-gray-700 dark:text-[#B1B9C4]">
-                  Include Time
+                  Inclure l'heure
                 </span>
               </label>
             </div>
@@ -197,14 +197,14 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-gray-900 dark:text-[#E0E6ED]">
-                  Options
+                  Options de selection
                 </h3>
                 <button
                   onClick={handleAddOption}
                   className="flex items-center gap-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
                 >
                   <Plus className="w-3 h-3" />
-                  Add Option
+                  Ajouter une option
                 </button>
               </div>
 
@@ -222,7 +222,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
                       value={option.name}
                       onChange={(e) => handleUpdateOption(option.id, 'name', e.target.value)}
                       className="flex-1 px-3 py-2 bg-white dark:bg-[#252B32] border border-gray-300 dark:border-[#3D444D] rounded text-sm text-gray-900 dark:text-[#E0E6ED]"
-                      placeholder="Option name"
+                      placeholder="Nom de l'option"
                     />
                     <button
                       onClick={() => handleDeleteOption(option.id)}
@@ -235,7 +235,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
 
                 {(!config.options || config.options.length === 0) && (
                   <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic text-center py-4">
-                    No options yet. Click "Add Option" to create one.
+                    Aucune option. Cliquez sur "Ajouter une option" pour en creer une.
                   </p>
                 )}
               </div>
@@ -245,7 +245,7 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
           {/* No configuration needed */}
           {!['number', 'date', 'select', 'multi_select'].includes(property.type) && (
             <p className="text-sm text-gray-500 dark:text-[#B1B9C4] italic">
-              No configuration options available for this property type.
+              Aucune option de configuration disponible pour ce type de propriete.
             </p>
           )}
         </div>
@@ -256,13 +256,13 @@ export default function PropertyConfigModal({ property, onClose, onSave }: Prope
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-700 dark:text-[#B1B9C4] hover:bg-gray-100 dark:hover:bg-[#252B32] rounded transition-colors"
           >
-            Cancel
+            Annuler
           </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 text-sm bg-primary-600 text-white rounded hover:bg-primary-700 dark:hover:bg-primary-500 transition-colors"
           >
-            Save
+            Enregistrer
           </button>
         </div>
       </div>
