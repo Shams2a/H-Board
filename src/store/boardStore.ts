@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { generateId } from '../utils/uuid';
 import type { Board, BoardType } from '../types';
-import { boardOperations } from '../utils/db';
+import { boardOperations, db } from '../utils/db';
 import { newSyncService } from '../services/supabase/newSyncService';
 import { cacheManager } from '../services/CacheManager';
 import { storageManager } from '../services/StorageManager';
@@ -53,6 +53,15 @@ export const useBoardStore = create<BoardState>((set, get) => ({
 
       // Filter out soft-deleted boards
       const boards = allBoards.filter(b => !b.deletedAt);
+
+      // Backfill lastAccess for boards that don't have it yet
+      for (const board of boards) {
+        if (!board.lastAccess) {
+          board.lastAccess = board.updatedAt || board.createdAt;
+          db.boards.update(board.id, { lastAccess: board.lastAccess }).catch(() => {});
+        }
+      }
+
       set({ boards, loading: false });
 
       // If no current board, select the first root board
