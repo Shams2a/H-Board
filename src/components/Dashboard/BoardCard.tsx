@@ -38,7 +38,8 @@ export default function BoardCard({ board, viewMode = 'grid', onEdit }: BoardCar
 
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : undefined
+    opacity: isDragging ? 0.5 : undefined,
+    touchAction: 'none' as const,
   };
 
   const typeConfig = BOARD_TYPE_CONFIG[board.type] || BOARD_TYPE_CONFIG.canvas;

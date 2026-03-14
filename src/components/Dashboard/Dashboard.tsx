@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Plus, Search, SlidersHorizontal, Grid3x3, List, FolderPlus } from 'lucide-react';
-import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useBoardStore, selectBoards, useFolderStore, selectFolders } from '../../store';
 import BoardCard from './BoardCard';
 import BoardEditModal from './BoardEditModal';
@@ -142,7 +142,10 @@ export default function Dashboard() {
 
   // Require 8px movement before drag starts, so clicks work normally
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(TouchSensor, {
       activationConstraint: { distance: 8 },
     })
   );
