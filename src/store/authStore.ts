@@ -46,6 +46,17 @@ const extractUserProfile = (user: User): AuthUser => {
   };
 };
 
+// Check if admin mode is enabled (bypasses authentication)
+const isAdminMode = import.meta.env.VITE_ADMIN_MODE === 'true';
+
+// Admin user profile for bypass mode
+const ADMIN_USER: AuthUser = {
+  id: 'admin-local',
+  email: 'admin@local',
+  name: 'Admin',
+  preferredUsername: 'admin',
+};
+
 // Track listener registration outside the store (module-level flag)
 let _authListenerRegistered = false;
 let _initializePromise: Promise<void> | null = null;
@@ -60,6 +71,18 @@ export const useAuthStore = create<AuthState>()(
       error: null,
 
       initialize: async () => {
+        // Admin mode: bypass authentication entirely
+        if (isAdminMode) {
+          set({
+            user: ADMIN_USER,
+            session: null,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+          return;
+        }
+
         if (!supabase) {
           set({ isLoading: false, error: 'Supabase not configured' });
           return;
@@ -159,6 +182,18 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signOut: async () => {
+        // In admin mode, just reset the state (no Supabase logout)
+        if (isAdminMode) {
+          set({
+            user: null,
+            session: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
+          return;
+        }
+
         if (!supabase) return;
 
         set({ isLoading: true });
